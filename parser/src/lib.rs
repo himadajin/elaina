@@ -1,3 +1,7 @@
+pub mod expr;
+
+use core::panic;
+
 use lexer::token::Token;
 
 struct TokenCursor {
@@ -24,6 +28,43 @@ impl TokenCursor {
         self.cursor += 1;
 
         Some(token)
+    }
+}
+
+pub struct Parser {
+    token: Token,
+
+    cursor: TokenCursor,
+}
+
+impl Parser {
+    pub fn new(tokens: Vec<Token>) -> Self {
+        assert!(tokens.len() >= 1, "tokens is empty");
+
+        let mut cursor = TokenCursor::new(tokens);
+
+        let token = cursor.next().unwrap();
+
+        Parser {
+            token: token,
+            cursor: cursor,
+        }
+    }
+
+    fn bump(&mut self) {
+        let next_token = self.cursor.next().unwrap_or(Token::Eof);
+        self.token = next_token;
+    }
+
+    fn expect_num(&mut self) -> String {
+        let digits = match &self.token {
+            Token::Num(s) => s.clone(),
+            _ => panic!("unexpected token"),
+        };
+
+        self.bump();
+
+        digits
     }
 }
 

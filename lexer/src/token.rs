@@ -20,4 +20,6 @@ pub enum Token {
 
     /// The `)` token
     CloseParen,
+
+    Eof,
 }
