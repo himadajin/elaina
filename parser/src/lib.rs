@@ -1,8 +1,7 @@
 pub mod expr;
 
+use ast::token::*;
 use core::panic;
-
-use lexer::token::Token;
 
 struct TokenCursor {
     tokens: Vec<Token>,
@@ -71,7 +70,7 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use lexer::token::Token;
+    use ast::token::Token;
 
     #[test]
     fn test_cursor() {

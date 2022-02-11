@@ -1,6 +1,4 @@
-pub mod token;
-
-use crate::token::Token;
+use ast::token::Token;
 use std::str::Chars;
 
 pub struct Lexer<'input> {

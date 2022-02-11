@@ -13,8 +13,10 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::lit::{Lit, LitInt};
-    use lexer::token::Token;
+    use ast::{
+        lit::{Lit, LitInt},
+        token::*,
+    };
 
     #[test]
     fn test_parse_lit() {
