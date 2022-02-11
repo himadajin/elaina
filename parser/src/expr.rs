@@ -14,7 +14,10 @@ impl Parser {
         Lit::Int(LitInt { digits: digits })
     }
 
-    #[allow(dead_code)]
+    pub fn parse_expr(&mut self) -> Expr {
+        self.parse_expr_mul()
+    }
+
     fn parse_expr_mul(&mut self) -> Expr {
         let lhs = self.parse_expr_unary();
 
@@ -83,7 +86,7 @@ mod tests {
 
     macro_rules! test_lit {
         ($input: expr, $expected: expr) => {
-            let tokens = lex_str($input);
+            let tokens = lex_all($input);
             let result = Parser::new(tokens).parse_lit();
 
             assert_eq!(result, $expected);
@@ -102,7 +105,7 @@ mod tests {
             let mut parser = Parser::new(tokens);
 
             assert_eq!(
-                parser.parse_expr_mul(),
+                parser.parse_expr(),
                 expr_binary(expr_lit_int("1"), BinOp::Mul, expr_lit_int("2"))
             );
         }
@@ -112,7 +115,7 @@ mod tests {
             let mut parser = Parser::new(tokens);
 
             assert_eq!(
-                parser.parse_expr_mul(),
+                parser.parse_expr(),
                 expr_binary(expr_lit_int("1"), BinOp::Div, expr_lit_int("2"))
             );
         }
@@ -125,7 +128,7 @@ mod tests {
             let mut parser = Parser::new(tokens);
 
             assert_eq!(
-                parser.parse_expr_unary(),
+                parser.parse_expr(),
                 expr_unary(UnOp::Neg, expr_lit_int("1")),
             );
         }
@@ -134,7 +137,7 @@ mod tests {
             let tokens = vec![Token::Num("1".into())];
             let mut parser = Parser::new(tokens);
 
-            assert_eq!(parser.parse_expr_unary(), expr_lit_int("1"),);
+            assert_eq!(parser.parse_expr(), expr_lit_int("1"),);
         }
     }
 }
