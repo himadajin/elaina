@@ -15,6 +15,34 @@ impl Parser {
     }
 
     #[allow(dead_code)]
+    fn parse_expr_mul(&mut self) -> Expr {
+        let lhs = self.parse_expr_unary();
+
+        if self.consume(&Token::Star) {
+            let rhs = self.parse_expr_mul();
+            let res = Expr::Binary(ExprBinary {
+                left: Box::new(lhs),
+                op: BinOp::Mul,
+                right: Box::new(rhs),
+            });
+
+            return res;
+        }
+
+        if self.consume(&Token::Slash) {
+            let rhs = self.parse_expr_mul();
+            let res = Expr::Binary(ExprBinary {
+                left: Box::new(lhs),
+                op: BinOp::Div,
+                right: Box::new(rhs),
+            });
+
+            return res;
+        }
+
+        lhs
+    }
+
     fn parse_expr_unary(&mut self) -> Expr {
         if self.consume(&Token::Minus) {
             let expr = self.parse_expr_primary();
@@ -47,6 +75,29 @@ mod tests {
         let mut parser = Parser::new(tokens);
 
         assert_eq!(parser.parse_lit(), lit_int("10"));
+    }
+
+    #[test]
+    fn test_parse_mul() {
+        {
+            let tokens = vec![Token::Num("1".into()), Token::Star, Token::Num("2".into())];
+            let mut parser = Parser::new(tokens);
+
+            assert_eq!(
+                parser.parse_expr_mul(),
+                expr_binary(expr_lit_int("1"), BinOp::Mul, expr_lit_int("2"))
+            );
+        }
+
+        {
+            let tokens = vec![Token::Num("1".into()), Token::Slash, Token::Num("2".into())];
+            let mut parser = Parser::new(tokens);
+
+            assert_eq!(
+                parser.parse_expr_mul(),
+                expr_binary(expr_lit_int("1"), BinOp::Div, expr_lit_int("2"))
+            );
+        }
     }
 
     #[test]
