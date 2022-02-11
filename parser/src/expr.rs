@@ -15,7 +15,35 @@ impl Parser {
     }
 
     pub fn parse_expr(&mut self) -> Expr {
-        self.parse_expr_mul()
+        self.parse_expr_add()
+    }
+
+    fn parse_expr_add(&mut self) -> Expr {
+        let lhs = self.parse_expr_mul();
+
+        if self.consume(&Token::Plus) {
+            let rhs = self.parse_expr();
+            let res = Expr::Binary(ExprBinary {
+                left: Box::new(lhs),
+                op: BinOp::Add,
+                right: Box::new(rhs),
+            });
+
+            return res;
+        }
+
+        if self.consume(&Token::Minus) {
+            let rhs = self.parse_expr();
+            let res = Expr::Binary(ExprBinary {
+                left: Box::new(lhs),
+                op: BinOp::Sub,
+                right: Box::new(rhs),
+            });
+
+            return res;
+        }
+
+        lhs
     }
 
     fn parse_expr_mul(&mut self) -> Expr {
@@ -112,6 +140,67 @@ mod tests {
     #[test]
     fn test_parse_lit() {
         test_lit!("10", lit_int("10"));
+    }
+
+    #[test]
+    fn test_parse_expr() {
+        test_expr!(
+            "1 * 2 + 3",
+            expr_binary(
+                expr_binary(expr_lit_int("1"), BinOp::Mul, expr_lit_int("2")),
+                BinOp::Add,
+                expr_lit_int("3"),
+            )
+        );
+
+        test_expr!(
+            "1 + 2 * 3",
+            expr_binary(
+                expr_lit_int("1"),
+                BinOp::Add,
+                expr_binary(expr_lit_int("2"), BinOp::Mul, expr_lit_int("3")),
+            )
+        );
+
+        test_expr!(
+            "1 * (2 + 3)",
+            expr_binary(
+                expr_lit_int("1"),
+                BinOp::Mul,
+                expr_binary(expr_lit_int("2"), BinOp::Add, expr_lit_int("3")),
+            )
+        );
+    }
+
+    #[test]
+    fn test_parse_add() {
+        test_expr!(
+            "1 + 2",
+            expr_binary(expr_lit_int("1"), BinOp::Add, expr_lit_int("2"))
+        );
+
+        test_expr!(
+            "1 - 2",
+            expr_binary(expr_lit_int("1"), BinOp::Sub, expr_lit_int("2"))
+        );
+
+        test_expr!(
+            "1 + 2 - 3",
+            expr_binary(
+                expr_lit_int("1"),
+                BinOp::Add,
+                expr_binary(expr_lit_int("2"), BinOp::Sub, expr_lit_int("3"))
+            )
+        );
+
+        test_expr!(
+            "-1 - 2",
+            expr_binary(
+                expr_unary(UnOp::Neg, expr_lit_int("1")),
+                BinOp::Sub,
+                expr_lit_int("2"),
+            )
+        );
     }
 
     #[test]
