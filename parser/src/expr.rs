@@ -39,19 +39,14 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::lit::{Lit, LitInt};
+    use ast::builder::{expr::*, lit::*};
 
     #[test]
     fn test_parse_lit() {
         let tokens = vec![Token::Num("10".into())];
         let mut parser = Parser::new(tokens);
 
-        assert_eq!(
-            parser.parse_lit(),
-            Lit::Int(LitInt {
-                digits: "10".into()
-            })
-        );
+        assert_eq!(parser.parse_lit(), lit_int("10"));
     }
 
     #[test]
@@ -62,12 +57,7 @@ mod tests {
 
             assert_eq!(
                 parser.parse_expr_unary(),
-                Expr::Unary(ExprUnary {
-                    op: UnOp::Neg,
-                    expr: Box::new(Expr::Lit(ExprLit {
-                        lit: Lit::Int(LitInt { digits: "1".into() })
-                    }))
-                })
+                expr_unary(UnOp::Neg, expr_lit_int("1")),
             );
         }
 
@@ -75,12 +65,7 @@ mod tests {
             let tokens = vec![Token::Num("1".into())];
             let mut parser = Parser::new(tokens);
 
-            assert_eq!(
-                parser.parse_expr_unary(),
-                Expr::Lit(ExprLit {
-                    lit: Lit::Int(LitInt { digits: "1".into() })
-                })
-            );
+            assert_eq!(parser.parse_expr_unary(), expr_lit_int("1"),);
         }
     }
 }
