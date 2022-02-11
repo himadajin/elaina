@@ -93,6 +93,15 @@ mod tests {
         };
     }
 
+    macro_rules! test_expr {
+        ($input: expr, $expected: expr) => {
+            let tokens = lex_all($input);
+            let result = Parser::new(tokens).parse_expr();
+
+            assert_eq!(result, $expected);
+        };
+    }
+
     #[test]
     fn test_parse_lit() {
         test_lit!("10", lit_int("10"));
@@ -100,44 +109,19 @@ mod tests {
 
     #[test]
     fn test_parse_mul() {
-        {
-            let tokens = vec![Token::Num("1".into()), Token::Star, Token::Num("2".into())];
-            let mut parser = Parser::new(tokens);
-
-            assert_eq!(
-                parser.parse_expr(),
-                expr_binary(expr_lit_int("1"), BinOp::Mul, expr_lit_int("2"))
-            );
-        }
-
-        {
-            let tokens = vec![Token::Num("1".into()), Token::Slash, Token::Num("2".into())];
-            let mut parser = Parser::new(tokens);
-
-            assert_eq!(
-                parser.parse_expr(),
-                expr_binary(expr_lit_int("1"), BinOp::Div, expr_lit_int("2"))
-            );
-        }
+        test_expr!(
+            "1 * 2",
+            expr_binary(expr_lit_int("1"), BinOp::Mul, expr_lit_int("2"))
+        );
+        test_expr!(
+            "1 / 2",
+            expr_binary(expr_lit_int("1"), BinOp::Div, expr_lit_int("2"))
+        );
     }
 
     #[test]
     fn test_parse_unary() {
-        {
-            let tokens = vec![Token::Minus, Token::Num("1".into())];
-            let mut parser = Parser::new(tokens);
-
-            assert_eq!(
-                parser.parse_expr(),
-                expr_unary(UnOp::Neg, expr_lit_int("1")),
-            );
-        }
-
-        {
-            let tokens = vec![Token::Num("1".into())];
-            let mut parser = Parser::new(tokens);
-
-            assert_eq!(parser.parse_expr(), expr_lit_int("1"),);
-        }
+        test_expr!("-1", expr_unary(UnOp::Neg, expr_lit_int("1")));
+        test_expr!("1", expr_lit_int("1"));
     }
 }
