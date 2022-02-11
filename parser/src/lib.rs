@@ -65,6 +65,16 @@ impl Parser {
 
         digits
     }
+
+    fn consume(&mut self, expected: &Token) -> bool {
+        if &self.token == expected {
+            self.bump();
+
+            return true;
+        }
+
+        false
+    }
 }
 
 #[cfg(test)]

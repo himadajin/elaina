@@ -16,19 +16,17 @@ impl Parser {
 
     #[allow(dead_code)]
     fn parse_expr_unary(&mut self) -> Expr {
-        match &self.token {
-            Token::Minus => (),
-            t => panic!("Expected unary operator but got {:?}", t),
+        if self.consume(&Token::Minus) {
+            let expr = self.parse_expr_primary();
+            let res = Expr::Unary(ExprUnary {
+                op: UnOp::Neg,
+                expr: Box::new(expr),
+            });
+
+            return res;
         }
 
-        self.bump();
-
-        let expr = self.parse_expr_primary();
-
-        Expr::Unary(ExprUnary {
-            op: UnOp::Neg,
-            expr: Box::new(expr),
-        })
+        self.parse_expr_primary()
     }
 
     fn parse_expr_primary(&mut self) -> Expr {
@@ -41,10 +39,7 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::{
-        lit::{Lit, LitInt},
-        token::*,
-    };
+    use ast::lit::{Lit, LitInt};
 
     #[test]
     fn test_parse_lit() {
@@ -61,17 +56,31 @@ mod tests {
 
     #[test]
     fn test_parse_unary() {
-        let tokens = vec![Token::Minus, Token::Num("1".into())];
-        let mut parser = Parser::new(tokens);
+        {
+            let tokens = vec![Token::Minus, Token::Num("1".into())];
+            let mut parser = Parser::new(tokens);
 
-        assert_eq!(
-            parser.parse_expr_unary(),
-            Expr::Unary(ExprUnary {
-                op: UnOp::Neg,
-                expr: Box::new(Expr::Lit(ExprLit {
+            assert_eq!(
+                parser.parse_expr_unary(),
+                Expr::Unary(ExprUnary {
+                    op: UnOp::Neg,
+                    expr: Box::new(Expr::Lit(ExprLit {
+                        lit: Lit::Int(LitInt { digits: "1".into() })
+                    }))
+                })
+            );
+        }
+
+        {
+            let tokens = vec![Token::Num("1".into())];
+            let mut parser = Parser::new(tokens);
+
+            assert_eq!(
+                parser.parse_expr_unary(),
+                Expr::Lit(ExprLit {
                     lit: Lit::Int(LitInt { digits: "1".into() })
-                }))
-            })
-        );
+                })
+            );
+        }
     }
 }
