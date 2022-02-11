@@ -68,13 +68,31 @@ impl Parser {
 mod tests {
     use super::*;
     use ast::builder::{expr::*, lit::*};
+    use lexer::Lexer;
+
+    fn lex_all(input: &str) -> Vec<Token> {
+        let mut lexer = Lexer::new(input);
+
+        let mut tokens = Vec::new();
+        while let Some(token) = lexer.next_token() {
+            tokens.push(token);
+        }
+
+        return tokens;
+    }
+
+    macro_rules! test_lit {
+        ($input: expr, $expected: expr) => {
+            let tokens = lex_str($input);
+            let result = Parser::new(tokens).parse_lit();
+
+            assert_eq!(result, $expected);
+        };
+    }
 
     #[test]
     fn test_parse_lit() {
-        let tokens = vec![Token::Num("10".into())];
-        let mut parser = Parser::new(tokens);
-
-        assert_eq!(parser.parse_lit(), lit_int("10"));
+        test_lit!("10", lit_int("10"));
     }
 
     #[test]
