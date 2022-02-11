@@ -113,9 +113,28 @@ mod tests {
             "1 * 2",
             expr_binary(expr_lit_int("1"), BinOp::Mul, expr_lit_int("2"))
         );
+
         test_expr!(
             "1 / 2",
             expr_binary(expr_lit_int("1"), BinOp::Div, expr_lit_int("2"))
+        );
+
+        test_expr!(
+            "1 * 2 / 3",
+            expr_binary(
+                expr_lit_int("1"),
+                BinOp::Mul,
+                expr_binary(expr_lit_int("2"), BinOp::Div, expr_lit_int("3"))
+            )
+        );
+        
+        test_expr!(
+            "-1 * 2",
+            expr_binary(
+                expr_unary(UnOp::Neg, expr_lit_int("1")),
+                BinOp::Mul,
+                expr_lit_int("2")
+            )
         );
     }
 
