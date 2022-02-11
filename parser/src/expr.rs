@@ -61,6 +61,13 @@ impl Parser {
     }
 
     fn parse_expr_primary(&mut self) -> Expr {
+        if self.consume(&Token::OpenParen) {
+            let expr = self.parse_expr();
+            self.expect(&Token::CloseParen);
+
+            return expr;
+        }
+
         let lit = self.parse_lit();
 
         Expr::Lit(ExprLit { lit: lit })
@@ -127,7 +134,7 @@ mod tests {
                 expr_binary(expr_lit_int("2"), BinOp::Div, expr_lit_int("3"))
             )
         );
-        
+
         test_expr!(
             "-1 * 2",
             expr_binary(
@@ -142,5 +149,15 @@ mod tests {
     fn test_parse_unary() {
         test_expr!("-1", expr_unary(UnOp::Neg, expr_lit_int("1")));
         test_expr!("1", expr_lit_int("1"));
+    }
+
+    #[test]
+    fn test_parse_primary() {
+        test_expr!("1", expr_lit_int("1"));
+        test_expr!("(1)", expr_lit_int("1"));
+        test_expr!(
+            "(1 * 2)",
+            expr_binary(expr_lit_int("1"), BinOp::Mul, expr_lit_int("2"))
+        );
     }
 }

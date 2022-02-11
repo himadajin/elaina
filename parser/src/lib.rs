@@ -55,6 +55,14 @@ impl Parser {
         self.token = next_token;
     }
 
+    fn expect(&mut self, expected: &Token) {
+        if &self.token != expected {
+            panic!("expected {:?} but current token is {:?}", expected, self.token);
+        }
+
+        self.bump();
+    }
+
     fn expect_num(&mut self) -> String {
         let digits = match &self.token {
             Token::Num(s) => s.clone(),
