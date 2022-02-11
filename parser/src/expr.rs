@@ -23,12 +23,18 @@ impl Parser {
 
         self.bump();
 
-        let expr = self.parse_lit();
+        let expr = self.parse_expr_primary();
 
         Expr::Unary(ExprUnary {
             op: UnOp::Neg,
-            expr: Box::new(Expr::Lit(ExprLit { lit: expr })),
+            expr: Box::new(expr),
         })
+    }
+
+    fn parse_expr_primary(&mut self) -> Expr {
+        let lit = self.parse_lit();
+
+        Expr::Lit(ExprLit { lit: lit })
     }
 }
 
