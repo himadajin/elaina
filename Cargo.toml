@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 ast = { path = "ast" }
+index = { path = "index" }
 ir = { path = "ir" }
 lexer = {path = "lexer" }
 parser = { path = "parser" }
