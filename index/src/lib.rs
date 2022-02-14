@@ -21,6 +21,7 @@ impl<T> Idx<T> {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IndexVec<T> {
     raw: Vec<T>,
 }
@@ -48,7 +49,7 @@ impl<T> IndexVec<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn push_and_get() {
         let mut v = IndexVec::new();
