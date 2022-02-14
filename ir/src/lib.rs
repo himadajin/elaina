@@ -1,8 +1,10 @@
+use index::*;
+
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct Body {
     stmts: Vec<Statement>,
-    local_decls: Vec<LocalDecl>,
+    local_decls: IndexVec<LocalDecl>,
 }
 
 #[allow(dead_code)]
@@ -36,7 +38,7 @@ pub enum Operand {
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct Place {
-    local: usize,
+    local: Idx<LocalDecl>,
 }
 
 #[allow(dead_code)]
