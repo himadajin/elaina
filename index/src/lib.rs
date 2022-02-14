@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Idx<T> {
     idx: usize,
     _marker: PhantomData<T>,
