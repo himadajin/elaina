@@ -38,13 +38,19 @@ pub enum Operand {
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct Place {
-    local: Idx<LocalDecl>,
+    pub local: Idx<LocalDecl>,
 }
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct LocalDecl {
     name: Option<String>,
+}
+
+impl LocalDecl {
+    pub fn new_anonymous() -> Self {
+        LocalDecl { name: None }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -55,6 +61,6 @@ pub enum Constant {
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct ScalarInt {
-    data: u128,
-    size: u8,
+    pub data: u128,
+    pub size: u8,
 }
