@@ -20,6 +20,13 @@ impl LoweringContext {
         }
     }
 
+    pub fn build(self) -> Body {
+        Body {
+            stmts: self.stmts,
+            local_decls: self.locals,
+        }
+    }
+
     pub fn lower_expr(&mut self, expr: &expr::Expr) -> Idx<LocalDecl> {
         match expr {
             expr::Expr::Binary(_) => todo!(),
@@ -39,9 +46,7 @@ impl LoweringContext {
                 let operand = Operand::Constant(Box::new(constant));
                 let local_decl = LocalDecl::new_anonymous();
                 let idx = self.locals.push(local_decl);
-                let place = Place {
-                    local: idx.clone(),
-                };
+                let place = Place { local: idx.clone() };
                 let rvalue = RValue::Use(operand);
                 let statement = Statement::Assign(Box::new((place, rvalue)));
 

@@ -3,8 +3,8 @@ use index::*;
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct Body {
-    stmts: Vec<Statement>,
-    local_decls: IndexVec<LocalDecl>,
+    pub stmts: Vec<Statement>,
+    pub local_decls: IndexVec<LocalDecl>,
 }
 
 #[allow(dead_code)]
