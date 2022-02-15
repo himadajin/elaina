@@ -1,5 +1,6 @@
-use std::fmt::{self, write};
+use std::fmt;
 use std::marker::PhantomData;
+use std::vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Idx<T> {
@@ -50,6 +51,15 @@ impl<T> IndexVec<T> {
     #[inline]
     pub fn get(&self, idx: Idx<T>) -> &T {
         &self.raw[idx.index()]
+    }
+}
+
+impl<T> IntoIterator for IndexVec<T> {
+    type Item = T;
+    type IntoIter = vec::IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.raw.into_iter()
     }
 }
 
