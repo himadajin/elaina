@@ -44,7 +44,7 @@ impl LoweringContext {
                     size: 32,
                 });
                 let operand = Operand::Constant(Box::new(constant));
-                let local_decl = LocalDecl::new_anonymous();
+                let local_decl = LocalDecl::unnamed();
                 let idx = self.locals.push(local_decl);
                 let place = Place { local: idx.clone() };
                 let rvalue = RValue::Use(operand);

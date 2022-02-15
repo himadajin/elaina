@@ -48,7 +48,7 @@ pub struct LocalDecl {
 }
 
 impl LocalDecl {
-    pub fn new_anonymous() -> Self {
+    pub fn unnamed() -> Self {
         LocalDecl { name: None }
     }
 }
