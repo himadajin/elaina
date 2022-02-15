@@ -1,3 +1,4 @@
+use std::fmt::{self, write};
 use std::marker::PhantomData;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -18,6 +19,12 @@ impl<T> Idx<T> {
     #[inline]
     fn index(self) -> usize {
         self.idx
+    }
+}
+
+impl<T> fmt::Display for Idx<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.idx)
     }
 }
 
