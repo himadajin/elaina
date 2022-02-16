@@ -14,9 +14,9 @@ pub enum Expr {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ExprBinary {
-    pub left: Box<Expr>,
+    pub lhs: Box<Expr>,
     pub op: BinOp,
-    pub right: Box<Expr>,
+    pub rhs: Box<Expr>,
 }
 
 #[derive(Debug, PartialEq, Clone)]

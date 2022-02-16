@@ -44,8 +44,8 @@ impl LoweringContext {
     }
 
     fn lower_expr_binary(&mut self, expr: &expr::ExprBinary) -> Operand {
-        let lhs = self.lower_expr(&expr.left);
-        let rhs = self.lower_expr(&expr.right);
+        let lhs = self.lower_expr(&expr.lhs);
+        let rhs = self.lower_expr(&expr.rhs);
 
         let op = match expr.op {
             ast::op::BinOp::Add => BinOp::Add,

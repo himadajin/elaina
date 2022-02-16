@@ -2,9 +2,9 @@ use crate::{expr::*, lit::*, op::*};
 
 pub fn expr_binary(lhs: Expr, op: BinOp, rhs: Expr) -> Expr {
     Expr::Binary(ExprBinary {
-        left: Box::new(lhs),
+        lhs: Box::new(lhs),
         op: op,
-        right: Box::new(rhs),
+        rhs: Box::new(rhs),
     })
 }
 

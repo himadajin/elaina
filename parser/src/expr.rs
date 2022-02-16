@@ -24,9 +24,9 @@ impl Parser {
         if self.consume(&Token::Plus) {
             let rhs = self.parse_expr();
             let res = Expr::Binary(ExprBinary {
-                left: Box::new(lhs),
+                lhs: Box::new(lhs),
                 op: BinOp::Add,
-                right: Box::new(rhs),
+                rhs: Box::new(rhs),
             });
 
             return res;
@@ -35,9 +35,9 @@ impl Parser {
         if self.consume(&Token::Minus) {
             let rhs = self.parse_expr();
             let res = Expr::Binary(ExprBinary {
-                left: Box::new(lhs),
+                lhs: Box::new(lhs),
                 op: BinOp::Sub,
-                right: Box::new(rhs),
+                rhs: Box::new(rhs),
             });
 
             return res;
@@ -52,9 +52,9 @@ impl Parser {
         if self.consume(&Token::Star) {
             let rhs = self.parse_expr_mul();
             let res = Expr::Binary(ExprBinary {
-                left: Box::new(lhs),
+                lhs: Box::new(lhs),
                 op: BinOp::Mul,
-                right: Box::new(rhs),
+                rhs: Box::new(rhs),
             });
 
             return res;
@@ -63,9 +63,9 @@ impl Parser {
         if self.consume(&Token::Slash) {
             let rhs = self.parse_expr_mul();
             let res = Expr::Binary(ExprBinary {
-                left: Box::new(lhs),
+                lhs: Box::new(lhs),
                 op: BinOp::Div,
-                right: Box::new(rhs),
+                rhs: Box::new(rhs),
             });
 
             return res;
