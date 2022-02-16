@@ -68,6 +68,8 @@ impl<'input> Lexer<'input> {
                 '(' => Token::OpenParen,
                 ')' => Token::CloseParen,
 
+                ';' => Token::Semi,
+
                 '0'..='9' => return Some(self.read_number()),
 
                 _ => unimplemented!(),
@@ -124,5 +126,7 @@ mod tests {
 
         test_lexer!("(", vec![Token::OpenParen]);
         test_lexer!(")", vec![Token::CloseParen]);
+
+        test_lexer!(";", vec![Token::Semi]);
     }
 }

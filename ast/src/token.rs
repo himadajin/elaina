@@ -21,5 +21,8 @@ pub enum Token {
     /// The `)` token
     CloseParen,
 
+    /// The `'` token
+    Semi,
+
     Eof,
 }
