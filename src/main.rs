@@ -1,3 +1,4 @@
+use ast_lowering::LoweringContext;
 use clap::{ArgEnum, Parser};
 use lexer::Lexer;
 use parser;
@@ -17,6 +18,7 @@ struct Args {
 enum PPrintMode {
     Token,
     AST,
+    IR,
 }
 
 fn main() -> io::Result<()> {
@@ -28,6 +30,7 @@ fn main() -> io::Result<()> {
             match mode {
                 PPrintMode::Token => pprint_token(&input),
                 PPrintMode::AST => pprint_ast(&input),
+                PPrintMode::IR => pprint_ir(&input),
             }
         }
         None => (),
@@ -65,4 +68,27 @@ fn pprint_ast(input: &str) {
     let ast = parser::Parser::new(tokens).parse_expr();
 
     println!("{:?}", ast);
+}
+
+fn pprint_ir(input: &str) {
+    let mut lexer = Lexer::new(&input);
+
+    let mut tokens = Vec::new();
+    while let Some(token) = lexer.next_token() {
+        tokens.push(token);
+    }
+
+    let ast = parser::Parser::new(tokens).parse_expr();
+    let mut lowering_ctx = LoweringContext::new();
+    lowering_ctx.lower_expr(&ast);
+
+    let ir = lowering_ctx.build();
+
+    for local in ir.local_decls {
+        println!("{}", &local);
+    }
+
+    for stmt in ir.stmts {
+        println!("{}", &stmt);
+    }
 }

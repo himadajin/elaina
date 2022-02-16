@@ -5,8 +5,7 @@ use ast::{
 use index::*;
 use ir::*;
 
-#[allow(dead_code)]
-struct LoweringContext {
+pub struct LoweringContext {
     locals: IndexVec<LocalDecl>,
     stmts: Vec<Statement>,
 }
