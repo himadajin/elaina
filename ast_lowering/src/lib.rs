@@ -43,8 +43,7 @@ impl LoweringContext {
                     size: 32,
                 });
                 let operand = Operand::Constant(Box::new(constant));
-                let local_decl = LocalDecl::unnamed();
-                let idx = self.locals.push(local_decl);
+                let idx = self.push_unnamed_local();
                 let place = Place { local: idx.clone() };
                 let rvalue = RValue::Use(operand);
                 let statement = Statement::Assign(Box::new((place, rvalue)));
@@ -54,5 +53,12 @@ impl LoweringContext {
                 idx
             }
         }
+    }
+
+    fn push_unnamed_local(&mut self) -> Idx<LocalDecl> {
+        let local_decl = LocalDecl::unnamed();
+        let idx = self.locals.push(local_decl);
+
+        idx
     }
 }
