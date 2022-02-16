@@ -1,6 +1,7 @@
 use ast::{
     expr,
     lit::{self, LitInt},
+    stmt,
 };
 use index::*;
 use ir::*;
@@ -26,13 +27,17 @@ impl LoweringContext {
         }
     }
 
-    pub fn lower_stmt_expr(&mut self, expr: &expr::Expr) {
-        let operand = self.lower_expr(expr);
+    pub fn lower_stmt(&mut self, stmt: &stmt::Stmt) {
+        match stmt {
+            stmt::Stmt::Expr(expr) => {
+                let operand = self.lower_expr(expr);
 
-        let rvalue = RValue::Use(operand);
-        let place = self.push_unnamed_local();
-        let statement = Statement::Assign(Box::new((place, rvalue)));
-        self.stmts.push(statement);
+                let rvalue = RValue::Use(operand);
+                let place = self.push_unnamed_local();
+                let statement = Statement::Assign(Box::new((place, rvalue)));
+                self.stmts.push(statement);
+            }
+        }
     }
 
     pub fn lower_expr(&mut self, expr: &expr::Expr) -> Operand {
