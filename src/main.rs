@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{ArgEnum, Parser};
 use lexer::Lexer;
 use parser;
 use std::{
@@ -9,22 +9,23 @@ use std::{
 struct Args {
     filename: String,
 
-    #[clap(long)]
-    lexer: bool,
+    #[clap(long, arg_enum)]
+    pprint: Option<PPrintMode>,
+}
 
-    #[clap(long)]
-    parser: bool,
+#[derive(Debug, Copy, Clone, ArgEnum)]
+enum PPrintMode {
+    Token,
+    AST,
 }
 
 fn main() -> io::Result<()> {
     let args = Args::parse();
 
-    if args.lexer {
-        run_lexer(&args.filename)?;
-    }
-
-    if args.parser {
-        run_parser(&args.filename)?;
+    match args.pprint {
+        Some(PPrintMode::Token) => run_lexer(&args.filename)?,
+        Some(PPrintMode::AST) => run_parser(&args.filename)?,
+        None => (),
     }
 
     Ok(())
@@ -63,7 +64,6 @@ fn run_parser(filename: &str) -> io::Result<()> {
     let ast = parser::Parser::new(tokens).parse_expr();
 
     println!("{:?}", ast);
-
 
     Ok(())
 }
