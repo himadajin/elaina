@@ -81,6 +81,12 @@ pub struct Place {
     pub local: Idx<LocalDecl>,
 }
 
+impl Place {
+    pub fn new(idx: Idx<LocalDecl>) -> Self {
+        Place { local: idx }
+    }
+}
+
 impl fmt::Display for Place {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "%{}", self.local)

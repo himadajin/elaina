@@ -44,7 +44,7 @@ impl LoweringContext {
                 });
                 let operand = Operand::Constant(Box::new(constant));
                 let idx = self.push_unnamed_local();
-                let place = Place { local: idx.clone() };
+                let place = Place::new(idx.clone());
                 let rvalue = RValue::Use(operand);
                 let statement = Statement::Assign(Box::new((place, rvalue)));
 
