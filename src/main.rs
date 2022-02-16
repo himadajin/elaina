@@ -23,8 +23,13 @@ fn main() -> io::Result<()> {
     let args = Args::parse();
 
     match args.pprint {
-        Some(PPrintMode::Token) => run_lexer(&args.filename)?,
-        Some(PPrintMode::AST) => run_parser(&args.filename)?,
+        Some(mode) => {
+            let input = read_file(&args.filename)?;
+            match mode {
+                PPrintMode::Token => pprint_token(&input),
+                PPrintMode::AST => pprint_ast(&input),
+            }
+        }
         None => (),
     }
 
@@ -41,21 +46,15 @@ fn read_file(filename: &str) -> io::Result<String> {
     Ok(input)
 }
 
-fn run_lexer(filename: &str) -> io::Result<()> {
-    let input = read_file(filename)?;
-
+fn pprint_token(input: &str) {
     let mut lexer = Lexer::new(&input);
 
     while let Some(token) = lexer.next_token() {
         println!("{:?}", token);
     }
-
-    Ok(())
 }
 
-fn run_parser(filename: &str) -> io::Result<()> {
-    let input = read_file(filename)?;
-
+fn pprint_ast(input: &str) {
     let mut lexer = Lexer::new(&input);
 
     let mut tokens = Vec::new();
@@ -66,6 +65,4 @@ fn run_parser(filename: &str) -> io::Result<()> {
     let ast = parser::Parser::new(tokens).parse_expr();
 
     println!("{:?}", ast);
-
-    Ok(())
 }
