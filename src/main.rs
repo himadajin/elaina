@@ -31,12 +31,18 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn run_lexer(filename: &str) -> io::Result<()> {
+fn read_file(filename: &str) -> io::Result<String> {
     let file = File::open(filename)?;
     let mut buf_reader = BufReader::new(file);
     let mut input = String::new();
 
     buf_reader.read_to_string(&mut input)?;
+
+    Ok(input)
+}
+
+fn run_lexer(filename: &str) -> io::Result<()> {
+    let input = read_file(filename)?;
 
     let mut lexer = Lexer::new(&input);
 
@@ -48,11 +54,7 @@ fn run_lexer(filename: &str) -> io::Result<()> {
 }
 
 fn run_parser(filename: &str) -> io::Result<()> {
-    let file = File::open(filename)?;
-    let mut buf_reader = BufReader::new(file);
-    let mut input = String::new();
-
-    buf_reader.read_to_string(&mut input)?;
+    let input = read_file(filename)?;
 
     let mut lexer = Lexer::new(&input);
 
