@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 ast = { path = "ast" }
 ast_lowering = { path = "ast_lowering" }
+codegen_llvm = { path = "codegen_llvm" }
 index = { path = "index" }
 ir = { path = "ir" }
 lexer = {path = "lexer" }
