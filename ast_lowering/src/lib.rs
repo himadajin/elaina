@@ -26,7 +26,16 @@ impl LoweringContext {
         }
     }
 
-    pub fn lower_expr(&mut self, expr: &expr::Expr) -> Idx<LocalDecl> {
+    pub fn lower_stmt_expr(&mut self, expr: &expr::Expr) {
+        let operand = self.lower_expr(expr);
+
+        let rvalue = RValue::Use(operand);
+        let place = self.push_unnamed_local();
+        let statement = Statement::Assign(Box::new((place, rvalue)));
+        self.stmts.push(statement);
+    }
+
+    pub fn lower_expr(&mut self, expr: &expr::Expr) -> Operand {
         match expr {
             expr::Expr::Binary(expr) => self.lower_expr_binary(expr),
             expr::Expr::Unary(_) => todo!(),
@@ -34,12 +43,9 @@ impl LoweringContext {
         }
     }
 
-    fn lower_expr_binary(&mut self, expr: &expr::ExprBinary) -> Idx<LocalDecl> {
+    fn lower_expr_binary(&mut self, expr: &expr::ExprBinary) -> Operand {
         let lhs = self.lower_expr(&expr.left);
         let rhs = self.lower_expr(&expr.right);
-
-        let operand_lhs = Operand::Copy(Place::new(lhs));
-        let operand_rhs = Operand::Copy(Place::new(rhs));
 
         let op = match expr.op {
             ast::op::BinOp::Add => BinOp::Add,
@@ -48,16 +54,15 @@ impl LoweringContext {
             ast::op::BinOp::Div => BinOp::Div,
         };
 
-        let rvalue = RValue::BinaryOp(op, Box::new((operand_lhs, operand_rhs)));
-        let idx = self.push_unnamed_local();
-        let place = Place::new(idx.clone());
-        let statement = Statement::Assign(Box::new((place, rvalue)));
+        let rvalue = RValue::BinaryOp(op, Box::new((lhs, rhs)));
+        let place = self.push_unnamed_local();
+        let statement = Statement::Assign(Box::new((place.clone(), rvalue)));
         self.stmts.push(statement);
 
-        idx
+        Operand::Copy(place)
     }
 
-    fn lower_expr_lit(&mut self, expr: &expr::ExprLit) -> Idx<LocalDecl> {
+    fn lower_expr_lit(&mut self, expr: &expr::ExprLit) -> Operand {
         match &expr.lit {
             lit::Lit::Int(LitInt { digits }) => {
                 let data: u128 = digits.parse().unwrap();
@@ -65,23 +70,15 @@ impl LoweringContext {
                     data: data,
                     size: 32,
                 });
-                let operand = Operand::Constant(Box::new(constant));
-                let idx = self.push_unnamed_local();
-                let place = Place::new(idx.clone());
-                let rvalue = RValue::Use(operand);
-                let statement = Statement::Assign(Box::new((place, rvalue)));
-
-                self.stmts.push(statement);
-
-                idx
+                Operand::Constant(Box::new(constant))
             }
         }
     }
 
-    fn push_unnamed_local(&mut self) -> Idx<LocalDecl> {
+    fn push_unnamed_local(&mut self) -> Place {
         let local_decl = LocalDecl::unnamed();
         let idx = self.locals.push(local_decl);
 
-        idx
+        Place::new(idx)
     }
 }

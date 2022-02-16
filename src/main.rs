@@ -80,7 +80,7 @@ fn pprint_ir(input: &str) {
 
     let ast = parser::Parser::new(tokens).parse_expr();
     let mut lowering_ctx = LoweringContext::new();
-    lowering_ctx.lower_expr(&ast);
+    lowering_ctx.lower_stmt_expr(&ast);
 
     let ir = lowering_ctx.build();
 
