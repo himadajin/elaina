@@ -28,10 +28,33 @@ impl LoweringContext {
 
     pub fn lower_expr(&mut self, expr: &expr::Expr) -> Idx<LocalDecl> {
         match expr {
-            expr::Expr::Binary(_) => todo!(),
+            expr::Expr::Binary(expr) => self.lower_expr_binary(expr),
             expr::Expr::Unary(_) => todo!(),
             expr::Expr::Lit(lit) => self.lower_expr_lit(lit),
         }
+    }
+
+    fn lower_expr_binary(&mut self, expr: &expr::ExprBinary) -> Idx<LocalDecl> {
+        let lhs = self.lower_expr(&expr.left);
+        let rhs = self.lower_expr(&expr.right);
+
+        let operand_lhs = Operand::Copy(Place::new(lhs));
+        let operand_rhs = Operand::Copy(Place::new(rhs));
+
+        let op = match expr.op {
+            ast::op::BinOp::Add => BinOp::Add,
+            ast::op::BinOp::Sub => BinOp::Sub,
+            ast::op::BinOp::Mul => BinOp::Mul,
+            ast::op::BinOp::Div => BinOp::Div,
+        };
+
+        let rvalue = RValue::BinaryOp(op, Box::new((operand_lhs, operand_rhs)));
+        let idx = self.push_unnamed_local();
+        let place = Place::new(idx.clone());
+        let statement = Statement::Assign(Box::new((place, rvalue)));
+        self.stmts.push(statement);
+
+        idx
     }
 
     fn lower_expr_lit(&mut self, expr: &expr::ExprLit) -> Idx<LocalDecl> {
