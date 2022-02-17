@@ -92,7 +92,7 @@ fn pprint_ir(input: &str) {
         println!("{}", &local);
     }
 
-    for stmt in ir.stmts {
+    for stmt in &ir.blocks.first().unwrap().stmts {
         println!("{}", &stmt);
     }
 }

@@ -11,8 +11,16 @@ use typed_index_collections::TiVec;
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct Body {
-    pub stmts: Vec<Statement>,
+    pub blocks: TiVec<BlockId, Block>,
     pub local_decls: TiVec<LocalId, LocalDecl>,
+}
+
+#[derive(Debug, From, Into, PartialEq, Clone, Copy)]
+pub struct BlockId(usize);
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Block {
+    pub stmts: Vec<Statement>,
 }
 
 #[allow(dead_code)]

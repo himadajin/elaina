@@ -22,8 +22,11 @@ impl LoweringContext {
     }
 
     pub fn build(self) -> Body {
+        let mut blocks = TiVec::new();
+        blocks.push(Block { stmts: self.stmts });
+
         Body {
-            stmts: self.stmts,
+            blocks: blocks,
             local_decls: self.locals,
         }
     }
