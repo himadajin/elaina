@@ -3,7 +3,7 @@ use ast::{
     lit::{self, LitInt},
     stmt,
 };
-use ir::*;
+use ir::{constant::*, stmt::*, *};
 
 use typed_index_collections::TiVec;
 
