@@ -3,11 +3,12 @@ use ast::{
     lit::{self, LitInt},
     stmt,
 };
-use index::*;
 use ir::*;
 
+use typed_index_collections::TiVec;
+
 pub struct LoweringContext {
-    locals: IndexVec<LocalDecl>,
+    locals: TiVec<LocalId, LocalDecl>,
     stmts: Vec<Statement>,
 }
 
@@ -15,7 +16,7 @@ pub struct LoweringContext {
 impl LoweringContext {
     pub fn new() -> Self {
         LoweringContext {
-            locals: IndexVec::new(),
+            locals: TiVec::new(),
             stmts: Vec::new(),
         }
     }
@@ -82,8 +83,8 @@ impl LoweringContext {
 
     fn push_unnamed_local(&mut self) -> Place {
         let local_decl = LocalDecl::unnamed();
-        let idx = self.locals.push(local_decl);
+        let id = self.locals.push_and_get_key(local_decl);
 
-        Place::new(idx)
+        Place::new(id)
     }
 }

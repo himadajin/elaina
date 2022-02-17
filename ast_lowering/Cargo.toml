@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 ast = { path = "../ast" }
-index = { path = "../index" }
 ir = { path = "../ir" }
+
+typed-index-collections = "3.0"
