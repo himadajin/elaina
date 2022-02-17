@@ -1,6 +1,6 @@
 use ast_lowering::LoweringContext;
 use clap::{ArgEnum, Parser};
-use codegen_llvm::codegen_ir;
+use codegen_llvm::codegen_ir_body;
 use lexer::Lexer;
 use parser;
 
@@ -97,6 +97,19 @@ fn pprint_ir(input: &str) {
     }
 }
 
-fn pprint_llvm(_input: &str) {
-    print!("{}", codegen_ir());
+fn pprint_llvm(input: &str) {
+    let mut lexer = Lexer::new(&input);
+
+    let mut tokens = Vec::new();
+    while let Some(token) = lexer.next_token() {
+        tokens.push(token);
+    }
+
+    let ast = parser::Parser::new(tokens).parse_stmt();
+    let mut lowering_ctx = LoweringContext::new();
+    lowering_ctx.lower_stmt(&ast);
+
+    let ir = lowering_ctx.build();
+
+    print!("{}", codegen_ir_body(ir));
 }

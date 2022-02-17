@@ -9,3 +9,4 @@ edition = "2021"
 ir = { path = "../ir" }
 
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm13-0"] }
+typed-index-collections = "3.0"

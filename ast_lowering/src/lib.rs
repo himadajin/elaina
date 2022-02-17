@@ -11,7 +11,6 @@ pub struct LoweringContext {
     block_at: BlockId,
 }
 
-#[allow(dead_code)]
 impl LoweringContext {
     pub fn new() -> Self {
         LoweringContext {

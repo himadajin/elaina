@@ -75,10 +75,16 @@ impl fmt::Display for Place {
 #[derive(Debug, From, Into, PartialEq, Clone, Copy)]
 pub struct LocalId(usize);
 
+impl LocalId {
+    pub fn index(&self) -> usize {
+        self.0
+    }
+}
+
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct LocalDecl {
-    name: Option<String>,
+    pub name: Option<String>,
 }
 
 impl LocalDecl {
