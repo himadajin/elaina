@@ -12,15 +12,46 @@ use typed_index_collections::TiVec;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Body {
     pub blocks: TiVec<BlockId, Block>,
+
+    /// The first local is return value
     pub local_decls: TiVec<LocalId, LocalDecl>,
+}
+
+impl Body {
+    pub fn new() -> Self {
+        let mut body = Body {
+            blocks: TiVec::new(),
+            local_decls: TiVec::new(),
+        };
+
+        body.local_decls.push(LocalDecl::named("ret".into()));
+
+        body
+    }
+
+    pub fn local_return(&self) -> Place {
+        Place { local: LocalId(0) }
+    }
 }
 
 #[derive(Debug, From, Into, PartialEq, Clone, Copy)]
 pub struct BlockId(usize);
 
+impl BlockId {
+    pub fn dummy() -> Self {
+        BlockId(usize::MAX)
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Block {
     pub stmts: Vec<Statement>,
+}
+
+impl Block {
+    pub fn new() -> Self {
+        Block { stmts: Vec::new() }
+    }
 }
 
 #[allow(dead_code)]
@@ -51,6 +82,10 @@ pub struct LocalDecl {
 }
 
 impl LocalDecl {
+    pub fn named(name: String) -> Self {
+        LocalDecl { name: Some(name) }
+    }
+
     pub fn unnamed() -> Self {
         LocalDecl { name: None }
     }
