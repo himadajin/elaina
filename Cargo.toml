@@ -5,6 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workspace]
+members = [
+    "ast",
+    "ast_lowering",
+    "codegen_llvm",
+    "ir",
+    "lexer",
+    "parser",
+]
+
 [dependencies]
 ast = { path = "ast" }
 ast_lowering = { path = "ast_lowering" }
