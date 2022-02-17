@@ -24,6 +24,17 @@ pub enum RValue {
     BinaryOp(BinOp, Box<(Operand, Operand)>),
 }
 
+impl fmt::Display for RValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RValue::Use(operand) => write!(f, "{}", operand),
+            RValue::BinaryOp(bo, operand) => {
+                write!(f, "{}({}, {})", bo, operand.0, operand.1)
+            }
+        }
+    }
+}
+
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub enum BinOp {
