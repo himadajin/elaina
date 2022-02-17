@@ -1,7 +1,9 @@
 use ast_lowering::LoweringContext;
 use clap::{ArgEnum, Parser};
+use codegen_llvm::codegen_ir;
 use lexer::Lexer;
 use parser;
+
 use std::{
     fs::File,
     io::{self, BufReader, Read},
@@ -19,6 +21,7 @@ enum PPrintMode {
     Token,
     AST,
     IR,
+    LLVM,
 }
 
 fn main() -> io::Result<()> {
@@ -31,6 +34,7 @@ fn main() -> io::Result<()> {
                 PPrintMode::Token => pprint_token(&input),
                 PPrintMode::AST => pprint_ast(&input),
                 PPrintMode::IR => pprint_ir(&input),
+                PPrintMode::LLVM => pprint_llvm(&input),
             }
         }
         None => (),
@@ -91,4 +95,8 @@ fn pprint_ir(input: &str) {
     for stmt in ir.stmts {
         println!("{}", &stmt);
     }
+}
+
+fn pprint_llvm(_input: &str) {
+    print!("{}", codegen_ir());
 }
