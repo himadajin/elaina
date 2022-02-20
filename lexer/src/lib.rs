@@ -55,6 +55,32 @@ impl<'input> Lexer<'input> {
         Token::Integer(digits)
     }
 
+    fn read_str(&mut self) -> String {
+        let is_letter = |c: char| c.is_ascii_alphanumeric() || c == '_';
+
+        let ch = self.ch.expect("error: tried to process an empty string");
+        if !is_letter(ch) {
+            panic!("error: tried to process non-alphanumeric character");
+        }
+
+        let mut literal = String::from(ch);
+        loop {
+            self.read_char();
+            match self.ch {
+                Some(ch) => {
+                    if is_letter(ch) {
+                        literal.push(ch);
+                    } else {
+                        break;
+                    }
+                }
+                None => break,
+            }
+        }
+
+        literal
+    }
+
     pub fn next_token(&mut self) -> Option<Token> {
         self.skip_whitespace();
 
@@ -72,7 +98,7 @@ impl<'input> Lexer<'input> {
 
                 '0'..='9' => return Some(self.read_int()),
 
-                _ => unimplemented!(),
+                _ => Token::Ident(self.read_str()),
             }),
             None => None,
         };
@@ -108,6 +134,12 @@ mod tests {
         };
     }
 
+    macro_rules! token_ident {
+        ($value: expr) => {
+            Token::Ident($value.to_string())
+        };
+    }
+
     #[test]
     fn lexer_num() {
         test_lexer!("0", vec![token_int!(0)]);
@@ -128,5 +160,13 @@ mod tests {
         test_lexer!(")", vec![Token::CloseParen]);
 
         test_lexer!(";", vec![Token::Semi]);
+    }
+
+    #[test]
+    fn lexer_ident() {
+        test_lexer!("foo", vec![token_ident!("foo")]);
+        test_lexer!("foo bar", vec![token_ident!("foo"), token_ident!("bar")]);
+        test_lexer!("1 foo", vec![token_int!(1), token_ident!("foo")]);
+        test_lexer!("foo 1", vec![token_ident!("foo"), token_int!(1)]);
     }
 }
