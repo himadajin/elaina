@@ -64,9 +64,9 @@ impl Parser {
         self.bump();
     }
 
-    fn expect_num(&mut self) -> String {
+    fn expect_int(&mut self) -> String {
         let digits = match &self.token {
-            Token::Num(s) => s.clone(),
+            Token::Integer(s) => s.clone(),
             _ => panic!("unexpected token"),
         };
 
@@ -93,12 +93,12 @@ mod tests {
 
     #[test]
     fn test_cursor() {
-        let tokens = vec![Token::Num("1".into()), Token::Plus, Token::Num("2".into())];
+        let tokens = vec![Token::Integer("1".into()), Token::Plus, Token::Integer("2".into())];
         let mut cursor = TokenCursor::new(tokens);
 
-        assert_eq!(cursor.next(), Some(Token::Num("1".into())));
+        assert_eq!(cursor.next(), Some(Token::Integer("1".into())));
         assert_eq!(cursor.next(), Some(Token::Plus));
-        assert_eq!(cursor.next(), Some(Token::Num("2".into())));
+        assert_eq!(cursor.next(), Some(Token::Integer("2".into())));
         assert_eq!(cursor.next(), None);
     }
 }

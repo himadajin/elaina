@@ -30,7 +30,7 @@ impl<'input> Lexer<'input> {
         }
     }
 
-    fn read_number(&mut self) -> Token {
+    fn read_int(&mut self) -> Token {
         match self.ch {
             Some(ch) => {
                 if !ch.is_digit(10) {
@@ -52,7 +52,7 @@ impl<'input> Lexer<'input> {
             break;
         }
 
-        Token::Num(digits)
+        Token::Integer(digits)
     }
 
     pub fn next_token(&mut self) -> Option<Token> {
@@ -70,7 +70,7 @@ impl<'input> Lexer<'input> {
 
                 ';' => Token::Semi,
 
-                '0'..='9' => return Some(self.read_number()),
+                '0'..='9' => return Some(self.read_int()),
 
                 _ => unimplemented!(),
             }),
@@ -102,19 +102,19 @@ mod tests {
         };
     }
 
-    macro_rules! token_num {
+    macro_rules! token_int {
         ($value: expr) => {
-            Token::Num($value.to_string())
+            Token::Integer($value.to_string())
         };
     }
 
     #[test]
     fn lexer_num() {
-        test_lexer!("0", vec![token_num!(0)]);
-        test_lexer!("1", vec![token_num!(1)]);
-        test_lexer!("16", vec![token_num!(16)]);
+        test_lexer!("0", vec![token_int!(0)]);
+        test_lexer!("1", vec![token_int!(1)]);
+        test_lexer!("16", vec![token_int!(16)]);
 
-        test_lexer!("-16", vec![Token::Minus, token_num!(16)]);
+        test_lexer!("-16", vec![Token::Minus, token_int!(16)]);
     }
 
     #[test]

@@ -9,7 +9,7 @@ use ast::{
 
 impl Parser {
     pub fn parse_lit(&mut self) -> lit::Lit {
-        let digits = self.expect_num();
+        let digits = self.expect_int();
 
         Lit::Int(LitInt { digits: digits })
     }
