@@ -1,4 +1,4 @@
-use ast::token::Token;
+use ast::token::{KwKind, Token};
 use std::str::Chars;
 
 pub struct Lexer<'input> {
@@ -98,7 +98,13 @@ impl<'input> Lexer<'input> {
 
                 '0'..='9' => return Some(self.read_int()),
 
-                _ => Token::Ident(self.read_str()),
+                _ => {
+                    let literal = self.read_str();
+                    match literal.as_str() {
+                        "let" => Token::Keyword(KwKind::Let),
+                        _ => Token::Ident(literal),
+                    }
+                }
             }),
             None => None,
         };
@@ -140,6 +146,12 @@ mod tests {
         };
     }
 
+    macro_rules! token_kw {
+        ($value: expr) => {
+            Token::Keyword($value)
+        };
+    }
+
     #[test]
     fn lexer_num() {
         test_lexer!("0", vec![token_int!(0)]);
@@ -168,5 +180,12 @@ mod tests {
         test_lexer!("foo bar", vec![token_ident!("foo"), token_ident!("bar")]);
         test_lexer!("1 foo", vec![token_int!(1), token_ident!("foo")]);
         test_lexer!("foo 1", vec![token_ident!("foo"), token_int!(1)]);
+    }
+
+    #[test]
+    fn lexer_keyword() {
+        test_lexer!("let", vec![token_kw!(KwKind::Let)]);
+        test_lexer!("let a", vec![token_kw!(KwKind::Let), token_ident!("a")]);
+        test_lexer!("leta", vec![token_ident!("leta")]);
     }
 }

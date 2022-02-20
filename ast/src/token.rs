@@ -6,6 +6,9 @@ pub enum Token {
     /// Identifier token: `foo`, `x`
     Ident(String),
 
+    /// Keyword token: `let`
+    Keyword(KwKind),
+
     /// The `+` token
     Plus,
 
@@ -28,4 +31,10 @@ pub enum Token {
     Semi,
 
     Eof,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum KwKind {
+    /// The `let` keyword
+    Let,
 }
