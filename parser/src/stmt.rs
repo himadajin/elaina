@@ -14,23 +14,11 @@ impl Parser {
 mod tests {
     use super::*;
     use ast::builder::{expr::*, stmt::*};
-    use ast::token::Token;
-    use lexer::Lexer;
-
-    fn lex_all(input: &str) -> Vec<Token> {
-        let mut lexer = Lexer::new(input);
-
-        let mut tokens = Vec::new();
-        while let Some(token) = lexer.next_token() {
-            tokens.push(token);
-        }
-
-        return tokens;
-    }
+    use lexer::run_lexer;
 
     macro_rules! test_stmt {
         ($input: expr, $expected: expr) => {
-            let tokens = lex_all($input);
+            let tokens = run_lexer($input);
             let result = Parser::new(tokens).parse_stmt();
 
             assert_eq!(result, $expected);

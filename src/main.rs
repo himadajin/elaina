@@ -1,7 +1,7 @@
 use ast_lowering::LoweringContext;
 use clap::{ArgEnum, Parser};
 use codegen_llvm::codegen_ir_body;
-use lexer::Lexer;
+use lexer::run_lexer;
 use parser;
 
 use std::{
@@ -54,34 +54,20 @@ fn read_file(filename: &str) -> io::Result<String> {
 }
 
 fn pprint_token(input: &str) {
-    let mut lexer = Lexer::new(&input);
-
-    while let Some(token) = lexer.next_token() {
+    for token in run_lexer(input) {
         println!("{:?}", token);
     }
 }
 
 fn pprint_ast(input: &str) {
-    let mut lexer = Lexer::new(&input);
-
-    let mut tokens = Vec::new();
-    while let Some(token) = lexer.next_token() {
-        tokens.push(token);
-    }
-
+    let tokens = run_lexer(input);
     let ast = parser::Parser::new(tokens).parse_expr();
 
     println!("{:?}", ast);
 }
 
 fn pprint_ir(input: &str) {
-    let mut lexer = Lexer::new(&input);
-
-    let mut tokens = Vec::new();
-    while let Some(token) = lexer.next_token() {
-        tokens.push(token);
-    }
-
+    let tokens = run_lexer(input);
     let ast = parser::Parser::new(tokens).parse_stmt();
     let mut lowering_ctx = LoweringContext::new();
     lowering_ctx.lower_stmt(&ast);
@@ -98,13 +84,7 @@ fn pprint_ir(input: &str) {
 }
 
 fn pprint_llvm(input: &str) {
-    let mut lexer = Lexer::new(&input);
-
-    let mut tokens = Vec::new();
-    while let Some(token) = lexer.next_token() {
-        tokens.push(token);
-    }
-
+    let tokens = run_lexer(input);
     let ast = parser::Parser::new(tokens).parse_stmt();
     let mut lowering_ctx = LoweringContext::new();
     lowering_ctx.lower_stmt(&ast);

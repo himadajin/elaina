@@ -115,6 +115,18 @@ impl<'input> Lexer<'input> {
     }
 }
 
+impl<'input> Iterator for Lexer<'input> {
+    type Item = Token;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next_token()
+    }
+}
+
+pub fn run_lexer(input: &str) -> Vec<Token> {
+    Lexer::new(input).into_iter().collect()
+}
+
 #[cfg(test)]
 mod tests {
     use std::vec;
@@ -123,12 +135,7 @@ mod tests {
 
     macro_rules! test_lexer {
         ($input: expr, $expected: expr) => {
-            let mut lexer = Lexer::new($input);
-            let mut tokens: Vec<Token> = Vec::new();
-
-            while let Some(token) = lexer.next_token() {
-                tokens.push(token);
-            }
+            let tokens = run_lexer($input);
 
             assert_eq!($expected, tokens);
         };
