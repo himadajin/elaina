@@ -51,11 +51,14 @@ impl Parser {
         }
     }
 
+    /// Advance one token.
     fn bump(&mut self) {
         let next_token = self.cursor.next().unwrap_or(Token::Eof);
         self.token = next_token;
     }
 
+    /// Expect the next token to be the given argument, and advance one token.
+    /// If it is not, panic.
     fn expect(&mut self, expected: &Token) {
         if &self.token != expected {
             panic!("expected {:?} but current token is {:?}", expected, self.token);
@@ -64,6 +67,8 @@ impl Parser {
         self.bump();
     }
 
+    /// Expect the next token to be integer, and advance one token.
+    /// If it is not, panic.
     fn expect_int(&mut self) -> String {
         let digits = match &self.token {
             Token::Integer(s) => s.clone(),
@@ -75,6 +80,8 @@ impl Parser {
         digits
     }
 
+    /// If the next token is equal to the given argument, advance one token and return `true`.
+    /// Otherwise, do nothing and return `false`
     fn consume(&mut self, expected: &Token) -> bool {
         if &self.token == expected {
             self.bump();
