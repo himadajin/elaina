@@ -89,11 +89,19 @@ impl Parser {
     }
 
     fn parse_expr_primary(&mut self) -> Expr {
+        // Try to parse parensized expression
         if self.consume(&Token::OpenParen) {
             let expr = self.parse_expr();
             self.expect(&Token::CloseParen);
 
             return expr;
+        }
+
+
+        // Try to parse identifier
+        if matches!(self.token, Token::Ident(_)) {
+            let ident = self.expect_ident();
+            return Expr::Ident(Ident { ident: ident });
         }
 
         let lit = self.parse_lit();
@@ -236,6 +244,15 @@ mod tests {
         test_expr!(
             "(1 * 2)",
             expr_binary(expr_lit_int("1"), BinOp::Mul, expr_lit_int("2"))
+        );
+    }
+
+    #[test]
+    fn ident() {
+        test_expr!("a", expr_ident("a"));
+        test_expr!(
+            "a + 1",
+            expr_binary(expr_ident("a"), BinOp::Add, expr_lit_int("1"))
         );
     }
 }
