@@ -61,7 +61,7 @@ fn pprint_token(input: &str) {
 
 fn pprint_ast(input: &str) {
     let tokens = run_lexer(input);
-    let ast = parser::Parser::new(tokens).parse_stmt();
+    let ast = parser::Parser::new(tokens).parse_block();
 
     println!("{:?}", ast);
 }
