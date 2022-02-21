@@ -22,3 +22,9 @@ pub fn expr_lit_int<T: Into<String>>(digits: T) -> Expr {
         }),
     })
 }
+
+pub fn expr_ident<T: Into<String>>(ident: T) -> Expr {
+    Expr::Ident(Ident {
+        ident: ident.into(),
+    })
+}
