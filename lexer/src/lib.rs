@@ -94,6 +94,8 @@ impl<'input> Lexer<'input> {
 
                 '(' => Token::OpenParen,
                 ')' => Token::CloseParen,
+                '{' => Token::OpenBrace,
+                '}' => Token::CloseBrace,
 
                 ';' => Token::Semi,
 
@@ -179,6 +181,9 @@ mod tests {
 
         test_lexer!("(", vec![Token::OpenParen]);
         test_lexer!(")", vec![Token::CloseParen]);
+
+        test_lexer!("{", vec![Token::OpenBrace]);
+        test_lexer!("}", vec![Token::CloseBrace]);
 
         test_lexer!(";", vec![Token::Semi]);
     }
