@@ -9,6 +9,9 @@ pub enum Token {
     /// Keyword token: `let`
     Keyword(KwKind),
 
+    /// The `=` token
+    Eq,
+
     /// The `+` token
     Plus,
 
