@@ -1,10 +1,15 @@
 use crate::Parser;
 
 use ast::stmt::*;
-use ast::token::Token;
+use ast::token::{KwKind, Token};
 
 impl Parser {
     pub fn parse_stmt(&mut self) -> Stmt {
+        // Try parse local statement.
+        if let Some(local) = self.parse_stmt_local() {
+            return local;
+        }
+
         let expr = self.parse_expr();
 
         if self.consume(&Token::Semi) {
@@ -12,6 +17,24 @@ impl Parser {
         }
 
         Stmt::Expr(expr)
+    }
+
+    fn parse_stmt_local(&mut self) -> Option<Stmt> {
+        if !self.consume(&Token::Keyword(KwKind::Let)) {
+            return None;
+        }
+
+        let ident = self.expect_ident();
+        self.expect(&Token::Eq);
+        let init = self.parse_expr();
+        self.expect(&Token::Semi);
+
+        let local = Local {
+            ident: ident,
+            init: init,
+        };
+
+        Some(Stmt::Local(local))
     }
 }
 
@@ -28,6 +51,18 @@ mod tests {
 
             assert_eq!(result, $expected);
         };
+    }
+
+    #[test]
+    fn parse_local() {
+        test_stmt!("let a = 1;", stmt_local("a", expr_lit_int("1")));
+        test_stmt!(
+            "let a = 1 + 2;",
+            stmt_local(
+                "a",
+                expr_binary(expr_lit_int("1"), ast::op::BinOp::Add, expr_lit_int("2"))
+            )
+        );
     }
 
     #[test]

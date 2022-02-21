@@ -61,7 +61,10 @@ impl Parser {
     /// If it is not, panic.
     fn expect(&mut self, expected: &Token) {
         if &self.token != expected {
-            panic!("expected {:?} but current token is {:?}", expected, self.token);
+            panic!(
+                "expected {:?} but current token is {:?}",
+                expected, self.token
+            );
         }
 
         self.bump();
@@ -78,6 +81,17 @@ impl Parser {
         self.bump();
 
         digits
+    }
+
+    fn expect_ident(&mut self) -> String {
+        let ident = match &self.token {
+            Token::Ident(s) => s.clone(),
+            _ => panic!("unexpected token"),
+        };
+
+        self.bump();
+
+        ident
     }
 
     /// If the next token is equal to the given argument, advance one token and return `true`.
@@ -100,7 +114,11 @@ mod tests {
 
     #[test]
     fn test_cursor() {
-        let tokens = vec![Token::Integer("1".into()), Token::Plus, Token::Integer("2".into())];
+        let tokens = vec![
+            Token::Integer("1".into()),
+            Token::Plus,
+            Token::Integer("2".into()),
+        ];
         let mut cursor = TokenCursor::new(tokens);
 
         assert_eq!(cursor.next(), Some(Token::Integer("1".into())));
