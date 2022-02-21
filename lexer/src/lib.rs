@@ -86,6 +86,7 @@ impl<'input> Lexer<'input> {
 
         let token = match self.ch {
             Some(ch) => Some(match ch {
+                '=' => Token::Eq,
                 '+' => Token::Plus,
                 '-' => Token::Minus,
                 '*' => Token::Star,
@@ -170,6 +171,7 @@ mod tests {
 
     #[test]
     fn lexer_symbol() {
+        test_lexer!("=", vec![Token::Eq]);
         test_lexer!("+", vec![Token::Plus]);
         test_lexer!("-", vec![Token::Minus]);
         test_lexer!("*", vec![Token::Star]);
