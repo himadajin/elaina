@@ -35,6 +35,7 @@ impl LoweringContext {
                 let statement = Statement::Assign(Box::new((place, rvalue)));
                 self.body.blocks[self.block_at].stmts.push(statement);
             }
+            stmt::Stmt::Semi(_) => todo!(),
         }
     }
 
