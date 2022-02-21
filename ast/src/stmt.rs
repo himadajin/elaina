@@ -14,6 +14,6 @@ pub enum Stmt {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Local {
-    ident: String,
-    init: Expr,
+    pub ident: String,
+    pub init: Expr,
 }
