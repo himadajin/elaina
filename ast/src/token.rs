@@ -30,6 +30,12 @@ pub enum Token {
     /// The `)` token
     CloseParen,
 
+    /// The `{` token
+    OpenBrace,
+
+    /// The `}` token
+    CloseBrace,
+
     /// The `'` token
     Semi,
 
