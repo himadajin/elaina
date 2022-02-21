@@ -45,6 +45,7 @@ impl LoweringContext {
             expr::Expr::Binary(expr) => self.lower_expr_binary(expr),
             expr::Expr::Unary(_) => todo!(),
             expr::Expr::Lit(lit) => self.lower_expr_lit(lit),
+            expr::Expr::Ident(_) => todo!(),
         }
     }
 
