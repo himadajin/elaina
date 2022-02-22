@@ -68,9 +68,9 @@ fn pprint_ast(input: &str) {
 
 fn pprint_ir(input: &str) {
     let tokens = run_lexer(input);
-    let ast = parser::Parser::new(tokens).parse_stmt();
+    let ast = parser::Parser::new(tokens).parse_block();
     let mut lowering_ctx = LoweringContext::new();
-    lowering_ctx.lower_stmt(&ast);
+    lowering_ctx.lower_main_block(&ast);
 
     let ir = lowering_ctx.build();
 
@@ -85,9 +85,9 @@ fn pprint_ir(input: &str) {
 
 fn pprint_llvm(input: &str) {
     let tokens = run_lexer(input);
-    let ast = parser::Parser::new(tokens).parse_stmt();
+    let ast = parser::Parser::new(tokens).parse_block();
     let mut lowering_ctx = LoweringContext::new();
-    lowering_ctx.lower_stmt(&ast);
+    lowering_ctx.lower_main_block(&ast);
 
     let ir = lowering_ctx.build();
 
