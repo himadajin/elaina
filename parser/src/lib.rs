@@ -2,8 +2,9 @@ pub mod block;
 pub mod expr;
 pub mod stmt;
 
-use ast::token::*;
+use ast::{block::Block, token::*};
 use core::panic;
+use lexer::run_lexer;
 
 struct TokenCursor {
     tokens: Vec<Token>,
@@ -104,6 +105,12 @@ impl Parser {
 
         false
     }
+}
+
+pub fn parse_block_from_source_str(src: &str) -> Block {
+    let tokens = run_lexer(src);
+
+    Parser::new(tokens).parse_block()
 }
 
 #[cfg(test)]

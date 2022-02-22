@@ -2,7 +2,7 @@ use ast_lowering::LoweringContext;
 use clap::{ArgEnum, Parser};
 use codegen_llvm::codegen_ir_body;
 use lexer::run_lexer;
-use parser;
+use parser::{self, parse_block_from_source_str};
 
 use std::{
     fs::File,
@@ -60,15 +60,13 @@ fn pprint_token(input: &str) {
 }
 
 fn pprint_ast(input: &str) {
-    let tokens = run_lexer(input);
-    let ast = parser::Parser::new(tokens).parse_block();
+    let ast = parse_block_from_source_str(input);
 
     println!("{:?}", ast);
 }
 
 fn pprint_ir(input: &str) {
-    let tokens = run_lexer(input);
-    let ast = parser::Parser::new(tokens).parse_block();
+    let ast = parse_block_from_source_str(input);
     let mut lowering_ctx = LoweringContext::new();
     lowering_ctx.lower_main_block(&ast);
 
@@ -84,8 +82,7 @@ fn pprint_ir(input: &str) {
 }
 
 fn pprint_llvm(input: &str) {
-    let tokens = run_lexer(input);
-    let ast = parser::Parser::new(tokens).parse_block();
+    let ast = parse_block_from_source_str(input);
     let mut lowering_ctx = LoweringContext::new();
     lowering_ctx.lower_main_block(&ast);
 
