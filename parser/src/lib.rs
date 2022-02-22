@@ -11,7 +11,6 @@ struct TokenCursor {
 }
 
 impl TokenCursor {
-    #[allow(dead_code)]
     fn new(tokens: Vec<Token>) -> Self {
         TokenCursor {
             tokens: tokens,
@@ -19,7 +18,6 @@ impl TokenCursor {
         }
     }
 
-    #[allow(dead_code)]
     fn next(&mut self) -> Option<Token> {
         if self.cursor >= self.tokens.len() {
             return None;

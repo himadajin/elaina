@@ -13,7 +13,6 @@ impl fmt::Display for Constant {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct ScalarInt {
     pub data: u128,

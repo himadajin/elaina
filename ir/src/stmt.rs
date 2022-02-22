@@ -3,7 +3,6 @@ use crate::Place;
 
 use std::fmt;
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub enum Statement {
     Assign(Box<(Place, RValue)>),
@@ -17,7 +16,6 @@ impl fmt::Display for Statement {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub enum RValue {
     Use(Operand),
@@ -35,7 +33,6 @@ impl fmt::Display for RValue {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub enum BinOp {
     Add,

@@ -3,14 +3,12 @@ use ir::{constant::*, stmt::*, *};
 use inkwell::{builder::Builder, context::Context, module::Module, values::*, AddressSpace};
 use typed_index_collections::TiVec;
 
-#[allow(dead_code)]
 pub struct CodegenContext<'ctx> {
     context: &'ctx Context,
     builder: Builder<'ctx>,
     local_values: TiVec<LocalId, PointerValue<'ctx>>,
 }
 
-#[allow(dead_code)]
 impl<'ctx> CodegenContext<'ctx> {
     pub fn new(context: &'ctx Context) -> Self {
         CodegenContext {

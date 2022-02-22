@@ -8,7 +8,6 @@ use std::fmt;
 use derive_more::{From, Into};
 use typed_index_collections::TiVec;
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct Body {
     pub blocks: TiVec<BlockId, Block>,
@@ -54,7 +53,6 @@ impl Block {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct Place {
     pub local: LocalId,
@@ -81,7 +79,6 @@ impl LocalId {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub struct LocalDecl {
     pub name: Option<String>,
