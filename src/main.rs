@@ -1,6 +1,7 @@
 use ast_lowering::LoweringContext;
 use clap::{ArgEnum, Parser};
 use codegen_llvm::codegen_ir_body;
+use ir::pretty;
 use lexer::run_lexer;
 use parser::{self, parse_block_from_source_str};
 
@@ -72,13 +73,8 @@ fn pprint_ir(input: &str) {
 
     let ir = lowering_ctx.build();
 
-    for local in ir.local_decls {
-        println!("{}", &local);
-    }
-
-    for stmt in &ir.blocks.first().unwrap().stmts {
-        println!("{}", &stmt);
-    }
+    let pretty = pretty::ir_to_string(&ir);
+    println!("{}", pretty);
 }
 
 fn pprint_llvm(input: &str) {

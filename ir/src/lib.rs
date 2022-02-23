@@ -1,6 +1,8 @@
 pub mod constant;
 pub mod stmt;
 
+pub mod pretty;
+
 use crate::stmt::*;
 
 use std::fmt;
