@@ -37,7 +37,8 @@ impl<'ctx> CodegenContext<'ctx> {
 
         // print return value
         self.call_printf_int(&module, ret_val);
-        self.builder.build_return(Some(&i32_type.const_int(0, false)));
+        self.builder
+            .build_return(Some(&i32_type.const_int(0, false)));
 
         module.print_to_string().to_string()
     }
@@ -93,7 +94,7 @@ impl<'ctx> CodegenContext<'ctx> {
                             BinOp::Add => self.builder.build_int_nsw_add(lhs_val, rhs_val, ""),
                             BinOp::Sub => self.builder.build_int_nsw_sub(lhs_val, rhs_val, ""),
                             BinOp::Mul => self.builder.build_int_nsw_mul(lhs_val, rhs_val, ""),
-                            BinOp::Div => todo!(),
+                            BinOp::Div => self.builder.build_int_signed_div(lhs_val, rhs_val, ""),
                         };
 
                         result
