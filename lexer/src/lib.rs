@@ -103,10 +103,12 @@ impl<'input> Lexer<'input> {
 
                 _ => {
                     let literal = self.read_str();
-                    match literal.as_str() {
+                    let token = match literal.as_str() {
                         "let" => Token::Keyword(KwKind::Let),
                         _ => Token::Ident(literal),
-                    }
+                    };
+
+                    return Some(token);
                 }
             }),
             None => None,
@@ -199,7 +201,17 @@ mod tests {
     #[test]
     fn lexer_keyword() {
         test_lexer!("let", vec![token_kw!(KwKind::Let)]);
-        test_lexer!("let a", vec![token_kw!(KwKind::Let), token_ident!("a")]);
+        test_lexer!(
+            "let a;",
+            vec![token_kw!(KwKind::Let), token_ident!("a"), Token::Semi]
+        );
         test_lexer!("leta", vec![token_ident!("leta")]);
+    }
+
+    #[test]
+    fn lexer_expr() {
+        test_lexer!("(1)", vec![Token::OpenParen, token_int!(1), Token::CloseParen]);
+        test_lexer!("(a)", vec![Token::OpenParen, token_ident!("a"), Token::CloseParen]);
+
     }
 }
