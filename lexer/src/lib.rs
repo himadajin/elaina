@@ -98,6 +98,7 @@ impl<'input> Lexer<'input> {
                 '}' => Token::CloseBrace,
 
                 ';' => Token::Semi,
+                ':' => Token::Colon,
 
                 '0'..='9' => return Some(self.read_int()),
 
@@ -188,6 +189,7 @@ mod tests {
         test_lexer!("}", vec![Token::CloseBrace]);
 
         test_lexer!(";", vec![Token::Semi]);
+        test_lexer!(":", vec![Token::Colon]);
     }
 
     #[test]
@@ -202,16 +204,29 @@ mod tests {
     fn lexer_keyword() {
         test_lexer!("let", vec![token_kw!(KwKind::Let)]);
         test_lexer!(
-            "let a;",
-            vec![token_kw!(KwKind::Let), token_ident!("a"), Token::Semi]
+            "let a: i32 = 0;",
+            vec![
+                token_kw!(KwKind::Let),
+                token_ident!("a"),
+                Token::Colon,
+                token_ident!("i32"),
+                Token::Eq,
+                token_int!(0),
+                Token::Semi
+            ]
         );
         test_lexer!("leta", vec![token_ident!("leta")]);
     }
 
     #[test]
     fn lexer_expr() {
-        test_lexer!("(1)", vec![Token::OpenParen, token_int!(1), Token::CloseParen]);
-        test_lexer!("(a)", vec![Token::OpenParen, token_ident!("a"), Token::CloseParen]);
-
+        test_lexer!(
+            "(1)",
+            vec![Token::OpenParen, token_int!(1), Token::CloseParen]
+        );
+        test_lexer!(
+            "(a)",
+            vec![Token::OpenParen, token_ident!("a"), Token::CloseParen]
+        );
     }
 }

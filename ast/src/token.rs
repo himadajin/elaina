@@ -36,8 +36,11 @@ pub enum Token {
     /// The `}` token
     CloseBrace,
 
-    /// The `'` token
+    /// The `;` token
     Semi,
+
+    /// The `:` token
+    Colon,
 
     Eof,
 }
