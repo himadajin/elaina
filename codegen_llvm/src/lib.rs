@@ -3,6 +3,8 @@ use ir::{constant::*, stmt::*, *};
 use inkwell::{builder::Builder, context::Context, module::Module, values::*, AddressSpace};
 use typed_index_collections::TiVec;
 
+use std::error::Error;
+
 pub struct CodegenContext<'ctx> {
     context: &'ctx Context,
     builder: Builder<'ctx>,
@@ -150,6 +152,16 @@ pub fn codegen_string(body: Body) -> String {
     let context = Context::create();
     let module = CodegenContext::new(&context).codegen(body);
     module.print_to_string().to_string()
+}
+
+pub fn codegen_and_execute(body: Body) -> Result<i32, Box<dyn Error>> {
+    let context = Context::create();
+    let module = CodegenContext::new(&context).codegen(body);
+    let engine = module.create_jit_execution_engine(inkwell::OptimizationLevel::None)?;
+    let main_fn = unsafe { engine.get_function::<unsafe extern "C" fn() -> i32>("main") }?;
+    let result = unsafe { main_fn.call() };
+
+    Ok(result)
 }
 
 /// codegen LLVM IR that print `a`

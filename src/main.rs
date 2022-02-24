@@ -1,11 +1,12 @@
 use ast_lowering::LoweringContext;
 use clap::{ArgEnum, Parser, Subcommand};
-use codegen_llvm::codegen_string;
+use codegen_llvm::{codegen_and_execute, codegen_string};
 use ir::pretty;
 use lexer::run_lexer;
 use parser::{self, parse_block_from_source_str};
 
 use std::{
+    error::Error,
     fs::File,
     io::{self, BufReader, Read},
 };
@@ -17,6 +18,9 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Commands {
+    Run {
+        filename: String,
+    },
     Print {
         #[clap(arg_enum)]
         mode: PrintMode,
@@ -32,11 +36,16 @@ enum PrintMode {
     LLVM,
 }
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     match args.command {
-        Commands::Print { filename, mode } => {
+        Commands::Run { filename } => {
+            let input = read_file(&filename)?;
+            run_input(&input)?;
+        }
+
+        Commands::Print { mode, filename } => {
             let input = read_file(&filename)?;
             match mode {
                 PrintMode::Token => print_token(&input),
@@ -58,6 +67,16 @@ fn read_file(filename: &str) -> io::Result<String> {
     buf_reader.read_to_string(&mut input)?;
 
     Ok(input)
+}
+
+fn run_input(input: &str) -> Result<(), Box<dyn Error>> {
+    let ast = parse_block_from_source_str(input);
+    let mut lowering_ctx = LoweringContext::new();
+    lowering_ctx.lower_main_block(&ast);
+
+    let ir = lowering_ctx.build();
+    let _ = codegen_and_execute(ir)?;
+    Ok(())
 }
 
 fn print_token(input: &str) {
