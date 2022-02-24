@@ -3,9 +3,17 @@ use crate::{
     stmt::{Local, Stmt},
 };
 
-pub fn stmt_local<T: Into<String>>(ident: T, expr: Expr) -> Stmt {
+pub fn stmt_local<T: Into<String>, U: Into<String>>(ident: T, ty: U, expr: Expr) -> Stmt {
+    let ty = {
+        let s = ty.into();
+        match s.as_str() {
+            "" => None,
+            _ => Some(s),
+        }
+    };
     Stmt::Local(Local {
         ident: ident.into(),
+        ty: ty,
         init: expr,
     })
 }

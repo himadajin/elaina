@@ -25,12 +25,20 @@ impl Parser {
         }
 
         let ident = self.expect_ident();
+
+        let ty = if self.consume(&Token::Colon) {
+            Some(self.expect_ident())
+        } else {
+            None
+        };
+
         self.expect(&Token::Eq);
         let init = self.parse_expr();
         self.expect(&Token::Semi);
 
         let local = Local {
             ident: ident,
+            ty: ty,
             init: init,
         };
 
@@ -55,11 +63,22 @@ mod tests {
 
     #[test]
     fn parse_local() {
-        test_stmt!("let a = 1;", stmt_local("a", expr_lit_int("1")));
+        test_stmt!("let a = 1;", stmt_local("a", "", expr_lit_int("1")));
         test_stmt!(
             "let a = 1 + 2;",
             stmt_local(
                 "a",
+                "",
+                expr_binary(expr_lit_int("1"), ast::op::BinOp::Add, expr_lit_int("2"))
+            )
+        );
+
+        test_stmt!("let a:i32 = 1;", stmt_local("a", "i32", expr_lit_int("1")));
+        test_stmt!(
+            "let a:i32 = 1 + 2;",
+            stmt_local(
+                "a",
+                "i32",
                 expr_binary(expr_lit_int("1"), ast::op::BinOp::Add, expr_lit_int("2"))
             )
         );

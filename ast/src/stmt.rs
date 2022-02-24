@@ -15,5 +15,6 @@ pub enum Stmt {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Local {
     pub ident: String,
+    pub ty: Option<String>,
     pub init: Expr,
 }
