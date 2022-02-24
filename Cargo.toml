@@ -8,6 +8,7 @@ edition = "2021"
 [workspace]
 members = [
     "ast",
+    "ast_lowering",
     "thir_lowering",
     "codegen_llvm",
     "ir",
@@ -19,6 +20,7 @@ members = [
 
 [dependencies]
 ast = { path = "ast" }
+ast_lowering = { path = "ast_lowering" }
 thir_lowering = { path = "thir_lowering" }
 codegen_llvm = { path = "codegen_llvm" }
 ir = { path = "ir" }
