@@ -2,6 +2,7 @@ use ast::{
     expr::*,
     lit::*,
     op::{BinOp, UnOp},
+    stmt::*,
 };
 use thir;
 use ty::*;
@@ -20,12 +21,43 @@ impl LoweringContext {
         }
     }
 
+    pub fn lower_stmt(&mut self, stmt: &Stmt) -> thir::Stmt {
+        match stmt {
+            Stmt::Local(local) => {
+                self.lower_stmt_local(local.ident.clone(), local.ty.clone(), &local.init)
+            }
+            Stmt::Expr(expr) => thir::Stmt::Expr(self.lower_expr(expr)),
+            Stmt::Semi(expr) => thir::Stmt::Semi(self.lower_expr(expr)),
+        }
+    }
+
+    fn lower_stmt_local(&mut self, ident: String, ty: Option<String>, init: &Expr) -> thir::Stmt {
+        let ty = {
+            let ty_ident = ty.expect("error: type annotation is required");
+            match ty_ident.as_str() {
+                "i32" => ty::Ty {
+                    kind: ty::TyKind::Int(ty::IntTy::I32),
+                },
+                _ => panic!("error: unrecognized type"),
+            }
+        };
+
+        self.ty_ctxt.insert(ident.clone(), ty);
+
+        let thir_init = self.lower_expr(init);
+
+        thir::Stmt::Local {
+            ident: ident,
+            init: thir_init,
+        }
+    }
+
     pub fn lower_expr(&mut self, expr: &Expr) -> thir::Expr {
         match expr {
             Expr::Binary(binary) => self.lower_expr_binary(&binary.op, &binary.lhs, &binary.rhs),
             Expr::Unary(unary) => self.lower_expr_unary(&unary.op, &unary.expr),
             Expr::Lit(lit) => self.lower_expr_lit(&lit.lit),
-            Expr::Ident(_) => todo!(),
+            Expr::Ident(ident) => self.lower_expr_ident(ident.ident.clone()),
         }
     }
 
@@ -93,12 +125,41 @@ impl LoweringContext {
             }
         }
     }
+
+    fn lower_expr_ident(&mut self, ident: String) -> thir::Expr {
+        let ty = *self
+            .ty_ctxt
+            .get(&ident)
+            .expect("error: definition of identity not found");
+
+        thir::Expr::Ident { ident, ty }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::builder::expr;
+    use ast::builder::{expr, stmt};
+
+    #[test]
+    fn lower_stmt_local() {
+        let stmt_local = stmt::stmt_local("a", "i32", expr::expr_lit_int("1"));
+        let expr_ident = expr::expr_ident("a");
+
+        let thir = {
+            let i32_ty = ty::Ty {
+                kind: ty::TyKind::Int(ty::IntTy::I32),
+            };
+            thir::Expr::Ident {
+                ident: "a".into(),
+                ty: i32_ty,
+            }
+        };
+
+        let mut ctx = LoweringContext::new();
+        ctx.lower_stmt(&stmt_local);
+        assert_eq!(thir, ctx.lower_expr(&expr_ident));
+    }
 
     #[test]
     fn lower_expr_binary() {
@@ -142,7 +203,6 @@ mod tests {
 
             assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
         }
-        
 
         {
             let ast =
