@@ -1,6 +1,6 @@
 use ast_lowering::LoweringContext;
 use clap::{ArgEnum, Parser, Subcommand};
-use codegen_llvm::codegen_ir_body;
+use codegen_llvm::codegen_string;
 use ir::pretty;
 use lexer::run_lexer;
 use parser::{self, parse_block_from_source_str};
@@ -90,5 +90,5 @@ fn print_llvm(input: &str) {
 
     let ir = lowering_ctx.build();
 
-    print!("{}", codegen_ir_body(ir));
+    print!("{}", codegen_string(ir));
 }

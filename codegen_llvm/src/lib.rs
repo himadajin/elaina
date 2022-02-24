@@ -18,7 +18,7 @@ impl<'ctx> CodegenContext<'ctx> {
         }
     }
 
-    pub fn codegen(mut self, body: Body) -> String {
+    pub fn codegen(mut self, body: Body) -> Module<'ctx> {
         let module = self.context.create_module("main");
 
         // declare main function
@@ -40,7 +40,7 @@ impl<'ctx> CodegenContext<'ctx> {
         self.builder
             .build_return(Some(&i32_type.const_int(0, false)));
 
-        module.print_to_string().to_string()
+        module
     }
 
     pub fn codegen_body(&mut self, function: FunctionValue, body: Body) {
@@ -146,9 +146,10 @@ impl<'ctx> CodegenContext<'ctx> {
     }
 }
 
-pub fn codegen_ir_body(body: Body) -> String {
+pub fn codegen_string(body: Body) -> String {
     let context = Context::create();
-    CodegenContext::new(&context).codegen(body)
+    let module = CodegenContext::new(&context).codegen(body);
+    module.print_to_string().to_string()
 }
 
 /// codegen LLVM IR that print `a`
