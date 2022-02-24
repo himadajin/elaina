@@ -1,5 +1,5 @@
 use ast_lowering::LoweringContext;
-use clap::{ArgEnum, Parser};
+use clap::{ArgEnum, Parser, Subcommand};
 use codegen_llvm::codegen_ir_body;
 use ir::pretty;
 use lexer::run_lexer;
@@ -9,16 +9,23 @@ use std::{
     fs::File,
     io::{self, BufReader, Read},
 };
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 struct Args {
-    filename: String,
+    #[clap(subcommand)]
+    command: Commands,
+}
 
-    #[clap(long, arg_enum)]
-    pprint: Option<PPrintMode>,
+#[derive(Subcommand)]
+enum Commands {
+    Print {
+        #[clap(arg_enum)]
+        mode: PrintMode,
+        filename: String,
+    },
 }
 
 #[derive(Debug, Copy, Clone, ArgEnum)]
-enum PPrintMode {
+enum PrintMode {
     Token,
     AST,
     IR,
@@ -28,17 +35,16 @@ enum PPrintMode {
 fn main() -> io::Result<()> {
     let args = Args::parse();
 
-    match args.pprint {
-        Some(mode) => {
-            let input = read_file(&args.filename)?;
+    match args.command {
+        Commands::Print { filename, mode } => {
+            let input = read_file(&filename)?;
             match mode {
-                PPrintMode::Token => pprint_token(&input),
-                PPrintMode::AST => pprint_ast(&input),
-                PPrintMode::IR => pprint_ir(&input),
-                PPrintMode::LLVM => pprint_llvm(&input),
+                PrintMode::Token => print_token(&input),
+                PrintMode::AST => print_ast(&input),
+                PrintMode::IR => print_ir(&input),
+                PrintMode::LLVM => print_llvm(&input),
             }
         }
-        None => (),
     }
 
     Ok(())
@@ -54,19 +60,19 @@ fn read_file(filename: &str) -> io::Result<String> {
     Ok(input)
 }
 
-fn pprint_token(input: &str) {
+fn print_token(input: &str) {
     for token in run_lexer(input) {
         println!("{:?}", token);
     }
 }
 
-fn pprint_ast(input: &str) {
+fn print_ast(input: &str) {
     let ast = parse_block_from_source_str(input);
 
     println!("{:?}", ast);
 }
 
-fn pprint_ir(input: &str) {
+fn print_ir(input: &str) {
     let ast = parse_block_from_source_str(input);
     let mut lowering_ctx = LoweringContext::new();
     lowering_ctx.lower_main_block(&ast);
@@ -77,7 +83,7 @@ fn pprint_ir(input: &str) {
     println!("{}", pretty);
 }
 
-fn pprint_llvm(input: &str) {
+fn print_llvm(input: &str) {
     let ast = parse_block_from_source_str(input);
     let mut lowering_ctx = LoweringContext::new();
     lowering_ctx.lower_main_block(&ast);
