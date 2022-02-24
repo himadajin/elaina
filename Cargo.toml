@@ -13,6 +13,7 @@ members = [
     "ir",
     "lexer",
     "parser",
+    "ty",
 ]
 
 [dependencies]
@@ -22,4 +23,5 @@ codegen_llvm = { path = "codegen_llvm" }
 ir = { path = "ir" }
 lexer = {path = "lexer" }
 parser = { path = "parser" }
+ty = { path = "ty" }
 clap = { version = "3.0.14", features = ["derive"] }
