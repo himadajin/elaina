@@ -1,4 +1,5 @@
 use ast::{
+    block::*,
     expr::*,
     lit::*,
     op::{BinOp, UnOp},
@@ -19,6 +20,17 @@ impl LoweringContext {
         LoweringContext {
             ty_ctxt: HashMap::new(),
         }
+    }
+
+    pub fn lower_body(&mut self, body: &Block) -> thir::Block {
+        let mut stmts = Vec::new();
+
+        for stmt in &body.stmts {
+            let thir = self.lower_stmt(stmt);
+            stmts.push(thir);
+        }
+
+        thir::Block { stmts }
     }
 
     pub fn lower_stmt(&mut self, stmt: &Stmt) -> thir::Stmt {
