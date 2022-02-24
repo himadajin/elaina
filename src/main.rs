@@ -1,4 +1,4 @@
-use ast_lowering::LoweringContext;
+use thir_lowering::LoweringContext;
 use clap::{ArgEnum, Parser, Subcommand};
 use codegen_llvm::{codegen_and_execute, codegen_string};
 use ir::pretty;
