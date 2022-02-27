@@ -132,6 +132,7 @@ impl LoweringContext {
 
                 thir::Expr::Lit { lit, ty }
             }
+            Lit::Bool { value: _value } => todo!(),
         }
     }
 

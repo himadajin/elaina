@@ -5,3 +5,7 @@ pub fn lit_int<T: Into<String>>(digits: T) -> Lit {
         digits: digits.into(),
     }
 }
+
+pub fn lit_bool(value: bool) -> Lit {
+    Lit::Bool { value: value }
+}
