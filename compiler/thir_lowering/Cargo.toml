@@ -7,5 +7,7 @@ edition = "2021"
 
 [dependencies]
 ir = { path = "../ir" }
+thir = { path = "../thir" }
+ty = { path = "../ty" }
 
 typed-index-collections = "3.0"
