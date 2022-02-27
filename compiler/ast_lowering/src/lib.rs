@@ -50,6 +50,9 @@ impl LoweringContext {
                 "i32" => ty::Ty {
                     kind: ty::TyKind::Int(ty::IntTy::I32),
                 },
+                "bool" => ty::Ty {
+                    kind: ty::TyKind::Bool,
+                },
                 _ => panic!("error: unrecognized type"),
             }
         };
