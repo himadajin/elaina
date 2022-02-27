@@ -7,25 +7,25 @@ edition = "2021"
 
 [workspace]
 members = [
-    "ast",
-    "ast_lowering",
-    "thir_lowering",
-    "codegen_llvm",
-    "ir",
-    "lexer",
-    "parser",
-    "thir",
-    "ty",
+    "compiler/ast",
+    "compiler/ast_lowering",
+    "compiler/thir_lowering",
+    "compiler/codegen_llvm",
+    "compiler/ir",
+    "compiler/lexer",
+    "compiler/parser",
+    "compiler/thir",
+    "compiler/ty",
 ]
 
 [dependencies]
-ast = { path = "ast" }
-ast_lowering = { path = "ast_lowering" }
-thir_lowering = { path = "thir_lowering" }
-codegen_llvm = { path = "codegen_llvm" }
-ir = { path = "ir" }
-lexer = {path = "lexer" }
-parser = { path = "parser" }
-thir = {path = "thir" }
-ty = { path = "ty" }
+ast = { path = "compiler/ast" }
+ast_lowering = { path = "compiler/ast_lowering" }
+thir_lowering = { path = "compiler/thir_lowering" }
+codegen_llvm = { path = "compiler/codegen_llvm" }
+ir = { path = "compiler/ir" }
+lexer = {path = "compiler/lexer" }
+parser = { path = "compiler/parser" }
+thir = {path = "compiler/thir" }
+ty = { path = "compiler/ty" }
 clap = { version = "3.0.14", features = ["derive"] }
