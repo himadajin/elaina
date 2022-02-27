@@ -4,6 +4,7 @@ pub mod stmt;
 pub mod pretty;
 
 use crate::stmt::*;
+use ty;
 
 use std::fmt;
 
@@ -25,7 +26,14 @@ impl Body {
             local_decls: TiVec::new(),
         };
 
-        body.local_decls.push(LocalDecl::named("ret".into()));
+        let local_ret = {
+            let name = Some("ret".into());
+            let ty_i32 = ty::Ty {
+                kind: ty::TyKind::Int(ty::IntTy::I32),
+            };
+            LocalDecl::new(name, ty_i32)
+        };
+        body.local_decls.push(local_ret);
 
         body
     }
@@ -84,15 +92,12 @@ impl LocalId {
 #[derive(Debug, PartialEq, Clone)]
 pub struct LocalDecl {
     pub name: Option<String>,
+    pub ty: ty::Ty,
 }
 
 impl LocalDecl {
-    pub fn named(name: String) -> Self {
-        LocalDecl { name: Some(name) }
-    }
-
-    pub fn unnamed() -> Self {
-        LocalDecl { name: None }
+    pub fn new(name: Option<String>, ty: ty::Ty) -> Self {
+        LocalDecl { name: name, ty: ty }
     }
 }
 

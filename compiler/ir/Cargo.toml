@@ -6,5 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ty = { path = "../ty" }
+
 derive_more = "0.99"
 typed-index-collections = "3.0"
