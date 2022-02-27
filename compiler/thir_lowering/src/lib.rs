@@ -124,8 +124,16 @@ impl LoweringContext {
                 Operand::Constant(Box::new(scalar))
             }
             thir::Lit::Bool { value } => {
-                let boolean = Constant::Bool { value: *value };
-                Operand::Constant(Box::new(boolean))
+                let data = match value {
+                    true => 1,
+                    false => 0,
+                };
+
+                let scalar = Constant::Scalar(ScalarInt {
+                    data: data,
+                    size: 32,
+                });
+                Operand::Constant(Box::new(scalar))
             }
         }
     }

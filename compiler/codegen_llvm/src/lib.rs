@@ -124,7 +124,6 @@ impl<'ctx> CodegenContext<'ctx> {
                 self.builder.build_load(ptr, "").into_int_value()
             }
             Operand::Constant(constant) => match constant.as_ref() {
-                Constant::Bool { value: _value } => todo!(),
                 Constant::Scalar(scalar) => self.scalar_int(scalar),
             },
         }

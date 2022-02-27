@@ -2,14 +2,12 @@ use std::fmt;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Constant {
-    Bool { value: bool },
     Scalar(ScalarInt),
 }
 
 impl fmt::Display for Constant {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Constant::Bool { value } => write!(f, "{}", value),
             Constant::Scalar(i) => write!(f, "{}", i),
         }
     }
