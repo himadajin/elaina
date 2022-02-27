@@ -41,6 +41,17 @@ pub enum Expr {
     Ident { ident: String, ty: ty::Ty },
 }
 
+impl Expr {
+    pub fn ty(&self) -> ty::Ty {
+        match self {
+            Expr::Binary { ty, .. } => *ty,
+            Expr::Unary { ty, .. } => *ty,
+            Expr::Lit { ty, .. } => *ty,
+            Expr::Ident { ty, .. } => *ty,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Lit {
     /// An integer literal: `0`, `1`, `64`
