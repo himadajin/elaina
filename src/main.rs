@@ -1,9 +1,12 @@
-use thir_lowering::LoweringContext;
 use clap::{ArgEnum, Parser, Subcommand};
+#[allow(unused_imports)]
 use codegen_llvm::{codegen_and_execute, codegen_string};
+#[allow(unused_imports)]
 use ir::pretty;
 use lexer::run_lexer;
 use parser::{self, parse_block_from_source_str};
+#[allow(unused_imports)]
+use thir_lowering::LoweringContext;
 
 use std::{
     error::Error,
@@ -69,14 +72,15 @@ fn read_file(filename: &str) -> io::Result<String> {
     Ok(input)
 }
 
-fn run_input(input: &str) -> Result<(), Box<dyn Error>> {
-    let ast = parse_block_from_source_str(input);
-    let mut lowering_ctx = LoweringContext::new();
-    lowering_ctx.lower_main_block(&ast);
+fn run_input(_input: &str) -> Result<(), Box<dyn Error>> {
+    todo!();
+    // let ast = parse_block_from_source_str(input);
+    // let mut lowering_ctx = LoweringContext::new();
+    // lowering_ctx.lower_main_block(&ast);
 
-    let ir = lowering_ctx.build();
-    let _ = codegen_and_execute(ir)?;
-    Ok(())
+    // let ir = lowering_ctx.build();
+    // let _ = codegen_and_execute(ir)?;
+    // Ok(())
 }
 
 fn print_token(input: &str) {
@@ -91,23 +95,25 @@ fn print_ast(input: &str) {
     println!("{:?}", ast);
 }
 
-fn print_ir(input: &str) {
-    let ast = parse_block_from_source_str(input);
-    let mut lowering_ctx = LoweringContext::new();
-    lowering_ctx.lower_main_block(&ast);
+fn print_ir(_input: &str) {
+    todo!();
+    // let ast = parse_block_from_source_str(input);
+    // let mut lowering_ctx = LoweringContext::new();
+    // lowering_ctx.lower_main_block(&ast);
 
-    let ir = lowering_ctx.build();
+    // let ir = lowering_ctx.build();
 
-    let pretty = pretty::ir_to_string(&ir);
-    println!("{}", pretty);
+    // let pretty = pretty::ir_to_string(&ir);
+    // println!("{}", pretty);
 }
 
-fn print_llvm(input: &str) {
-    let ast = parse_block_from_source_str(input);
-    let mut lowering_ctx = LoweringContext::new();
-    lowering_ctx.lower_main_block(&ast);
+fn print_llvm(_input: &str) {
+    todo!();
+    // let ast = parse_block_from_source_str(input);
+    // let mut lowering_ctx = LoweringContext::new();
+    // lowering_ctx.lower_main_block(&ast);
 
-    let ir = lowering_ctx.build();
+    // let ir = lowering_ctx.build();
 
-    print!("{}", codegen_string(ir));
+    // print!("{}", codegen_string(ir));
 }
