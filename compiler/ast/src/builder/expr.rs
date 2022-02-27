@@ -23,6 +23,12 @@ pub fn expr_lit_int<T: Into<String>>(digits: T) -> Expr {
     }
 }
 
+pub fn expr_lit_bool(value: bool) -> Expr {
+    Expr::Lit {
+        lit: Lit::Bool { value: value },
+    }
+}
+
 pub fn expr_ident<T: Into<String>>(ident: T) -> Expr {
     Expr::Ident {
         ident: ident.into(),

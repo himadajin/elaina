@@ -82,6 +82,11 @@ mod tests {
                 expr_binary(expr_lit_int("1"), ast::op::BinOp::Add, expr_lit_int("2"))
             )
         );
+
+        test_stmt!(
+            "let a:bool = true;",
+            stmt_local("a", "bool", expr_lit_bool(true))
+        );
     }
 
     #[test]
