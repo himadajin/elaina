@@ -49,4 +49,10 @@ pub enum Token {
 pub enum KwKind {
     /// The `let` keyword
     Let,
+
+    /// The `true` keyword
+    True,
+
+    /// The `false` keyword
+    False,
 }
