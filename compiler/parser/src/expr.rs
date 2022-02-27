@@ -4,11 +4,24 @@ use ast::{
     expr::*,
     lit::{self, Lit},
     op::*,
-    token::Token,
+    token::{KwKind, Token},
 };
 
 impl Parser {
     pub fn parse_lit(&mut self) -> lit::Lit {
+        // Try to parse true literal
+        if matches!(self.token, Token::Keyword(KwKind::True)) {
+            self.bump();
+            return Lit::Bool { value: true };
+        }
+
+        // Try to parse false literal
+        if matches!(self.token, Token::Keyword(KwKind::False)) {
+            self.bump();
+            return Lit::Bool { value: false };
+        }
+
+        // Parse integer literal
         let digits = self.expect_int();
 
         Lit::Int { digits: digits }
@@ -136,6 +149,8 @@ mod tests {
     #[test]
     fn test_parse_lit() {
         test_lit!("10", lit_int("10"));
+        test_lit!("true", lit_bool(true));
+        test_lit!("false", lit_bool(false));
     }
 
     #[test]
