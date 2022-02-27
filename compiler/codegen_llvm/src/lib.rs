@@ -101,7 +101,15 @@ impl<'ctx> CodegenContext<'ctx> {
 
                         result
                     }
-                    RValue::UnaryOp(_op, _operand) => todo!(),
+                    RValue::UnaryOp(op, operand) => {
+                        let operand_val = self.int_value(operand);
+
+                        let result = match op {
+                            UnOp::Neg => self.builder.build_int_nsw_neg(operand_val, ""),
+                        };
+
+                        result
+                    }
                 };
 
                 self.builder.build_store(place_ptr, value);

@@ -67,7 +67,7 @@ impl LoweringContext {
     fn lower_expr(&mut self, expr: &thir::Expr) -> Operand {
         match expr {
             thir::Expr::Binary { op, lhs, rhs, ty } => self.lower_expr_binary(*op, lhs, rhs, *ty),
-            thir::Expr::Unary { .. } => todo!(),
+            thir::Expr::Unary { op, expr, ty } => self.lower_expr_unary(*op, expr, *ty),
             thir::Expr::Lit { lit, ty } => self.lower_expr_lit(lit, *ty),
             thir::Expr::Ident { ident, ty } => self.lower_expr_ident(ident, *ty),
         }
@@ -91,6 +91,21 @@ impl LoweringContext {
         let rhs = self.lower_expr(rhs);
 
         let rvalue = RValue::BinaryOp(op, Box::new((lhs, rhs)));
+        let place = self.push_local(None, ty);
+        let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
+
+        self.push_stmt(stmt);
+
+        Operand::Copy(place)
+    }
+
+    fn lower_expr_unary(&mut self, op: thir::UnOp, expr: &thir::Expr, ty: ty::Ty) -> Operand {
+        let op = match op {
+            thir::UnOp::Neg => UnOp::Neg,
+        };
+
+        let expr = self.lower_expr(expr);
+        let rvalue = RValue::UnaryOp(op, Box::new(expr));
         let place = self.push_local(None, ty);
         let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
 
