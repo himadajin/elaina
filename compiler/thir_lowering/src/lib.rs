@@ -56,7 +56,11 @@ impl LoweringContext {
                 let stmt = Statement::Assign(Box::new((place, rvalue)));
                 self.push_stmt(stmt);
             }
-            thir::Stmt::Semi(_) => todo!(),
+            thir::Stmt::Semi(_) => {
+                // Do nothing because this statement does not have any side effect at this stage.
+                // So there is no need to compile it.
+                ()
+            }
         }
     }
 
