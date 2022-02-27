@@ -70,7 +70,7 @@ impl fmt::Display for UnOp {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Operand {
     Copy(Place),
-    Constant(Box<Constant>),
+    Constant(Box<ConstValue>),
 }
 
 impl fmt::Display for Operand {

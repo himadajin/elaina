@@ -117,7 +117,7 @@ impl LoweringContext {
     fn lower_expr_lit(&mut self, lit: &thir::Lit, _ty: ty::Ty) -> Operand {
         match &lit {
             thir::Lit::Int(thir::LitInt { value }) => {
-                let scalar = Constant::Scalar(ScalarInt {
+                let scalar = ConstValue::Scalar(ScalarInt {
                     data: *value,
                     size: 32,
                 });
@@ -129,7 +129,7 @@ impl LoweringContext {
                     false => 0,
                 };
 
-                let scalar = Constant::Scalar(ScalarInt {
+                let scalar = ConstValue::Scalar(ScalarInt {
                     data: data,
                     size: 32,
                 });

@@ -1,14 +1,14 @@
 use std::fmt;
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Constant {
+pub enum ConstValue {
     Scalar(ScalarInt),
 }
 
-impl fmt::Display for Constant {
+impl fmt::Display for ConstValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Constant::Scalar(i) => write!(f, "{}", i),
+            ConstValue::Scalar(i) => write!(f, "{}", i),
         }
     }
 }
