@@ -101,6 +101,7 @@ impl<'ctx> CodegenContext<'ctx> {
 
                         result
                     }
+                    RValue::UnaryOp(_op, _operand) => todo!(),
                 };
 
                 self.builder.build_store(place_ptr, value);

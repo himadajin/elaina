@@ -20,6 +20,7 @@ impl fmt::Display for Statement {
 pub enum RValue {
     Use(Operand),
     BinaryOp(BinOp, Box<(Operand, Operand)>),
+    UnaryOp(UnOp, Box<Operand>),
 }
 
 impl fmt::Display for RValue {
@@ -29,6 +30,7 @@ impl fmt::Display for RValue {
             RValue::BinaryOp(bo, operand) => {
                 write!(f, "{}({}, {})", bo, operand.0, operand.1)
             }
+            RValue::UnaryOp(up, operand) => write!(f, "{}({})", up, operand),
         }
     }
 }
@@ -48,6 +50,19 @@ impl fmt::Display for BinOp {
             BinOp::Sub => write!(f, "Sub"),
             BinOp::Mul => write!(f, "Mul"),
             BinOp::Div => write!(f, "Div"),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum UnOp {
+    Neg,
+}
+
+impl fmt::Display for UnOp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            UnOp::Neg => write!(f, "Neg"),
         }
     }
 }

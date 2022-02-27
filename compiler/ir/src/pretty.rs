@@ -103,5 +103,16 @@ fn write_ir_rvalue(rvalue: &RValue, w: &mut dyn Write) -> fmt::Result {
 
             Ok(())
         }
+
+        RValue::UnaryOp(op, operand) => {
+            match op {
+                UnOp::Neg => write!(w, "Neg")?,
+            }
+
+            write!(w, "(")?;
+            write_ir_operand(&operand, w)?;
+            write!(w, ")")?;
+            Ok(())
+        }
     }
 }
