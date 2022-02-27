@@ -114,26 +114,35 @@ impl LoweringContext {
         Operand::Copy(place)
     }
 
-    fn lower_expr_lit(&mut self, lit: &thir::Lit, _ty: ty::Ty) -> Operand {
+    fn lower_expr_lit(&mut self, lit: &thir::Lit, ty: ty::Ty) -> Operand {
         match &lit {
             thir::Lit::Int(thir::LitInt { value }) => {
                 let scalar = ConstValue::Scalar(ScalarInt {
                     data: *value,
                     size: 32,
                 });
-                Operand::Constant(Box::new(scalar))
+                let constant = Constant {
+                    ty: ty,
+                    literal: scalar,
+                };
+
+                Operand::Constant(Box::new(constant))
             }
             thir::Lit::Bool { value } => {
                 let data = match value {
                     true => 1,
                     false => 0,
                 };
-
                 let scalar = ConstValue::Scalar(ScalarInt {
                     data: data,
                     size: 32,
                 });
-                Operand::Constant(Box::new(scalar))
+                let constant = Constant {
+                    ty: ty,
+                    literal: scalar,
+                };
+
+                Operand::Constant(Box::new(constant))
             }
         }
     }

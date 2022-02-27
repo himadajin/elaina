@@ -72,7 +72,7 @@ fn write_ir_place(place: &Place, w: &mut dyn Write) -> fmt::Result {
 fn write_ir_operand(op: &Operand, w: &mut dyn Write) -> fmt::Result {
     match op {
         Operand::Copy(place) => write_ir_place(place, w),
-        Operand::Constant(constant) => match constant.as_ref() {
+        Operand::Constant(constant) => match &constant.literal {
             ConstValue::Scalar(scalar) => {
                 write!(w, "{}", &scalar.data)
             }

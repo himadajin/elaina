@@ -1,4 +1,12 @@
+use ty;
+
 use std::fmt;
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Constant {
+    pub ty: ty::Ty,
+    pub literal: ConstValue,
+}
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum ConstValue {

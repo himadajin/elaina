@@ -123,15 +123,22 @@ impl<'ctx> CodegenContext<'ctx> {
                 let ptr = self.pointer_value(place);
                 self.builder.build_load(ptr, "").into_int_value()
             }
-            Operand::Constant(constant) => match constant.as_ref() {
-                ConstValue::Scalar(scalar) => self.scalar_int(scalar),
-            },
+            Operand::Constant(constant) => {
+                let _ty = constant.ty;
+                match &constant.literal {
+                    ConstValue::Scalar(s) => self.scalar_int(s),
+                }
+            }
         }
     }
 
     fn scalar_int(&self, scalar: &ScalarInt) -> IntValue {
         let data = scalar.data as u64;
-        self.context.i32_type().const_int(data, false)
+        match scalar.size {
+            1 => self.context.bool_type().const_int(data, false),
+            32 => self.context.i32_type().const_int(data, false),
+            _ => panic!("Invalid data size of ScalarInt"),
+        }
     }
 
     fn pointer_value(&self, place: &Place) -> PointerValue {

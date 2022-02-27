@@ -70,14 +70,14 @@ impl fmt::Display for UnOp {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Operand {
     Copy(Place),
-    Constant(Box<ConstValue>),
+    Constant(Box<Constant>),
 }
 
 impl fmt::Display for Operand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Operand::Copy(p) => write!(f, "{}", p),
-            Operand::Constant(c) => write!(f, "{}", c.as_ref()),
+            Operand::Constant(c) => write!(f, "{}", c.literal),
         }
     }
 }
