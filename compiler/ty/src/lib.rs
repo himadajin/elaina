@@ -4,6 +4,8 @@ pub struct Ty {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TyKind {
+    Bool,
+
     Int(IntTy),
 }
 

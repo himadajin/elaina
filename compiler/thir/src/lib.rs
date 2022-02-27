@@ -54,6 +54,9 @@ impl Expr {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Lit {
+    /// A boolean literal: `true`, `false`
+    Bool { value: bool },
+
     /// An integer literal: `0`, `1`, `64`
     Int(LitInt),
 }

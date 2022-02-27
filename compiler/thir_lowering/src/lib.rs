@@ -123,6 +123,10 @@ impl LoweringContext {
                 });
                 Operand::Constant(Box::new(scalar))
             }
+            thir::Lit::Bool { value } => {
+                let boolean = Constant::Bool { value: *value };
+                Operand::Constant(Box::new(boolean))
+            }
         }
     }
 
