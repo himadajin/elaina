@@ -35,7 +35,7 @@ impl fmt::Display for RValue {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum BinOp {
     Add,
     Sub,
