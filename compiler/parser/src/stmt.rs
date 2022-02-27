@@ -36,13 +36,13 @@ impl Parser {
         let init = self.parse_expr();
         self.expect(&Token::Semi);
 
-        let local = Local {
+        let local = Stmt::Local {
             ident: ident,
             ty: ty,
             init: init,
         };
 
-        Some(Stmt::Local(local))
+        Some(local)
     }
 }
 

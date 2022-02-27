@@ -1,7 +1,4 @@
-use crate::{
-    expr::*,
-    stmt::{Local, Stmt},
-};
+use crate::{expr::*, stmt::*};
 
 pub fn stmt_local<T: Into<String>, U: Into<String>>(ident: T, ty: U, expr: Expr) -> Stmt {
     let ty = {
@@ -11,11 +8,11 @@ pub fn stmt_local<T: Into<String>, U: Into<String>>(ident: T, ty: U, expr: Expr)
             _ => Some(s),
         }
     };
-    Stmt::Local(Local {
+    Stmt::Local {
         ident: ident.into(),
         ty: ty,
         init: expr,
-    })
+    }
 }
 
 pub fn stmt_expr(expr: Expr) -> Stmt {

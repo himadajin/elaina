@@ -2,7 +2,7 @@ use crate::Parser;
 
 use ast::{
     expr::*,
-    lit::{self, Lit, LitInt},
+    lit::{self, Lit},
     op::*,
     token::Token,
 };
@@ -11,7 +11,7 @@ impl Parser {
     pub fn parse_lit(&mut self) -> lit::Lit {
         let digits = self.expect_int();
 
-        Lit::Int(LitInt { digits: digits })
+        Lit::Int { digits: digits }
     }
 
     pub fn parse_expr(&mut self) -> Expr {
@@ -23,22 +23,22 @@ impl Parser {
 
         if self.consume(&Token::Plus) {
             let rhs = self.parse_expr();
-            let res = Expr::Binary(ExprBinary {
+            let res = Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Add,
                 rhs: Box::new(rhs),
-            });
+            };
 
             return res;
         }
 
         if self.consume(&Token::Minus) {
             let rhs = self.parse_expr();
-            let res = Expr::Binary(ExprBinary {
+            let res = Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Sub,
                 rhs: Box::new(rhs),
-            });
+            };
 
             return res;
         }
@@ -51,22 +51,22 @@ impl Parser {
 
         if self.consume(&Token::Star) {
             let rhs = self.parse_expr_mul();
-            let res = Expr::Binary(ExprBinary {
+            let res = Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Mul,
                 rhs: Box::new(rhs),
-            });
+            };
 
             return res;
         }
 
         if self.consume(&Token::Slash) {
             let rhs = self.parse_expr_mul();
-            let res = Expr::Binary(ExprBinary {
+            let res = Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Div,
                 rhs: Box::new(rhs),
-            });
+            };
 
             return res;
         }
@@ -77,10 +77,10 @@ impl Parser {
     fn parse_expr_unary(&mut self) -> Expr {
         if self.consume(&Token::Minus) {
             let expr = self.parse_expr_primary();
-            let res = Expr::Unary(ExprUnary {
+            let res = Expr::Unary {
                 op: UnOp::Neg,
                 expr: Box::new(expr),
-            });
+            };
 
             return res;
         }
@@ -97,16 +97,15 @@ impl Parser {
             return expr;
         }
 
-
         // Try to parse identifier
         if matches!(self.token, Token::Ident(_)) {
             let ident = self.expect_ident();
-            return Expr::Ident(Ident { ident: ident });
+            return Expr::Ident { ident: ident };
         }
 
         let lit = self.parse_lit();
 
-        Expr::Lit(ExprLit { lit: lit })
+        Expr::Lit { lit: lit }
     }
 }
 

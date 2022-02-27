@@ -35,8 +35,8 @@ impl LoweringContext {
 
     pub fn lower_stmt(&mut self, stmt: &Stmt) -> thir::Stmt {
         match stmt {
-            Stmt::Local(local) => {
-                self.lower_stmt_local(local.ident.clone(), local.ty.clone(), &local.init)
+            Stmt::Local { ident, ty, init } => {
+                self.lower_stmt_local(ident.clone(), ty.clone(), &init)
             }
             Stmt::Expr(expr) => thir::Stmt::Expr(self.lower_expr(expr)),
             Stmt::Semi(expr) => thir::Stmt::Semi(self.lower_expr(expr)),
@@ -66,14 +66,14 @@ impl LoweringContext {
 
     pub fn lower_expr(&mut self, expr: &Expr) -> thir::Expr {
         match expr {
-            Expr::Binary(binary) => self.lower_expr_binary(&binary.op, &binary.lhs, &binary.rhs),
-            Expr::Unary(unary) => self.lower_expr_unary(&unary.op, &unary.expr),
-            Expr::Lit(lit) => self.lower_expr_lit(&lit.lit),
-            Expr::Ident(ident) => self.lower_expr_ident(ident.ident.clone()),
+            Expr::Binary { op, lhs, rhs } => self.lower_expr_binary(*op, &lhs, &rhs),
+            Expr::Unary { op, expr } => self.lower_expr_unary(*op, &expr),
+            Expr::Lit { lit } => self.lower_expr_lit(&lit),
+            Expr::Ident { ident } => self.lower_expr_ident(ident.clone()),
         }
     }
 
-    fn lower_expr_binary(&mut self, op: &BinOp, lhs: &Expr, rhs: &Expr) -> thir::Expr {
+    fn lower_expr_binary(&mut self, op: BinOp, lhs: &Expr, rhs: &Expr) -> thir::Expr {
         let thir_op = |op| match op {
             BinOp::Add => thir::BinOp::Add,
             BinOp::Mul => thir::BinOp::Mul,
@@ -90,7 +90,7 @@ impl LoweringContext {
                 };
 
                 thir::Expr::Binary {
-                    op: thir_op(*op),
+                    op: thir_op(op),
                     lhs: Box::new(thir_lhs),
                     rhs: Box::new(thir_rhs),
                     ty: i32_ty,
@@ -99,7 +99,7 @@ impl LoweringContext {
         }
     }
 
-    fn lower_expr_unary(&mut self, op: &UnOp, expr: &Expr) -> thir::Expr {
+    fn lower_expr_unary(&mut self, op: UnOp, expr: &Expr) -> thir::Expr {
         match op {
             UnOp::Neg => {
                 let thir_expr = self.lower_expr(expr);
@@ -118,12 +118,9 @@ impl LoweringContext {
 
     fn lower_expr_lit(&mut self, lit: &Lit) -> thir::Expr {
         match lit {
-            Lit::Int(lit_int) => {
+            Lit::Int { digits } => {
                 let lit = {
-                    let value: u128 = lit_int
-                        .digits
-                        .parse()
-                        .expect("error: couldn't parse LitInt.digits");
+                    let value: u128 = digits.parse().expect("error: couldn't parse LitInt.digits");
                     let lit_int = thir::LitInt { value: value };
 
                     thir::Lit::Int(lit_int)
