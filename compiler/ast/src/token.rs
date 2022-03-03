@@ -68,6 +68,12 @@ pub enum KwKind {
     /// The `let` keyword
     Let,
 
+    /// The `if` keyword
+    If,
+
+    /// The `else` keyword
+    Else,
+
     /// The `true` keyword
     True,
 

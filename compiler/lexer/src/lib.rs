@@ -139,6 +139,9 @@ impl<'input> Lexer<'input> {
                     let literal = self.read_str();
                     let token = match literal.as_str() {
                         "let" => Token::Keyword(KwKind::Let),
+                        "if" => Token::Keyword(KwKind::If),
+                        "else" => Token::Keyword(KwKind::Else),
+
                         "true" => Token::Keyword(KwKind::True),
                         "false" => Token::Keyword(KwKind::False),
                         "println" => Token::Keyword(KwKind::Println),
@@ -248,6 +251,9 @@ mod tests {
     #[test]
     fn lexer_keyword() {
         test_lexer!("let", vec![token_kw!(KwKind::Let)]);
+        test_lexer!("if", vec![token_kw!(KwKind::If)]);
+        test_lexer!("else", vec![token_kw!(KwKind::Else)]);
+
         test_lexer!("true", vec![token_kw!(KwKind::True)]);
         test_lexer!("false", vec![token_kw!(KwKind::False)]);
 
