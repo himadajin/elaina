@@ -15,6 +15,14 @@ pub fn expr_unary(op: UnOp, expr: Expr) -> Expr {
     }
 }
 
+pub fn expr_if(cond: Expr, then: Block, else_opt: Option<Expr>) -> Expr {
+    Expr::If {
+        cond: Box::new(cond),
+        then: Box::new(then),
+        else_opt: else_opt.map(|expr| Box::new(expr)),
+    }
+}
+
 pub fn expr_block<T: Into<Vec<Stmt>>>(stmts: T) -> Expr {
     Expr::Block {
         block: Box::new(Block {
