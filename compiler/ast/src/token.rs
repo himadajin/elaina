@@ -12,6 +12,24 @@ pub enum Token {
     /// The `=` token
     Eq,
 
+    /// The `<` token
+    Lt,
+
+    /// The `<=` token
+    Le,
+
+    /// The `==` token
+    EqEq,
+
+    /// The `!=` token
+    Ne,
+
+    /// The `>=` token
+    Ge,
+
+    /// The `>` token
+    Gt,
+
     /// The `+` token
     Plus,
 

@@ -21,6 +21,10 @@ impl<'input> Lexer<'input> {
         self.ch = self.chars.next();
     }
 
+    fn peek_char(&self) -> Option<char> {
+        self.chars.clone().next()
+    }
+
     fn skip_whitespace(&mut self) {
         while let Some(c) = self.ch {
             if !c.is_whitespace() {
@@ -86,7 +90,36 @@ impl<'input> Lexer<'input> {
 
         let token = match self.ch {
             Some(ch) => Some(match ch {
-                '=' => Token::Eq,
+                '=' => match self.peek_char() {
+                    Some('=') => {
+                        self.read_char();
+                        Token::EqEq
+                    }
+                    _ => Token::Eq,
+                },
+                '<' => match self.peek_char() {
+                    Some('=') => {
+                        self.read_char();
+                        Token::Le
+                    }
+                    _ => Token::Lt,
+                },
+                '>' => match self.peek_char() {
+                    Some('=') => {
+                        self.read_char();
+                        Token::Ge
+                    }
+                    _ => Token::Gt,
+                },
+
+                '!' => match self.peek_char() {
+                    Some('=') => {
+                        self.read_char();
+                        Token::Ne
+                    }
+                    _ => todo!(),
+                },
+
                 '+' => Token::Plus,
                 '-' => Token::Minus,
                 '*' => Token::Star,
@@ -180,6 +213,14 @@ mod tests {
     #[test]
     fn lexer_symbol() {
         test_lexer!("=", vec![Token::Eq]);
+
+        test_lexer!("<", vec![Token::Lt]);
+        test_lexer!("<=", vec![Token::Le]);
+        test_lexer!("==", vec![Token::EqEq]);
+        test_lexer!("!=", vec![Token::Ne]);
+        test_lexer!(">=", vec![Token::Ge]);
+        test_lexer!(">", vec![Token::Gt]);
+
         test_lexer!("+", vec![Token::Plus]);
         test_lexer!("-", vec![Token::Minus]);
         test_lexer!("*", vec![Token::Star]);
