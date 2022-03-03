@@ -33,6 +33,11 @@ impl Parser {
             return self.parse_expr_block();
         }
 
+        // Try to parse if expression
+        if matches!(self.token, Token::Keyword(KwKind::If)) {
+            return self.parse_expr_if();
+        }
+
         self.parse_expr_equality()
     }
 
@@ -40,6 +45,44 @@ impl Parser {
         let block = self.parse_block();
         Expr::Block {
             block: Box::new(block),
+        }
+    }
+
+    fn parse_expr_if(&mut self) -> Expr {
+        self.expect(&Token::Keyword(KwKind::If));
+
+        let cond = self.parse_expr();
+        let then = self.parse_block();
+
+        // Try to parse if-else
+        if self.consume(&Token::Keyword(KwKind::Else)) {
+            // If current token is `{`, block should be parsed.
+            if matches!(self.token, Token::OpenBrace) {
+                let block = self.parse_block();
+                let expr_block = Expr::Block {
+                    block: Box::new(block),
+                };
+
+                return Expr::If {
+                    cond: Box::new(cond),
+                    then: Box::new(then),
+                    else_opt: Some(Box::new(expr_block)),
+                };
+            }
+
+            // Otherwise, if expression should be parsed.
+            let if_expr = self.parse_expr_if();
+            return Expr::If {
+                cond: Box::new(cond),
+                then: Box::new(then),
+                else_opt: Some(Box::new(if_expr)),
+            };
+        }
+
+        Expr::If {
+            cond: Box::new(cond),
+            then: Box::new(then),
+            else_opt: None,
         }
     }
 
@@ -215,7 +258,7 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::builder::{expr::*, lit::*, stmt::*};
+    use ast::builder::{block::*, expr::*, lit::*, stmt::*};
     use lexer::run_lexer;
 
     macro_rules! test_lit {
@@ -269,6 +312,66 @@ mod tests {
                 expr_lit_int("1"),
                 BinOp::Mul,
                 expr_binary(expr_lit_int("2"), BinOp::Add, expr_lit_int("3")),
+            )
+        );
+    }
+
+    #[test]
+    fn test_parse_expr_if() {
+        test_expr!(
+            "if 1 + 2 == 3 { 0 }",
+            expr_if(
+                expr_binary(
+                    expr_binary(expr_lit_int("1"), BinOp::Add, expr_lit_int("2")),
+                    BinOp::Eq,
+                    expr_lit_int("3")
+                ),
+                block([stmt_expr(expr_lit_int("0"))]),
+                None
+            )
+        );
+
+        test_expr!(
+            "if true { 0 }",
+            expr_if(
+                expr_lit_bool(true),
+                block([stmt_expr(expr_lit_int("0"))]),
+                None
+            )
+        );
+
+        test_expr!(
+            "if true { 0 } else { 1 }",
+            expr_if(
+                expr_lit_bool(true),
+                block([stmt_expr(expr_lit_int("0"))]),
+                Some(expr_block([stmt_expr(expr_lit_int("1"))]))
+            )
+        );
+
+        test_expr!(
+            "if true { 0 } else if true { 1 }",
+            expr_if(
+                expr_lit_bool(true),
+                block([stmt_expr(expr_lit_int("0"))]),
+                Some(expr_if(
+                    expr_lit_bool(true),
+                    block([stmt_expr(expr_lit_int("1"))]),
+                    None
+                ))
+            )
+        );
+
+        test_expr!(
+            "if true { 0 } else if true { 1 } else { 2 }",
+            expr_if(
+                expr_lit_bool(true),
+                block([stmt_expr(expr_lit_int("0"))]),
+                Some(expr_if(
+                    expr_lit_bool(true),
+                    block([stmt_expr(expr_lit_int("1"))]),
+                    Some(expr_block([stmt_expr(expr_lit_int("2"))]))
+                ))
             )
         );
     }
