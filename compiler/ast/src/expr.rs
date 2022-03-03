@@ -12,6 +12,13 @@ pub enum Expr {
     /// A unary operation: `-x`
     Unary { op: UnOp, expr: Box<Expr> },
 
+    /// If expression: `if a == b { 0 } else { 1 }`
+    If {
+        cond: Box<Expr>,
+        then: Box<Block>,
+        else_opt: Option<Box<Expr>>,
+    },
+
     /// Block expression: `{ 0 }`, `{let a = 1; a}`
     Block { block: Box<Block> },
 
