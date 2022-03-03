@@ -77,11 +77,19 @@ impl LoweringContext {
     }
 
     fn lower_expr_binary(&mut self, op: BinOp, lhs: &Expr, rhs: &Expr) -> thir::Expr {
-        let thir_op = |op| match op {
-            BinOp::Add => thir::BinOp::Add,
-            BinOp::Mul => thir::BinOp::Mul,
-            BinOp::Div => thir::BinOp::Div,
-            BinOp::Sub => thir::BinOp::Sub,
+        let thir_op = |op| -> thir::BinOp {
+            match op {
+                BinOp::Add => thir::BinOp::Add,
+                BinOp::Mul => thir::BinOp::Mul,
+                BinOp::Div => thir::BinOp::Div,
+                BinOp::Sub => thir::BinOp::Sub,
+                BinOp::Eq => todo!(),
+                BinOp::Lt => todo!(),
+                BinOp::Le => todo!(),
+                BinOp::Ne => todo!(),
+                BinOp::Ge => todo!(),
+                BinOp::Gt => todo!(),
+            }
         };
 
         match op {
@@ -99,6 +107,7 @@ impl LoweringContext {
                     ty: i32_ty,
                 }
             }
+            _ => todo!(),
         }
     }
 
