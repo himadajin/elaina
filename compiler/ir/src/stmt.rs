@@ -41,6 +41,12 @@ pub enum BinOp {
     Sub,
     Mul,
     Div,
+    Eq,
+    Lt,
+    Le,
+    Ne,
+    Ge,
+    Gt,
 }
 
 impl fmt::Display for BinOp {
@@ -50,6 +56,12 @@ impl fmt::Display for BinOp {
             BinOp::Sub => write!(f, "Sub"),
             BinOp::Mul => write!(f, "Mul"),
             BinOp::Div => write!(f, "Div"),
+            BinOp::Eq => write!(f, "Eq"),
+            BinOp::Lt => write!(f, "Lt"),
+            BinOp::Le => write!(f, "Le"),
+            BinOp::Ne => write!(f, "Ne"),
+            BinOp::Ge => write!(f, "Ge"),
+            BinOp::Gt => write!(f, "Gt"),
         }
     }
 }

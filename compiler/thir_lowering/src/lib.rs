@@ -85,6 +85,13 @@ impl LoweringContext {
             thir::BinOp::Sub => BinOp::Sub,
             thir::BinOp::Mul => BinOp::Mul,
             thir::BinOp::Div => BinOp::Div,
+            thir::BinOp::Eq => BinOp::Eq,
+            thir::BinOp::Lt => BinOp::Lt,
+            thir::BinOp::Le => BinOp::Le,
+            thir::BinOp::Ne => BinOp::Ne,
+            thir::BinOp::Ge => BinOp::Ge,
+            thir::BinOp::Gt => BinOp::Gt,
+            
         };
 
         let lhs = self.lower_expr(lhs);

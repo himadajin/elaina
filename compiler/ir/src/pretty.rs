@@ -90,6 +90,12 @@ fn write_ir_rvalue(rvalue: &RValue, w: &mut dyn Write) -> fmt::Result {
                 BinOp::Sub => write!(w, "Sub")?,
                 BinOp::Mul => write!(w, "Mul")?,
                 BinOp::Div => write!(w, "Div")?,
+                BinOp::Eq => write!(w, "Eq")?,
+                BinOp::Lt => write!(w, "Lt")?,
+                BinOp::Le => write!(w, "Le")?,
+                BinOp::Ne => write!(w, "Ne")?,
+                BinOp::Ge => write!(w, "Ge")?,
+                BinOp::Gt => write!(w, "Gt")?,
             }
 
             let lhs = &operands.0;

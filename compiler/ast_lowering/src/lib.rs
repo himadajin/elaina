@@ -83,12 +83,12 @@ impl LoweringContext {
                 BinOp::Mul => thir::BinOp::Mul,
                 BinOp::Div => thir::BinOp::Div,
                 BinOp::Sub => thir::BinOp::Sub,
-                BinOp::Eq => todo!(),
-                BinOp::Lt => todo!(),
-                BinOp::Le => todo!(),
-                BinOp::Ne => todo!(),
-                BinOp::Ge => todo!(),
-                BinOp::Gt => todo!(),
+                BinOp::Eq => thir::BinOp::Eq,
+                BinOp::Lt => thir::BinOp::Lt,
+                BinOp::Le => thir::BinOp::Le,
+                BinOp::Ne => thir::BinOp::Ne,
+                BinOp::Ge => thir::BinOp::Ge,
+                BinOp::Gt => thir::BinOp::Gt,
             }
         };
 
@@ -107,7 +107,20 @@ impl LoweringContext {
                     ty: i32_ty,
                 }
             }
-            _ => todo!(),
+            BinOp::Eq | BinOp::Lt | BinOp::Le | BinOp::Ne | BinOp::Ge | BinOp::Gt => {
+                let thir_lhs = self.lower_expr(lhs);
+                let thir_rhs = self.lower_expr(rhs);
+                let bool_ty = ty::Ty {
+                    kind: ty::TyKind::Bool,
+                };
+
+                thir::Expr::Binary {
+                    op: thir_op(op),
+                    lhs: Box::new(thir_lhs),
+                    rhs: Box::new(thir_rhs),
+                    ty: bool_ty,
+                }
+            }
         }
     }
 

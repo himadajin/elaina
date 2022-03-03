@@ -1,6 +1,9 @@
 use ir::{constant::*, stmt::*, *};
+use ty::*;
 
-use inkwell::{builder::Builder, context::Context, module::Module, values::*, AddressSpace};
+use inkwell::{
+    builder::Builder, context::Context, module::Module, values::*, AddressSpace, IntPredicate,
+};
 use typed_index_collections::TiVec;
 
 use std::error::Error;
@@ -58,7 +61,13 @@ impl<'ctx> CodegenContext<'ctx> {
                 None => "",
             };
 
-            let local_ptr = self.builder.build_alloca(self.context.i32_type(), name);
+            let ty_llvm = match local.ty.kind {
+                TyKind::Bool => self.context.bool_type(),
+                TyKind::Int(ty) => match ty {
+                    IntTy::I32 => self.context.i32_type(),
+                },
+            };
+            let local_ptr = self.builder.build_alloca(ty_llvm, name);
             self.local_values.push(local_ptr);
         }
 
@@ -97,6 +106,42 @@ impl<'ctx> CodegenContext<'ctx> {
                             BinOp::Sub => self.builder.build_int_nsw_sub(lhs_val, rhs_val, ""),
                             BinOp::Mul => self.builder.build_int_nsw_mul(lhs_val, rhs_val, ""),
                             BinOp::Div => self.builder.build_int_signed_div(lhs_val, rhs_val, ""),
+                            BinOp::Eq => self.builder.build_int_compare(
+                                IntPredicate::EQ,
+                                lhs_val,
+                                rhs_val,
+                                "",
+                            ),
+                            BinOp::Lt => self.builder.build_int_compare(
+                                IntPredicate::SLT,
+                                lhs_val,
+                                rhs_val,
+                                "",
+                            ),
+                            BinOp::Le => self.builder.build_int_compare(
+                                IntPredicate::SLE,
+                                lhs_val,
+                                rhs_val,
+                                "",
+                            ),
+                            BinOp::Ne => self.builder.build_int_compare(
+                                IntPredicate::NE,
+                                lhs_val,
+                                rhs_val,
+                                "",
+                            ),
+                            BinOp::Ge => self.builder.build_int_compare(
+                                IntPredicate::SGE,
+                                lhs_val,
+                                rhs_val,
+                                "",
+                            ),
+                            BinOp::Gt => self.builder.build_int_compare(
+                                IntPredicate::SGT,
+                                lhs_val,
+                                rhs_val,
+                                "",
+                            ),
                         };
 
                         result
