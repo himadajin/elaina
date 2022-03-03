@@ -10,6 +10,12 @@ impl Parser {
             return local;
         }
 
+        // Try parse println statement.
+        // This is temporary and will be removed in the future.
+        if let Some(stmt) = self.parse_stmt_println() {
+            return stmt;
+        }
+
         let expr = self.parse_expr();
 
         if self.consume(&Token::Semi) {
@@ -43,6 +49,22 @@ impl Parser {
         };
 
         Some(local)
+    }
+
+    /// This function is temporary and will be removed in the future.
+    fn parse_stmt_println(&mut self) -> Option<Stmt> {
+        if !self.consume(&Token::Keyword(KwKind::Println)) {
+            return None;
+        }
+
+        self.expect(&Token::OpenParen);
+        let expr = self.parse_expr();
+        self.expect(&Token::CloseParen);
+        self.expect(&Token::Semi);
+
+        let stmt = Stmt::Println(expr);
+
+        Some(stmt)
     }
 }
 

@@ -6,12 +6,17 @@ use std::fmt;
 #[derive(Debug, PartialEq, Clone)]
 pub enum Statement {
     Assign(Box<(Place, RValue)>),
+
+    /// Function call of `println`
+    /// This statement is temporary, used until the function call is implemented
+    Println(Operand),
 }
 
 impl fmt::Display for Statement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Statement::Assign(assign) => write!(f, "{} = {}", assign.0, assign.1),
+            Statement::Println(operand) => write!(f, "println({});", &operand),
         }
     }
 }

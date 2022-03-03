@@ -141,6 +141,7 @@ impl<'input> Lexer<'input> {
                         "let" => Token::Keyword(KwKind::Let),
                         "true" => Token::Keyword(KwKind::True),
                         "false" => Token::Keyword(KwKind::False),
+                        "println" => Token::Keyword(KwKind::Println),
 
                         _ => Token::Ident(literal),
                     };

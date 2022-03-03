@@ -30,25 +30,22 @@ impl<'ctx> CodegenContext<'ctx> {
         let i32_type = self.context.i32_type();
         let main_type = i32_type.fn_type(&[], false);
 
-        // declare printf function
-        self.declare_printf_int(&module);
+        // declare print function
+        self.declare_builtin_print(&module);
 
         // add main function
         let function = module.add_function("main", main_type, None);
-        self.codegen_body(function, body);
+        self.codegen_body(&module, function, body);
 
+        // add return statement like `return 0`
         let ret_ptr = self.local_values.first().unwrap().clone();
         let ret_val = self.builder.build_load(ret_ptr, "").into_int_value();
-
-        // print return value
-        self.call_printf_int(&module, ret_val);
-        self.builder
-            .build_return(Some(&i32_type.const_int(0, false)));
+        self.builder.build_return(Some(&ret_val));
 
         module
     }
 
-    pub fn codegen_body(&mut self, function: FunctionValue, body: Body) {
+    pub fn codegen_body(&mut self, module: &Module<'ctx>, function: FunctionValue, body: Body) {
         let basic_block = self.context.append_basic_block(function, "entry");
         self.builder.position_at_end(basic_block);
         // let block = self.context.append_basic_block(function, name)
@@ -74,20 +71,20 @@ impl<'ctx> CodegenContext<'ctx> {
         // codegen bodies
         for block_id in body.blocks.keys() {
             let block = &body.blocks[block_id];
-            self.codegen_block(function, block);
+            self.codegen_block(module, function, block);
         }
     }
 
-    fn codegen_block(&self, _function: FunctionValue, block: &Block) {
+    fn codegen_block(&self, module: &Module<'ctx>, function: FunctionValue, block: &Block) {
         // let basic_block = self.context.append_basic_block(function, "");
         // self.builder.position_at_end(basic_block);
 
         for stmt in &block.stmts {
-            self.codegen_stmt(stmt);
+            self.codegen_stmt(module, function, stmt);
         }
     }
 
-    fn codegen_stmt(&self, stmt: &Statement) {
+    fn codegen_stmt(&self, module: &Module<'ctx>, function: FunctionValue, stmt: &Statement) {
         match stmt {
             Statement::Assign(stmt) => {
                 let (place, rvalue) = stmt.as_ref();
@@ -159,6 +156,10 @@ impl<'ctx> CodegenContext<'ctx> {
 
                 self.builder.build_store(place_ptr, value);
             }
+            Statement::Println(operand) => {
+                let operand_val = self.int_value(operand);
+                self.call_buildint_print(&module, function, operand_val);
+            }
         }
     }
 
@@ -190,7 +191,7 @@ impl<'ctx> CodegenContext<'ctx> {
         self.local_values[place.local]
     }
 
-    fn declare_printf_int(&self, module: &Module<'ctx>) {
+    fn declare_builtin_print(&self, module: &Module<'ctx>) {
         let i32_type = self.context.i32_type();
         let i8_ptr_type = self.context.i8_type().ptr_type(AddressSpace::Generic);
         let printf_type = i32_type.fn_type(&[i8_ptr_type.into()], true);
@@ -198,14 +199,52 @@ impl<'ctx> CodegenContext<'ctx> {
         module.add_function("printf", printf_type, None);
     }
 
-    fn call_printf_int(&self, module: &Module<'ctx>, value: IntValue) {
+    fn call_buildint_print(&self, module: &Module<'ctx>, function: FunctionValue, value: IntValue) {
         let printf_fn = module.get_function("printf").unwrap();
-        let text = self.builder.build_global_string_ptr("%d\n", ".str");
-        self.builder.build_call(
-            printf_fn,
-            &[text.as_pointer_value().into(), value.into()],
-            "printf",
-        );
+        match value.get_type().get_bit_width() {
+            1 => {
+                let true_value = self.context.bool_type().const_int(1, false);
+                let cmp =
+                    self.builder
+                        .build_int_compare(IntPredicate::EQ, value, true_value, "cmp");
+                let then_block = self.context.append_basic_block(function, "if.then");
+                let else_block = self.context.append_basic_block(function, "if.else");
+                let end_block = self.context.append_basic_block(function, "if.end");
+                self.builder
+                    .build_conditional_branch(cmp, then_block, else_block);
+
+                // if.then
+                self.builder.position_at_end(then_block);
+                let text = self.builder.build_global_string_ptr("true\n", ".str");
+                self.builder.build_call(
+                    printf_fn,
+                    &[text.as_pointer_value().into(), value.into()],
+                    "printf",
+                );
+                self.builder.build_unconditional_branch(end_block);
+
+                // if.else
+                self.builder.position_at_end(else_block);
+                let text = self.builder.build_global_string_ptr("false\n", ".str");
+                self.builder.build_call(
+                    printf_fn,
+                    &[text.as_pointer_value().into(), value.into()],
+                    "printf",
+                );
+                self.builder.build_unconditional_branch(end_block);
+
+                // if.end
+                self.builder.position_at_end(end_block);
+            }
+            _ => {
+                let text = self.builder.build_global_string_ptr("%d\n", ".str");
+                self.builder.build_call(
+                    printf_fn,
+                    &[text.as_pointer_value().into(), value.into()],
+                    "printf",
+                );
+            }
+        }
     }
 }
 

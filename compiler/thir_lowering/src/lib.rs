@@ -61,6 +61,11 @@ impl LoweringContext {
                 // So there is no need to compile it.
                 ()
             }
+            thir::Stmt::Println(expr) => {
+                let operand = self.lower_expr(expr);
+                let stmt = Statement::Println(operand);
+                self.push_stmt(stmt);
+            }
         }
     }
 
@@ -91,7 +96,6 @@ impl LoweringContext {
             thir::BinOp::Ne => BinOp::Ne,
             thir::BinOp::Ge => BinOp::Ge,
             thir::BinOp::Gt => BinOp::Gt,
-            
         };
 
         let lhs = self.lower_expr(lhs);

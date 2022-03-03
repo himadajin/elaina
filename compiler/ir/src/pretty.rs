@@ -60,6 +60,11 @@ fn write_ir_stmt(stmt: &Statement, w: &mut dyn Write) -> fmt::Result {
             write_ir_rvalue(&assign.1, w)?;
             writeln!(w, ";")?;
         }
+        Statement::Println(operand) => {
+            write!(w, "println(")?;
+            write_ir_operand(operand, w)?;
+            writeln!(w, ");")?;
+        }
     }
     Ok(())
 }

@@ -73,4 +73,8 @@ pub enum KwKind {
 
     /// The `false` keyword
     False,
+
+    /// The `println` keyword.
+    /// This is temporary and will be removed in the future.
+    Println,
 }

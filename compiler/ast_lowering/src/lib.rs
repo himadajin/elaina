@@ -40,6 +40,7 @@ impl LoweringContext {
             }
             Stmt::Expr(expr) => thir::Stmt::Expr(self.lower_expr(expr)),
             Stmt::Semi(expr) => thir::Stmt::Semi(self.lower_expr(expr)),
+            Stmt::Println(expr) => thir::Stmt::Println(self.lower_expr(expr)),
         }
     }
 

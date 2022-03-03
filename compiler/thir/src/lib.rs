@@ -15,6 +15,10 @@ pub enum Stmt {
 
     /// Expression statement with semicolon: `1 + 1;`
     Semi(Expr),
+
+    /// Function call of `println`
+    /// This statement is temporary, used until the function call is implemented
+    Println(Expr),
 }
 
 #[derive(Debug, PartialEq, Clone)]
