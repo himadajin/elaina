@@ -28,14 +28,92 @@ impl Parser {
     }
 
     pub fn parse_expr(&mut self) -> Expr {
-        self.parse_expr_add()
+        self.parse_expr_equality()
+    }
+
+    fn parse_expr_equality(&mut self) -> Expr {
+        let lhs = self.parse_expr_relational();
+
+        if self.consume(&Token::EqEq) {
+            let rhs = self.parse_expr_relational();
+            let binary = Expr::Binary {
+                lhs: Box::new(lhs),
+                op: BinOp::Eq,
+                rhs: Box::new(rhs),
+            };
+
+            return binary;
+        }
+
+        if self.consume(&Token::Ne) {
+            let rhs = self.parse_expr_relational();
+            let binary = Expr::Binary {
+                lhs: Box::new(lhs),
+                op: BinOp::Ne,
+                rhs: Box::new(rhs),
+            };
+
+            return binary;
+        }
+
+        lhs
+    }
+
+    fn parse_expr_relational(&mut self) -> Expr {
+        let lhs = self.parse_expr_add();
+
+        if self.consume(&Token::Lt) {
+            let rhs = self.parse_expr_add();
+            let binary = Expr::Binary {
+                lhs: Box::new(lhs),
+                op: BinOp::Lt,
+                rhs: Box::new(rhs),
+            };
+
+            return binary;
+        }
+
+        if self.consume(&Token::Le) {
+            let rhs = self.parse_expr_add();
+            let binary = Expr::Binary {
+                lhs: Box::new(lhs),
+                op: BinOp::Le,
+                rhs: Box::new(rhs),
+            };
+
+            return binary;
+        }
+
+        if self.consume(&Token::Ge) {
+            let rhs = self.parse_expr_add();
+            let binary = Expr::Binary {
+                lhs: Box::new(lhs),
+                op: BinOp::Ge,
+                rhs: Box::new(rhs),
+            };
+
+            return binary;
+        }
+
+        if self.consume(&Token::Gt) {
+            let rhs = self.parse_expr_add();
+            let binary = Expr::Binary {
+                lhs: Box::new(lhs),
+                op: BinOp::Gt,
+                rhs: Box::new(rhs),
+            };
+
+            return binary;
+        }
+
+        lhs
     }
 
     fn parse_expr_add(&mut self) -> Expr {
         let lhs = self.parse_expr_mul();
 
         if self.consume(&Token::Plus) {
-            let rhs = self.parse_expr();
+            let rhs = self.parse_expr_add();
             let res = Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Add,
@@ -46,7 +124,7 @@ impl Parser {
         }
 
         if self.consume(&Token::Minus) {
-            let rhs = self.parse_expr();
+            let rhs = self.parse_expr_add();
             let res = Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Sub,
@@ -179,6 +257,74 @@ mod tests {
                 expr_lit_int("1"),
                 BinOp::Mul,
                 expr_binary(expr_lit_int("2"), BinOp::Add, expr_lit_int("3")),
+            )
+        );
+    }
+
+    #[test]
+    fn test_parse_relational() {
+        test_expr!(
+            "1 == 2",
+            expr_binary(expr_lit_int("1"), BinOp::Eq, expr_lit_int("2"))
+        );
+
+        test_expr!(
+            "1 < 2",
+            expr_binary(expr_lit_int("1"), BinOp::Lt, expr_lit_int("2"))
+        );
+
+        test_expr!(
+            "1 <= 2",
+            expr_binary(expr_lit_int("1"), BinOp::Le, expr_lit_int("2"))
+        );
+
+        test_expr!(
+            "1 != 2",
+            expr_binary(expr_lit_int("1"), BinOp::Ne, expr_lit_int("2"))
+        );
+
+        test_expr!(
+            "1 >= 2",
+            expr_binary(expr_lit_int("1"), BinOp::Ge, expr_lit_int("2"))
+        );
+
+        test_expr!(
+            "1 > 2",
+            expr_binary(expr_lit_int("1"), BinOp::Gt, expr_lit_int("2"))
+        );
+
+        test_expr!(
+            "1 + 2 == 3 + 4",
+            expr_binary(
+                expr_binary(expr_lit_int("1"), BinOp::Add, expr_lit_int("2")),
+                BinOp::Eq,
+                expr_binary(expr_lit_int("3"), BinOp::Add, expr_lit_int("4"))
+            )
+        );
+
+        test_expr!(
+            "1 < 2 == 3 < 4",
+            expr_binary(
+                expr_binary(expr_lit_int("1"), BinOp::Lt, expr_lit_int("2")),
+                BinOp::Eq,
+                expr_binary(expr_lit_int("3"), BinOp::Lt, expr_lit_int("4"))
+            )
+        );
+
+        test_expr!(
+            "1 + 2 < 3 + 4 == 5 + 6 < 7 + 8",
+            expr_binary(
+                expr_binary(
+                    expr_binary(expr_lit_int("1"), BinOp::Add, expr_lit_int("2")),
+                    BinOp::Lt,
+                    expr_binary(expr_lit_int("3"), BinOp::Add, expr_lit_int("4"))
+                ),
+                BinOp::Eq,
+                expr_binary(
+                    expr_binary(expr_lit_int("5"), BinOp::Add, expr_lit_int("6")),
+                    BinOp::Lt,
+                    expr_binary(expr_lit_int("7"), BinOp::Add, expr_lit_int("8"))
+                )
             )
         );
     }
