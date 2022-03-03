@@ -72,6 +72,7 @@ impl LoweringContext {
         match expr {
             Expr::Binary { op, lhs, rhs } => self.lower_expr_binary(*op, &lhs, &rhs),
             Expr::Unary { op, expr } => self.lower_expr_unary(*op, &expr),
+            Expr::Block { block: _block } => todo!(),
             Expr::Lit { lit } => self.lower_expr_lit(&lit),
             Expr::Ident { ident } => self.lower_expr_ident(ident.clone()),
         }

@@ -1,4 +1,4 @@
-use crate::{expr::*, lit::*, op::*};
+use crate::{block::*, expr::*, lit::*, op::*, stmt::*};
 
 pub fn expr_binary(lhs: Expr, op: BinOp, rhs: Expr) -> Expr {
     Expr::Binary {
@@ -12,6 +12,14 @@ pub fn expr_unary(op: UnOp, expr: Expr) -> Expr {
     Expr::Unary {
         op: op,
         expr: Box::new(expr),
+    }
+}
+
+pub fn expr_block<T: Into<Vec<Stmt>>>(stmts: T) -> Expr {
+    Expr::Block {
+        block: Box::new(Block {
+            stmts: stmts.into(),
+        }),
     }
 }
 

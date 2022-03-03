@@ -1,4 +1,4 @@
-use crate::{lit::*, op::*};
+use crate::{block::*, lit::*, op::*};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
@@ -11,6 +11,9 @@ pub enum Expr {
 
     /// A unary operation: `-x`
     Unary { op: UnOp, expr: Box<Expr> },
+
+    /// Block expression: `{ 0 }`, `{let a = 1; a}`
+    Block { block: Box<Block> },
 
     /// A literal in place of an expression: `1`
     Lit { lit: Lit },

@@ -28,7 +28,19 @@ impl Parser {
     }
 
     pub fn parse_expr(&mut self) -> Expr {
+        // Try to parse block expression
+        if matches!(self.token, Token::OpenBrace) {
+            return self.parse_expr_block();
+        }
+
         self.parse_expr_equality()
+    }
+
+    fn parse_expr_block(&mut self) -> Expr {
+        let block = self.parse_block();
+        Expr::Block {
+            block: Box::new(block),
+        }
     }
 
     fn parse_expr_equality(&mut self) -> Expr {
@@ -203,7 +215,7 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::builder::{expr::*, lit::*};
+    use ast::builder::{expr::*, lit::*, stmt::*};
     use lexer::run_lexer;
 
     macro_rules! test_lit {
@@ -258,6 +270,14 @@ mod tests {
                 BinOp::Mul,
                 expr_binary(expr_lit_int("2"), BinOp::Add, expr_lit_int("3")),
             )
+        );
+    }
+
+    #[test]
+    fn test_parse_block() {
+        test_expr!(
+            "{0; 1}",
+            expr_block([stmt_semi(expr_lit_int("0")), stmt_expr(expr_lit_int("1"))])
         );
     }
 
