@@ -28,17 +28,29 @@ impl Parser {
     }
 
     pub fn parse_expr(&mut self) -> Expr {
+        if let Some(expr) = self.parse_expr_with_block() {
+            return expr;
+        }
+
+        self.parse_expr_without_block()
+    }
+
+    pub fn parse_expr_without_block(&mut self) -> Expr {
+        self.parse_expr_operator()
+    }
+
+    pub fn parse_expr_with_block(&mut self) -> Option<Expr> {
         // Try to parse block expression
         if matches!(self.token, Token::OpenBrace) {
-            return self.parse_expr_block();
+            return Some(self.parse_expr_block());
         }
 
         // Try to parse if expression
         if matches!(self.token, Token::Keyword(KwKind::If)) {
-            return self.parse_expr_if();
+            return Some(self.parse_expr_if());
         }
 
-        self.parse_expr_equality()
+        None
     }
 
     fn parse_expr_block(&mut self) -> Expr {
@@ -84,6 +96,10 @@ impl Parser {
             then: Box::new(then),
             else_opt: None,
         }
+    }
+
+    fn parse_expr_operator(&mut self) -> Expr {
+        self.parse_expr_equality()
     }
 
     fn parse_expr_equality(&mut self) -> Expr {
