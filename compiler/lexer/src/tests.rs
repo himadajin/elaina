@@ -42,17 +42,33 @@ fn whitespace() {
 }
 
 #[test]
+fn ident() {
+    test_lexer!("true", vec![Token::new(TokenKind::Ident, 4)]);
+    test_lexer!("false", vec![Token::new(TokenKind::Ident, 5)]);
+
+    test_lexer!("aa1", vec![Token::new(TokenKind::Ident, 3)]);
+    test_lexer!("a1a", vec![Token::new(TokenKind::Ident, 3)]);
+
+    test_lexer!(
+        " foo ",
+        vec![
+            Token::new(TokenKind::Whitespace, 1),
+            Token::new(TokenKind::Ident, 3),
+            Token::new(TokenKind::Whitespace, 1)
+        ]
+    );
+}
+
+#[test]
 fn number() {
     test_lexer!(
         "0",
-        vec![
-            Token::new(
-                TokenKind::Literal {
-                    kind: LiteralKind::Int
-                },
-                1
-            ),
-        ]
+        vec![Token::new(
+            TokenKind::Literal {
+                kind: LiteralKind::Int
+            },
+            1
+        ),]
     );
     test_lexer!(
         "1",

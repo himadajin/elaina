@@ -15,6 +15,10 @@ pub enum TokenKind {
     /// Any whitespace characters sequence.
     Whitespace,
 
+    /// "ident" or "keyword"
+    /// At this step keywords are considered identifiers.
+    Ident,
+
     /// Literal.
     Literal { kind: LiteralKind },
 

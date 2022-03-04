@@ -81,6 +81,7 @@ impl Cursor<'_> {
                 let literal_kind = self.number(c);
                 TokenKind::Literal { kind: literal_kind }
             }
+            c if is_id_start(c) => self.ident(),
 
             ';' => TokenKind::Semi,
             '(' => TokenKind::OpenParen,
@@ -105,6 +106,11 @@ impl Cursor<'_> {
     fn whitespace(&mut self) -> TokenKind {
         self.eat_while(is_whitespace);
         TokenKind::Whitespace
+    }
+
+    fn ident(&mut self) -> TokenKind {
+        self.eat_while(is_id_continue);
+        TokenKind::Ident
     }
 
     fn number(&mut self, first_digit: char) -> LiteralKind {
