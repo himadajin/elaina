@@ -5,21 +5,21 @@ use ast::token::{KwKind, Token};
 
 impl Parser {
     pub fn parse_stmt(&mut self) -> Stmt {
-        // Try parse local statement.
-        if let Some(local) = self.parse_stmt_local() {
+        // Try parse let statement.
+        if let Some(local) = self.parse_let_stmt() {
             return local;
         }
 
         // Try parse println statement.
         // This is temporary and will be removed in the future.
-        if let Some(stmt) = self.parse_stmt_println() {
+        if let Some(stmt) = self.parse_println_stmt() {
             return stmt;
         }
 
-        self.parse_stmt_expr()
+        self.parse_expr_stmt()
     }
 
-    fn parse_stmt_local(&mut self) -> Option<Stmt> {
+    fn parse_let_stmt(&mut self) -> Option<Stmt> {
         if !self.consume(&Token::Keyword(KwKind::Let)) {
             return None;
         }
@@ -46,7 +46,7 @@ impl Parser {
     }
 
     /// This function is temporary and will be removed in the future.
-    fn parse_stmt_println(&mut self) -> Option<Stmt> {
+    fn parse_println_stmt(&mut self) -> Option<Stmt> {
         if !self.consume(&Token::Keyword(KwKind::Println)) {
             return None;
         }
@@ -61,7 +61,7 @@ impl Parser {
         Some(stmt)
     }
 
-    fn parse_stmt_expr(&mut self) -> Stmt {
+    fn parse_expr_stmt(&mut self) -> Stmt {
         if let Some(expr) = self.parse_expr_with_block() {
             return Stmt::Expr(expr);
         }

@@ -36,31 +36,31 @@ impl Parser {
     }
 
     pub fn parse_expr_without_block(&mut self) -> Expr {
-        self.parse_expr_operator()
+        self.parse_operator_expr()
     }
 
     pub fn parse_expr_with_block(&mut self) -> Option<Expr> {
         // Try to parse block expression
         if matches!(self.token, Token::OpenBrace) {
-            return Some(self.parse_expr_block());
+            return Some(self.parse_block_expr());
         }
 
         // Try to parse if expression
         if matches!(self.token, Token::Keyword(KwKind::If)) {
-            return Some(self.parse_expr_if());
+            return Some(self.parse_if_expr());
         }
 
         None
     }
 
-    fn parse_expr_block(&mut self) -> Expr {
+    fn parse_block_expr(&mut self) -> Expr {
         let block = self.parse_block();
         Expr::Block {
             block: Box::new(block),
         }
     }
 
-    fn parse_expr_if(&mut self) -> Expr {
+    fn parse_if_expr(&mut self) -> Expr {
         self.expect(&Token::Keyword(KwKind::If));
 
         let cond = self.parse_expr();
@@ -83,7 +83,7 @@ impl Parser {
             }
 
             // Otherwise, if expression should be parsed.
-            let if_expr = self.parse_expr_if();
+            let if_expr = self.parse_if_expr();
             return Expr::If {
                 cond: Box::new(cond),
                 then: Box::new(then),
@@ -98,7 +98,7 @@ impl Parser {
         }
     }
 
-    fn parse_expr_operator(&mut self) -> Expr {
+    fn parse_operator_expr(&mut self) -> Expr {
         self.parse_expr_equality()
     }
 
