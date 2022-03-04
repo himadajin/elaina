@@ -93,7 +93,7 @@ fn print_token(input: &str) {
 fn print_ast(input: &str) {
     let ast = parse_block_from_source_str(input);
 
-    println!("{:?}", ast);
+    println!("{:#?}", ast);
 }
 
 fn print_ir(input: &str) {
