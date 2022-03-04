@@ -16,13 +16,7 @@ impl Parser {
             return stmt;
         }
 
-        let expr = self.parse_expr();
-
-        if self.consume(&Token::Semi) {
-            return Stmt::Semi(expr);
-        }
-
-        Stmt::Expr(expr)
+        self.parse_stmt_expr()
     }
 
     fn parse_stmt_local(&mut self) -> Option<Stmt> {
@@ -65,6 +59,19 @@ impl Parser {
         let stmt = Stmt::Println(expr);
 
         Some(stmt)
+    }
+
+    fn parse_stmt_expr(&mut self) -> Stmt {
+        if let Some(expr) = self.parse_expr_with_block() {
+            return Stmt::Expr(expr);
+        }
+
+        let expr = self.parse_expr();
+        if self.consume(&Token::Semi) {
+            return Stmt::Semi(expr);
+        }
+
+        Stmt::Expr(expr)
     }
 }
 
