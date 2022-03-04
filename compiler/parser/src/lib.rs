@@ -4,7 +4,7 @@ pub mod stmt;
 
 use ast::{block::Block, token::*};
 use core::panic;
-use lexer::run_lexer;
+use lexer_old::run_lexer;
 
 struct TokenCursor {
     tokens: Vec<Token>,

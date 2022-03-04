@@ -79,7 +79,7 @@ impl Parser {
 mod tests {
     use super::*;
     use ast::builder::{expr::*, stmt::*};
-    use lexer::run_lexer;
+    use lexer_old::run_lexer;
 
     macro_rules! test_stmt {
         ($input: expr, $expected: expr) => {

@@ -29,7 +29,7 @@ mod tests {
     use super::*;
     use ast::builder::{block::*, expr::*, stmt::*};
     use ast::op::*;
-    use lexer::run_lexer;
+    use lexer_old::run_lexer;
 
     macro_rules! test_block {
         ($input: expr, $expected: expr) => {
