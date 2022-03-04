@@ -4,6 +4,12 @@ pub struct Token {
     pub len: usize,
 }
 
+impl Token {
+    pub(crate) fn new(kind: TokenKind, len: usize) -> Self {
+        Self { kind, len }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TokenKind {
     /// Any whitespace characters sequence.
