@@ -40,3 +40,45 @@ fn whitespace() {
         ]
     );
 }
+
+#[test]
+fn number() {
+    test_lexer!(
+        "0",
+        vec![
+            Token::new(
+                TokenKind::Literal {
+                    kind: LiteralKind::Int
+                },
+                1
+            ),
+        ]
+    );
+    test_lexer!(
+        "1",
+        vec![Token::new(
+            TokenKind::Literal {
+                kind: LiteralKind::Int
+            },
+            1
+        )]
+    );
+    test_lexer!(
+        "10",
+        vec![Token::new(
+            TokenKind::Literal {
+                kind: LiteralKind::Int
+            },
+            2
+        )]
+    );
+    test_lexer!(
+        "01",
+        vec![Token::new(
+            TokenKind::Literal {
+                kind: LiteralKind::Int
+            },
+            2
+        )]
+    );
+}

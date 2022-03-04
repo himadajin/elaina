@@ -15,6 +15,9 @@ pub enum TokenKind {
     /// Any whitespace characters sequence.
     Whitespace,
 
+    /// Literal.
+    Literal { kind: LiteralKind },
+
     /// `;`
     Semi,
 
@@ -56,4 +59,9 @@ pub enum TokenKind {
 
     /// Unknown token, not expected by the lexer.
     Unknown,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LiteralKind {
+    Int,
 }

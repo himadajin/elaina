@@ -77,6 +77,10 @@ impl Cursor<'_> {
         let first_char = self.bump().unwrap();
         let token_kind = match first_char {
             c if is_whitespace(c) => self.whitespace(),
+            c @ '0'..='9' => {
+                let literal_kind = self.number(c);
+                TokenKind::Literal { kind: literal_kind }
+            }
 
             ';' => TokenKind::Semi,
             '(' => TokenKind::OpenParen,
@@ -91,7 +95,7 @@ impl Cursor<'_> {
             '+' => TokenKind::Plus,
             '*' => TokenKind::Star,
             '/' => TokenKind::Slash,
-            
+
             _ => TokenKind::Unknown,
         };
 
@@ -101,5 +105,42 @@ impl Cursor<'_> {
     fn whitespace(&mut self) -> TokenKind {
         self.eat_while(is_whitespace);
         TokenKind::Whitespace
+    }
+
+    fn number(&mut self, first_digit: char) -> LiteralKind {
+        if first_digit == '0' {
+            let has_digits = match self.first() {
+                '0'..='9' => {
+                    self.eat_decimal_digits();
+                    true
+                }
+                _ => return LiteralKind::Int,
+            };
+
+            if !has_digits {
+                return LiteralKind::Int;
+            }
+        } else {
+            self.eat_decimal_digits();
+        }
+
+        LiteralKind::Int
+    }
+
+    fn eat_decimal_digits(&mut self) -> bool {
+        let mut has_digits = false;
+        loop {
+            match self.first() {
+                '_' => {
+                    self.bump();
+                }
+                '0'..='9' => {
+                    has_digits = true;
+                    self.bump();
+                }
+                _ => break,
+            }
+        }
+        has_digits
     }
 }
