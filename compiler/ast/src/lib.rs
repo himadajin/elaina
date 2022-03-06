@@ -4,5 +4,6 @@ pub mod lit;
 pub mod op;
 pub mod stmt;
 pub mod token_old;
+pub mod token;
 
 pub mod builder;
