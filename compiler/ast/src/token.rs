@@ -26,7 +26,7 @@ pub enum TokenKind {
     Eof,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Token {
     pub kind: TokenKind,
     pub span: Span,
