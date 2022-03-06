@@ -4,7 +4,6 @@ use ast_lowering;
 use codegen_llvm::{codegen_and_execute, codegen_string};
 use ir::pretty;
 use parser::lexer::parse_all_token;
-use lexer_old::run_lexer;
 use parser::{self, parse_block_from_source_str};
 use thir_lowering;
 
