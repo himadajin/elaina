@@ -22,10 +22,19 @@ pub enum TokenKind {
     CloseDelim(DelimToken),
 
     Ident(Symbol),
+
+    Eof,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct Token {
     pub kind: TokenKind,
     pub span: Span,
+}
+
+impl Token {
+    #[inline]
+    pub fn new(kind: TokenKind, span: Span) -> Self {
+        Self { kind, span }
+    }
 }

@@ -1,3 +1,5 @@
+pub mod lexer;
+
 pub mod block;
 pub mod expr;
 pub mod stmt;
