@@ -1,4 +1,4 @@
-use ast::token::{KwKind, Token};
+use ast::token_old::{KwKind, Token};
 use std::str::Chars;
 
 pub struct Lexer<'input> {

@@ -1,5 +1,5 @@
 use crate::Parser;
-use ast::{block::*, stmt::*, token::*};
+use ast::{block::*, stmt::*, token_old::*};
 
 impl Parser {
     pub fn parse_block(&mut self) -> Block {

@@ -4,7 +4,7 @@ use ast::{
     expr::*,
     lit::{self, Lit},
     op::*,
-    token::{KwKind, Token},
+    token_old::{KwKind, Token},
 };
 
 impl Parser {

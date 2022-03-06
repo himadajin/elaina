@@ -2,7 +2,7 @@ pub mod block;
 pub mod expr;
 pub mod stmt;
 
-use ast::{block::Block, token::*};
+use ast::{block::Block, token_old::*};
 use core::panic;
 use lexer_old::run_lexer;
 
@@ -116,7 +116,7 @@ pub fn parse_block_from_source_str(src: &str) -> Block {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::token::Token;
+    use ast::token_old::Token;
 
     #[test]
     fn test_cursor() {

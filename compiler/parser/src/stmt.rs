@@ -1,7 +1,7 @@
 use crate::Parser;
 
 use ast::stmt::*;
-use ast::token::{KwKind, Token};
+use ast::token_old::{KwKind, Token};
 
 impl Parser {
     pub fn parse_stmt(&mut self) -> Stmt {
