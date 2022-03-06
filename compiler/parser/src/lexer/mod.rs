@@ -39,7 +39,7 @@ impl<'a> Lexer<'a> {
 
             let token = first_token(text);
             let start = self.pos;
-            self.pos = token.len;
+            self.pos += token.len;
 
             match self.cook_lexer_token(token.kind, start) {
                 Some(kind) => {
