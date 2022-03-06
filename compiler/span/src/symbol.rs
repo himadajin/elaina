@@ -49,6 +49,10 @@ impl<'a> SymbolMap<'a> {
     pub fn get(&self, symbol: Symbol) -> &'a str {
         self.strings[symbol]
     }
+
+    pub const fn is_keyword(&self, symbol: Symbol) -> bool {
+        symbol.0 < KEYWORDS.len()
+    }
 }
 
 macro_rules! keywords {
@@ -115,5 +119,15 @@ mod tests {
 
         let foo2 = m.insert("foo");
         assert_eq!(foo, foo2);
+    }
+
+    #[test]
+    fn is_keyword() {
+        let mut m = SymbolMap::new();
+        let foo = m.insert("foo");
+        
+        assert!(m.is_keyword(Kw::Let.as_symbol()));
+        assert!(m.is_keyword(Kw::Println.as_symbol()));
+        assert!(!m.is_keyword(foo));
     }
 }
