@@ -2,6 +2,17 @@ use ast::token::*;
 use lexer::{first_token, token};
 use span::{span::Span, symbol::*};
 
+pub fn parse_all_token(src: &str) -> impl Iterator<Item = Token> + '_ {
+    let mut lexer = Lexer::new(src);
+    std::iter::from_fn(move || {
+        let token = lexer.next_token();
+        match token.kind {
+            TokenKind::Eof => None,
+            _ => Some(token),
+        }
+    })
+}
+
 pub struct Lexer<'a> {
     pos: usize,
     src: &'a str,
@@ -82,20 +93,9 @@ mod tests {
 
     macro_rules! test_lexer {
         ($input: expr, $expected: expr) => {
-            let tokens = {
-                let mut lexer = Lexer::new($input);
-                let mut tokens = Vec::new();
-                loop {
-                    let token = lexer.next_token();
-                    match token.kind {
-                        TokenKind::Eof => break,
-                        _ => tokens.push(token),
-                    }
-                }
-                tokens
-            };
+            let tokens = parse_all_token($input);
 
-            for (result, expeced) in tokens.iter().zip($expected) {
+            for (result, expeced) in tokens.zip($expected) {
                 assert_eq!(result.kind, expeced);
             }
         };
