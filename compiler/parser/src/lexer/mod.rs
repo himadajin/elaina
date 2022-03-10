@@ -60,7 +60,14 @@ impl<'a> Lexer<'a> {
 
                 TokenKind::Ident(symbol)
             }
-            token::TokenKind::Literal { .. } => todo!(),
+            token::TokenKind::Literal { kind } => {
+                let kind = match kind {
+                    token::LiteralKind::Int => LitKind::Integer,
+                };
+                let string = self.str_from(start);
+                let symbol = self.symbol_map.insert(string);
+                TokenKind::Literal(Lit { kind, symbol })
+            }
             token::TokenKind::Semi => todo!(),
             token::TokenKind::OpenParen => TokenKind::OpenDelim(DelimToken::Paren),
             token::TokenKind::CloseParen => TokenKind::CloseDelim(DelimToken::Paren),
@@ -210,6 +217,55 @@ mod tests {
                 TokenKind::Ident(Kw::Println.as_symbol()),
                 Span::new(0, 7)
             )]
+        );
+    }
+
+    #[test]
+    fn literal() {
+        test_lexer!(
+            "0",
+            vec![Token::new(
+                TokenKind::Literal(Lit {
+                    kind: LitKind::Integer,
+                    symbol: Symbol::new(KEYWORDS.len())
+                }),
+                Span::new(0, 1)
+            )]
+        );
+
+        test_lexer!(
+            "12",
+            vec![Token::new(
+                TokenKind::Literal(Lit {
+                    kind: LitKind::Integer,
+                    symbol: Symbol::new(KEYWORDS.len())
+                }),
+                Span::new(0, 2)
+            )]
+        );
+    }
+
+    #[test]
+    fn expr() {
+        test_lexer!(
+            "1 + 2",
+            vec![
+                Token::new(
+                    TokenKind::Literal(Lit {
+                        kind: LitKind::Integer,
+                        symbol: Symbol::new(KEYWORDS.len())
+                    }),
+                    Span::new(0, 1)
+                ),
+                Token::new(TokenKind::BinOp(BinOpToken::Plus), Span::new(2, 3)),
+                Token::new(
+                    TokenKind::Literal(Lit {
+                        kind: LitKind::Integer,
+                        symbol: Symbol::new(KEYWORDS.len() + 1)
+                    }),
+                    Span::new(4, 5)
+                )
+            ]
         );
     }
 }

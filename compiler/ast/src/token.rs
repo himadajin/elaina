@@ -14,12 +14,26 @@ pub enum DelimToken {
     Brace,
 }
 
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum LitKind {
+    Bool,
+    Integer,
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct Lit {
+    pub kind: LitKind,
+    pub symbol: Symbol,
+}
+
 #[derive(Clone, PartialEq, Debug)]
 pub enum TokenKind {
     BinOp(BinOpToken),
 
     OpenDelim(DelimToken),
     CloseDelim(DelimToken),
+
+    Literal(Lit),
 
     Ident(Symbol),
 
