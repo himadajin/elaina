@@ -96,34 +96,118 @@ mod tests {
             let tokens = parse_all_token($input);
 
             for (result, expeced) in tokens.zip($expected) {
-                assert_eq!(result.kind, expeced);
+                assert_eq!(result, expeced);
             }
         };
     }
 
     #[test]
     fn paren() {
-        test_lexer!("(", vec![TokenKind::OpenDelim(DelimToken::Paren)]);
-        test_lexer!(")", vec![TokenKind::CloseDelim(DelimToken::Paren)]);
-        test_lexer!("{", vec![TokenKind::OpenDelim(DelimToken::Brace)]);
-        test_lexer!("}", vec![TokenKind::CloseDelim(DelimToken::Brace)]);
+        test_lexer!(
+            "(",
+            vec![Token::new(
+                TokenKind::OpenDelim(DelimToken::Paren),
+                Span::new(0, 1)
+            )]
+        );
+        test_lexer!(
+            ")",
+            vec![Token::new(
+                TokenKind::CloseDelim(DelimToken::Paren),
+                Span::new(0, 1)
+            )]
+        );
+        test_lexer!(
+            "{",
+            vec![Token::new(
+                TokenKind::OpenDelim(DelimToken::Brace),
+                Span::new(0, 1)
+            )]
+        );
+        test_lexer!(
+            "}",
+            vec![Token::new(
+                TokenKind::CloseDelim(DelimToken::Brace),
+                Span::new(0, 1)
+            )]
+        );
     }
 
     #[test]
     fn bin_op() {
-        test_lexer!("+", vec![TokenKind::BinOp(BinOpToken::Plus)]);
-        test_lexer!("-", vec![TokenKind::BinOp(BinOpToken::Minus)]);
-        test_lexer!("*", vec![TokenKind::BinOp(BinOpToken::Star)]);
-        test_lexer!("/", vec![TokenKind::BinOp(BinOpToken::Slash)]);
+        test_lexer!(
+            "+",
+            vec![Token::new(
+                TokenKind::BinOp(BinOpToken::Plus),
+                Span::new(0, 1)
+            )]
+        );
+        test_lexer!(
+            "-",
+            vec![Token::new(
+                TokenKind::BinOp(BinOpToken::Minus),
+                Span::new(0, 1)
+            )]
+        );
+        test_lexer!(
+            "*",
+            vec![Token::new(
+                TokenKind::BinOp(BinOpToken::Star),
+                Span::new(0, 1)
+            )]
+        );
+        test_lexer!(
+            "/",
+            vec![Token::new(
+                TokenKind::BinOp(BinOpToken::Slash),
+                Span::new(0, 1)
+            )]
+        );
     }
 
     #[test]
     fn keyword() {
-        test_lexer!("let", vec![TokenKind::Ident(Kw::Let.as_symbol())]);
-        test_lexer!("if", vec![TokenKind::Ident(Kw::If.as_symbol())]);
-        test_lexer!("else", vec![TokenKind::Ident(Kw::Else.as_symbol())]);
-        test_lexer!("true", vec![TokenKind::Ident(Kw::True.as_symbol())]);
-        test_lexer!("false", vec![TokenKind::Ident(Kw::False.as_symbol())]);
-        test_lexer!("println", vec![TokenKind::Ident(Kw::Println.as_symbol())]);
+        test_lexer!(
+            "let",
+            vec![Token::new(
+                TokenKind::Ident(Kw::Let.as_symbol()),
+                Span::new(0, 3)
+            )]
+        );
+        test_lexer!(
+            "if",
+            vec![Token::new(
+                TokenKind::Ident(Kw::If.as_symbol()),
+                Span::new(0, 2)
+            )]
+        );
+        test_lexer!(
+            "else",
+            vec![Token::new(
+                TokenKind::Ident(Kw::Else.as_symbol()),
+                Span::new(0, 4)
+            )]
+        );
+        test_lexer!(
+            "true",
+            vec![Token::new(
+                TokenKind::Ident(Kw::True.as_symbol()),
+                Span::new(0, 4)
+            )]
+        );
+        test_lexer!(
+            "false",
+            vec![Token::new(
+                TokenKind::Ident(Kw::False.as_symbol()),
+                Span::new(0, 5)
+            )]
+        );
+        test_lexer!(
+            "println",
+            vec![Token::new(
+                TokenKind::Ident(Kw::Println.as_symbol()),
+                Span::new(0, 7)
+            )]
+        );
     }
 }
