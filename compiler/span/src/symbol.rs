@@ -8,7 +8,7 @@ pub struct Symbol(usize);
 
 impl Symbol {
     #[inline]
-    const fn new(idx: usize) -> Self {
+    pub const fn new(idx: usize) -> Self {
         Symbol(idx)
     }
 }
@@ -125,7 +125,7 @@ mod tests {
     fn is_keyword() {
         let mut m = SymbolMap::new();
         let foo = m.insert("foo");
-        
+
         assert!(m.is_keyword(Kw::Let.as_symbol()));
         assert!(m.is_keyword(Kw::Println.as_symbol()));
         assert!(!m.is_keyword(foo));
