@@ -93,10 +93,12 @@ mod tests {
 
     macro_rules! test_lexer {
         ($input: expr, $expected: expr) => {
-            let tokens = parse_all_token($input);
+            let tokens: Vec<Token> = parse_all_token($input).collect();
 
-            for (result, expeced) in tokens.zip($expected) {
-                assert_eq!(result, expeced);
+            assert_eq!(tokens.len(), $expected.len());
+
+            for (result, expeced) in tokens.iter().zip($expected) {
+                assert_eq!(*result, expeced);
             }
         };
     }
