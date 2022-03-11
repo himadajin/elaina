@@ -28,6 +28,14 @@ pub struct Lit {
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum TokenKind {
+    Eq,
+    Lt,
+    Le,
+    EqEq,
+    Ne,
+    Ge,
+    Gt,
+
     BinOp(BinOpToken),
 
     OpenDelim(DelimToken),
