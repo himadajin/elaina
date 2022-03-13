@@ -28,24 +28,44 @@ pub struct Lit {
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum TokenKind {
+    /// `=`
     Eq,
+
+    /// `<`
     Lt,
+
+    /// `<=`
     Le,
+
+    /// `==`
     EqEq,
+
+    /// `!=`
     Ne,
+
+    /// `>=`
     Ge,
+
+    /// `>`
     Gt,
 
+    /// Binary operator: `+`, `-`, `*`, `/`
     BinOp(BinOpToken),
 
+    /// `;`
     Semi,
 
+    /// Open delimiter: `(`, `{`
     OpenDelim(DelimToken),
+
+    /// Close delimiter: `)`, `}`
     CloseDelim(DelimToken),
-
+    
+    /// Literal: `bool`, `integer`
     Literal(Lit),
-
-    Ident(Symbol),
+    
+    /// Identifier (include keyword)
+    Ident(Symbol), 
 
     Eof,
 }
