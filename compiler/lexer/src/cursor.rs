@@ -113,10 +113,36 @@ impl Cursor<'_> {
             ')' => TokenKind::CloseParen,
             '{' => TokenKind::OpenBrace,
             '}' => TokenKind::CloseBrace,
-            '=' => TokenKind::Eq,
-            '!' => TokenKind::Bang,
-            '<' => TokenKind::Lt,
-            '>' => TokenKind::Gt,
+
+            '=' => match self.first() {
+                '=' => {
+                    self.bump();
+                    TokenKind::EqEq
+                }
+                _ => TokenKind::Eq,
+            },
+            // TokenKind::Eq,
+            '!' => match self.first() {
+                '=' => {
+                    self.bump();
+                    TokenKind::Ne
+                }
+                _ => TokenKind::Bang,
+            },
+            '<' => match self.first() {
+                '=' => {
+                    self.bump();
+                    TokenKind::Le
+                }
+                _ => TokenKind::Lt,
+            },
+            '>' => match self.first() {
+                '=' => {
+                    self.bump();
+                    TokenKind::Ge
+                }
+                _ => TokenKind::Gt,
+            },
             '-' => TokenKind::Minus,
             '+' => TokenKind::Plus,
             '*' => TokenKind::Star,

@@ -38,6 +38,8 @@ pub enum TokenKind {
 
     BinOp(BinOpToken),
 
+    Semi,
+
     OpenDelim(DelimToken),
     CloseDelim(DelimToken),
 

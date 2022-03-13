@@ -68,15 +68,21 @@ impl<'a> Lexer<'a> {
                 let symbol = self.symbol_map.insert(string);
                 TokenKind::Literal(Lit { kind, symbol })
             }
-            token::TokenKind::Semi => todo!(),
+            token::TokenKind::Semi => TokenKind::Semi,
             token::TokenKind::OpenParen => TokenKind::OpenDelim(DelimToken::Paren),
             token::TokenKind::CloseParen => TokenKind::CloseDelim(DelimToken::Paren),
             token::TokenKind::OpenBrace => TokenKind::OpenDelim(DelimToken::Brace),
             token::TokenKind::CloseBrace => TokenKind::CloseDelim(DelimToken::Brace),
-            token::TokenKind::Eq => todo!(),
+            token::TokenKind::Eq => TokenKind::Eq,
             token::TokenKind::Bang => todo!(),
-            token::TokenKind::Lt => todo!(),
-            token::TokenKind::Gt => todo!(),
+
+            token::TokenKind::Lt => TokenKind::Lt,
+            token::TokenKind::Le => TokenKind::Le,
+            token::TokenKind::EqEq => TokenKind::EqEq,
+            token::TokenKind::Ne => TokenKind::Ne,
+            token::TokenKind::Ge => TokenKind::Ge,
+            token::TokenKind::Gt => TokenKind::Gt,
+
             token::TokenKind::Minus => TokenKind::BinOp(BinOpToken::Minus),
             token::TokenKind::Plus => TokenKind::BinOp(BinOpToken::Plus),
             token::TokenKind::Star => TokenKind::BinOp(BinOpToken::Star),
@@ -140,6 +146,18 @@ mod tests {
                 Span::new(0, 1)
             )]
         );
+    }
+
+    #[test]
+    fn symbol() {
+        test_lexer!("=", vec![Token::new(TokenKind::Eq, Span::new(0, 1))]);
+        test_lexer!("<", vec![Token::new(TokenKind::Lt, Span::new(0, 1))]);
+        test_lexer!("<=", vec![Token::new(TokenKind::Le, Span::new(0, 2))]);
+        test_lexer!("==", vec![Token::new(TokenKind::EqEq, Span::new(0, 2))]);
+        test_lexer!("!=", vec![Token::new(TokenKind::Ne, Span::new(0, 2))]);
+        test_lexer!(">=", vec![Token::new(TokenKind::Ge, Span::new(0, 2))]);
+        test_lexer!(">", vec![Token::new(TokenKind::Gt, Span::new(0, 1))]);
+        test_lexer!(";", vec![Token::new(TokenKind::Semi, Span::new(0, 1))]);
     }
 
     #[test]

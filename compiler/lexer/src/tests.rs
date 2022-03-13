@@ -10,18 +10,27 @@ macro_rules! test_lexer {
 }
 
 #[test]
-fn one_char_token() {
-    test_lexer!(";", vec![Token::new(TokenKind::Semi, 1)]);
-
+fn paren() {
     test_lexer!("(", vec![Token::new(TokenKind::OpenParen, 1)]);
     test_lexer!(")", vec![Token::new(TokenKind::CloseParen, 1)]);
     test_lexer!("{", vec![Token::new(TokenKind::OpenBrace, 1)]);
     test_lexer!("}", vec![Token::new(TokenKind::CloseBrace, 1)]);
+}
+
+#[test]
+fn symbol() {
+    test_lexer!(";", vec![Token::new(TokenKind::Semi, 1)]);
 
     test_lexer!("=", vec![Token::new(TokenKind::Eq, 1)]);
     test_lexer!("!", vec![Token::new(TokenKind::Bang, 1)]);
+
     test_lexer!("<", vec![Token::new(TokenKind::Lt, 1)]);
+    test_lexer!("<=", vec![Token::new(TokenKind::Le, 2)]);
+    test_lexer!("==", vec![Token::new(TokenKind::EqEq, 2)]);
+    test_lexer!("!=", vec![Token::new(TokenKind::Ne, 2)]);
+    test_lexer!(">=", vec![Token::new(TokenKind::Ge, 2)]);
     test_lexer!(">", vec![Token::new(TokenKind::Gt, 1)]);
+
     test_lexer!("-", vec![Token::new(TokenKind::Minus, 1)]);
     test_lexer!("+", vec![Token::new(TokenKind::Plus, 1)]);
     test_lexer!("*", vec![Token::new(TokenKind::Star, 1)]);
