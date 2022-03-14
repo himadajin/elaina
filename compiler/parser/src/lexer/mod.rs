@@ -2,7 +2,7 @@ use ast::token::*;
 use lexer::{first_token, token};
 use span::{span::Span, symbol::*};
 
-pub fn parse_all_token(src: &str) -> (Vec<Token>, SymbolMap) {
+pub fn parse_all_token(src: &str) -> Tokens {
     let mut lexer = Lexer::new(src);
 
     let mut tokens = Vec::new();
@@ -14,7 +14,10 @@ pub fn parse_all_token(src: &str) -> (Vec<Token>, SymbolMap) {
         }
     }
 
-    (tokens, lexer.finish())
+    Tokens {
+        tokens: tokens,
+        map: lexer.finish(),
+    }
 }
 
 pub struct Lexer<'a> {
@@ -115,7 +118,7 @@ mod tests {
 
     macro_rules! test_lexer {
         ($input: expr, $expected: expr) => {
-            let (tokens, _) = parse_all_token($input);
+            let tokens = parse_all_token($input).tokens;
 
             assert_eq!(tokens.len(), $expected.len());
 

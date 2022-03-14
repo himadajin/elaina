@@ -321,8 +321,8 @@ mod tests {
 
     macro_rules! test_lit {
         ($input: expr, $expected: expr) => {
-            let (tokens, symbol_map) = parse_all_token($input);
-            let result = Parser::new(tokens, symbol_map).parse_lit_opt().unwrap();
+            let tokens = parse_all_token($input);
+            let result = Parser::new(tokens).parse_lit_opt().unwrap();
 
             assert_eq!(result, $expected);
         };
@@ -330,8 +330,8 @@ mod tests {
 
     macro_rules! test_expr {
         ($input: expr, $expected: expr) => {
-            let (tokens, symbol_map) = parse_all_token($input);
-            let result = Parser::new(tokens, symbol_map).parse_expr();
+            let tokens = parse_all_token($input);
+            let result = Parser::new(tokens).parse_expr();
 
             assert_eq!(result, $expected);
         };

@@ -33,8 +33,8 @@ mod tests {
 
     macro_rules! test_block {
         ($input: expr, $expected: expr) => {
-            let (tokens, symbol_map) = parse_all_token($input);
-            let result = Parser::new(tokens, symbol_map).parse_block();
+            let tokens = parse_all_token($input);
+            let result = Parser::new(tokens).parse_block();
 
             assert_eq!(result, $expected);
         };

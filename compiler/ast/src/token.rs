@@ -1,4 +1,7 @@
-use span::{span::Span, symbol::Symbol};
+use span::{
+    span::Span,
+    symbol::{Symbol, SymbolMap},
+};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum BinOpToken {
@@ -62,12 +65,12 @@ pub enum TokenKind {
 
     /// Close delimiter: `)`, `}`
     CloseDelim(DelimToken),
-    
+
     /// Literal: `bool`, `integer`
     Literal(Lit),
-    
+
     /// Identifier (include keyword)
-    Ident(Symbol), 
+    Ident(Symbol),
 
     Eof,
 }
@@ -83,4 +86,9 @@ impl Token {
     pub fn new(kind: TokenKind, span: Span) -> Self {
         Self { kind, span }
     }
+}
+
+pub struct Tokens<'a> {
+    pub tokens: Vec<Token>,
+    pub map: SymbolMap<'a>,
 }

@@ -40,16 +40,16 @@ pub struct Parser<'a> {
 }
 
 impl<'a> Parser<'a> {
-    pub fn new(tokens: Vec<Token>, symbol_map: SymbolMap<'a>) -> Self {
-        assert!(tokens.len() >= 1, "tokens is empty");
+    pub fn new(tokens: Tokens<'a>) -> Self {
+        assert!(tokens.tokens.len() >= 1, "tokens is empty");
 
-        let mut cursor = TokenCursor::new(tokens);
+        let mut cursor = TokenCursor::new(tokens.tokens);
 
         let token = cursor.next().unwrap();
 
         Self {
             token: token,
-            symbol_map: symbol_map,
+            symbol_map: tokens.map,
             cursor: cursor,
         }
     }
@@ -115,9 +115,9 @@ impl<'a> Parser<'a> {
 }
 
 pub fn parse_block_from_source_str(src: &str) -> Block {
-    let (tokens, symbol_map) = parse_all_token(src);
+    let tokens = parse_all_token(src);
 
-    Parser::new(tokens, symbol_map).parse_block()
+    Parser::new(tokens).parse_block()
 }
 
 #[cfg(test)]
