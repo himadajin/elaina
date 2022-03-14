@@ -1,5 +1,5 @@
 use crate::{block::*, expr::*, lit::*, op::*, stmt::*};
-use span::span::DUMMY_SP;
+use span::{span::DUMMY_SP, symbol::Symbol};
 
 pub fn expr_binary(lhs: Expr, op: BinOp, rhs: Expr) -> Expr {
     Expr::Binary {
@@ -50,8 +50,6 @@ pub fn expr_lit_bool(value: bool) -> Expr {
     }
 }
 
-pub fn expr_ident<T: Into<String>>(ident: T) -> Expr {
-    Expr::Ident {
-        ident: ident.into(),
-    }
+pub fn expr_ident(symbol: Symbol) -> Expr {
+    Expr::Ident { ident: symbol }
 }

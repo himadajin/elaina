@@ -5,6 +5,7 @@ use ast::{
     op::{BinOp, UnOp},
     stmt::*,
 };
+use span::symbol::{Kw, Symbol};
 use thir;
 use ty::*;
 
@@ -12,7 +13,7 @@ use std::collections::HashMap;
 
 #[allow(dead_code)]
 pub struct LoweringContext {
-    ty_ctxt: HashMap<String, Ty>,
+    ty_ctxt: HashMap<Symbol, Ty>,
 }
 
 impl LoweringContext {
@@ -44,17 +45,19 @@ impl LoweringContext {
         }
     }
 
-    fn lower_stmt_local(&mut self, ident: String, ty: Option<String>, init: &Expr) -> thir::Stmt {
+    fn lower_stmt_local(&mut self, ident: Symbol, ty: Option<Symbol>, init: &Expr) -> thir::Stmt {
         let ty = {
             let ty_ident = ty.expect("error: type annotation is required");
-            match ty_ident.as_str() {
-                "i32" => ty::Ty {
+            if ty_ident == Kw::I32.as_symbol() {
+                ty::Ty {
                     kind: ty::TyKind::Int(ty::IntTy::I32),
-                },
-                "bool" => ty::Ty {
+                }
+            } else if ty_ident == Kw::Bool.as_symbol() {
+                ty::Ty {
                     kind: ty::TyKind::Bool,
-                },
-                _ => panic!("error: unrecognized type"),
+                }
+            } else {
+                panic!("Error: unrecognized type")
             }
         };
 
@@ -174,7 +177,7 @@ impl LoweringContext {
         }
     }
 
-    fn lower_expr_ident(&mut self, ident: String) -> thir::Expr {
+    fn lower_expr_ident(&mut self, ident: Symbol) -> thir::Expr {
         let ty = *self
             .ty_ctxt
             .get(&ident)
@@ -188,18 +191,19 @@ impl LoweringContext {
 mod tests {
     use super::*;
     use ast::builder::{expr, stmt};
+    use span::symbol::Symbol;
 
     #[test]
     fn lower_stmt_local() {
-        let stmt_local = stmt::stmt_local("a", "i32", expr::expr_lit_int(1));
-        let expr_ident = expr::expr_ident("a");
+        let stmt_local = stmt::stmt_local(Symbol::ident_nth(0), Some(Kw::I32.as_symbol()), expr::expr_lit_int(1));
+        let expr_ident = expr::expr_ident(Symbol::ident_nth(0));
 
         let thir = {
             let i32_ty = ty::Ty {
                 kind: ty::TyKind::Int(ty::IntTy::I32),
             };
             thir::Expr::Ident {
-                ident: "a".into(),
+                ident: Symbol::ident_nth(0),
                 ty: i32_ty,
             }
         };
@@ -237,44 +241,28 @@ mod tests {
         };
 
         {
-            let ast = expr::expr_binary(
-                expr::expr_lit_int(1),
-                BinOp::Add,
-                expr::expr_lit_int(2),
-            );
+            let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Add, expr::expr_lit_int(2));
             let thir = thir_binary(thir::BinOp::Add, 1, 2);
 
             assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
         }
 
         {
-            let ast = expr::expr_binary(
-                expr::expr_lit_int(1),
-                BinOp::Sub,
-                expr::expr_lit_int(2),
-            );
+            let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Sub, expr::expr_lit_int(2));
             let thir = thir_binary(thir::BinOp::Sub, 1, 2);
 
             assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
         }
 
         {
-            let ast = expr::expr_binary(
-                expr::expr_lit_int(1),
-                BinOp::Mul,
-                expr::expr_lit_int(2),
-            );
+            let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Mul, expr::expr_lit_int(2));
             let thir = thir_binary(thir::BinOp::Mul, 1, 2);
 
             assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
         }
 
         {
-            let ast = expr::expr_binary(
-                expr::expr_lit_int(1),
-                BinOp::Div,
-                expr::expr_lit_int(2),
-            );
+            let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Div, expr::expr_lit_int(2));
             let thir = thir_binary(thir::BinOp::Div, 1, 2);
 
             assert_eq!(thir, LoweringContext::new().lower_expr(&ast));

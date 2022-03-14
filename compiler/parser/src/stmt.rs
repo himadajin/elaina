@@ -23,13 +23,11 @@ impl Parser<'_> {
     /// Parse let statement
     /// Expect `let` token is already parsed
     fn parse_let_stmt(&mut self) -> Stmt {
-        let ident_symbol = self.expect_ident();
-        let ident = self.symbol_map.get(ident_symbol).to_string();
+        let ident = self.expect_ident();
 
         let ty = if self.consume(&TokenKind::Colon) {
             let ty_ident = self.expect_ident();
-            let ty_string = self.symbol_map.get(ty_ident).to_string();
-            Some(ty_string)
+            Some(ty_ident)
         } else {
             None
         };
@@ -78,11 +76,12 @@ mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
     use ast::builder::{expr::*, stmt::*};
+    use span::symbol::{Kw, Symbol};
 
     macro_rules! test_stmt {
         ($input: expr, $expected: expr) => {
             let tokens = parse_all_token($input);
-            let result = Parser::new(tokens).parse_stmt();
+            let result = Parser::new(&tokens).parse_stmt();
 
             assert_eq!(result, $expected);
         };
@@ -90,29 +89,43 @@ mod tests {
 
     #[test]
     fn parse_local() {
-        test_stmt!("let a = 1;", stmt_local("a", "", expr_lit_int(1)));
+        test_stmt!(
+            "let a = 1;",
+            stmt_local(Symbol::ident_nth(0), None, expr_lit_int(1))
+        );
         test_stmt!(
             "let a = 1 + 2;",
             stmt_local(
-                "a",
-                "",
+                Symbol::ident_nth(0),
+                None,
                 expr_binary(expr_lit_int(1), ast::op::BinOp::Add, expr_lit_int(2))
             )
         );
 
-        test_stmt!("let a:i32 = 1;", stmt_local("a", "i32", expr_lit_int(1)));
+        test_stmt!(
+            "let a:i32 = 1;",
+            stmt_local(
+                Symbol::ident_nth(0),
+                Some(Kw::I32.as_symbol()),
+                expr_lit_int(1)
+            )
+        );
         test_stmt!(
             "let a:i32 = 1 + 2;",
             stmt_local(
-                "a",
-                "i32",
+                Symbol::ident_nth(0),
+                Some(Kw::I32.as_symbol()),
                 expr_binary(expr_lit_int(1), ast::op::BinOp::Add, expr_lit_int(2))
             )
         );
 
         test_stmt!(
             "let a:bool = true;",
-            stmt_local("a", "bool", expr_lit_bool(true))
+            stmt_local(
+                Symbol::ident_nth(0),
+                Some(Kw::Bool.as_symbol()),
+                expr_lit_bool(true)
+            )
         );
     }
 

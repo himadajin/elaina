@@ -3,13 +3,18 @@ use typed_index_collections::TiVec;
 
 use std::collections::HashMap;
 
-#[derive(Debug, From, Into, PartialEq, Clone, Copy, Hash)]
+#[derive(Debug, From, Into, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Symbol(usize);
 
 impl Symbol {
     #[inline]
     pub const fn new(idx: usize) -> Self {
         Symbol(idx)
+    }
+
+    #[inline]
+    pub const fn ident_nth(n: usize) -> Self {
+        Symbol(KEYWORDS.len() + n)
     }
 }
 
@@ -92,7 +97,10 @@ keywords![
     Else; "else",
     True; "true",
     False; "false",
-    Println;"println"
+    Println;"println",
+
+    I32; "i32",
+    Bool; "bool"
 ];
 
 #[cfg(test)]
@@ -109,6 +117,9 @@ mod tests {
         assert_eq!(Kw::True.as_symbol(), m.insert("true"));
         assert_eq!(Kw::False.as_symbol(), m.insert("false"));
         assert_eq!(Kw::Println.as_symbol(), m.insert("println"));
+
+        assert_eq!(Kw::I32.as_symbol(), m.insert("i32"));
+        assert_eq!(Kw::Bool.as_symbol(), m.insert("bool"));
     }
 
     #[test]

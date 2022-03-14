@@ -1,11 +1,12 @@
 use crate::expr::Expr;
+use span::symbol::Symbol;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     /// Local represents a let statement: `let <ident> = <expr>;`
     Local {
-        ident: String,
-        ty: Option<String>,
+        ident: Symbol,
+        ty: Option<Symbol>,
         init: Expr,
     },
 

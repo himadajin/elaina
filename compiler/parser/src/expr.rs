@@ -304,9 +304,8 @@ impl Parser<'_> {
 
         // Try to parse identifier
         if matches!(self.token.kind, TokenKind::Ident(_)) {
-            let ident = self.expect_ident();
-            let string = self.symbol_map.get(ident).to_string();
-            return Expr::Ident { ident: string };
+            let symbol = self.expect_ident();
+            return Expr::Ident { ident: symbol };
         }
 
         panic!("Error: unexpected token while parsing primary expression.");
@@ -318,11 +317,12 @@ mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
     use ast::builder::{block::*, expr::*, lit::*, stmt::*};
+    use span::symbol::Symbol;
 
     macro_rules! test_lit {
         ($input: expr, $expected: expr) => {
             let tokens = parse_all_token($input);
-            let result = Parser::new(tokens).parse_lit_opt().unwrap();
+            let result = Parser::new(&tokens).parse_lit_opt().unwrap();
 
             assert_eq!(result, $expected);
         };
@@ -331,7 +331,7 @@ mod tests {
     macro_rules! test_expr {
         ($input: expr, $expected: expr) => {
             let tokens = parse_all_token($input);
-            let result = Parser::new(tokens).parse_expr();
+            let result = Parser::new(&tokens).parse_expr();
 
             assert_eq!(result, $expected);
         };
@@ -590,10 +590,14 @@ mod tests {
 
     #[test]
     fn ident() {
-        test_expr!("a", expr_ident("a"));
+        test_expr!("a", expr_ident(Symbol::ident_nth(0)));
         test_expr!(
             "a + 1",
-            expr_binary(expr_ident("a"), BinOp::Add, expr_lit_int(1))
+            expr_binary(
+                expr_ident(Symbol::ident_nth(0)),
+                BinOp::Add,
+                expr_lit_int(1)
+            )
         );
     }
 }

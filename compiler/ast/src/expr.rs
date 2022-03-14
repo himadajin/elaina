@@ -1,4 +1,5 @@
 use crate::{block::*, lit::*, op::*};
+use span::symbol::Symbol;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
@@ -26,5 +27,5 @@ pub enum Expr {
     Lit { lit: Lit },
 
     /// A identifier such as variables, functions, etx: `foo`, `bar`
-    Ident { ident: String },
+    Ident { ident: Symbol },
 }

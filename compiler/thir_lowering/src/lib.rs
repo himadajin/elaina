@@ -1,23 +1,26 @@
 use ir::{constant::*, stmt::*, *};
+use span::symbol::{Symbol, SymbolMap};
 use thir;
 
 use std::collections::HashMap;
 
 #[allow(dead_code)]
-pub struct LoweringContext {
+pub struct LoweringContext<'a> {
     body: Body,
 
     block_at: BlockId,
 
-    local_name_table: HashMap<String, Place>,
+    local_name_table: HashMap<Symbol, Place>,
+    symbol_map: &'a SymbolMap<'a>,
 }
 
-impl LoweringContext {
-    pub fn new() -> Self {
+impl<'a> LoweringContext<'a> {
+    pub fn new(symbol_map: &'a SymbolMap<'a>) -> Self {
         LoweringContext {
             body: Body::new(),
             block_at: BlockId::dummy(),
             local_name_table: HashMap::new(),
+            symbol_map: symbol_map,
         }
     }
 
@@ -158,13 +161,14 @@ impl LoweringContext {
         }
     }
 
-    fn lower_expr_ident(&mut self, ident: &String, _ty: ty::Ty) -> Operand {
+    fn lower_expr_ident(&mut self, ident: &Symbol, _ty: ty::Ty) -> Operand {
         let local = self.local_name_table.get(ident).unwrap().clone();
         Operand::Copy(local)
     }
 
-    fn push_local(&mut self, name: Option<String>, ty: ty::Ty) -> Place {
-        let local_decl = LocalDecl::new(name.clone(), ty);
+    fn push_local(&mut self, name: Option<Symbol>, ty: ty::Ty) -> Place {
+        let name_string = name.map(|s| self.symbol_map.get(s).to_string());
+        let local_decl = LocalDecl::new(name_string, ty);
         let id = self.body.local_decls.push_and_get_key(local_decl);
         let place = Place::new(id);
 

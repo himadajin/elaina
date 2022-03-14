@@ -1,3 +1,4 @@
+use span::symbol::Symbol;
 use ty;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -8,7 +9,7 @@ pub struct Block {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     /// Local represents a let statement: `let <ident> = <expr>;`
-    Local { ident: String, init: Expr },
+    Local { ident: Symbol, init: Expr },
 
     /// Expression statement: `1 + 1`
     Expr(Expr),
@@ -31,7 +32,7 @@ pub enum Expr {
         ty: ty::Ty,
     },
 
-    /// A unary operation: `-x`
+    /// A unary operation: `   -x`
     Unary {
         op: UnOp,
         expr: Box<Expr>,
@@ -42,7 +43,7 @@ pub enum Expr {
     Lit { lit: Lit, ty: ty::Ty },
 
     /// A identifier such as variables, functions, etx: `foo`, `bar`
-    Ident { ident: String, ty: ty::Ty },
+    Ident { ident: Symbol, ty: ty::Ty },
 }
 
 impl Expr {

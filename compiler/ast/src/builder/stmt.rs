@@ -1,15 +1,10 @@
+use span::symbol::Symbol;
+
 use crate::{expr::*, stmt::*};
 
-pub fn stmt_local<T: Into<String>, U: Into<String>>(ident: T, ty: U, expr: Expr) -> Stmt {
-    let ty = {
-        let s = ty.into();
-        match s.as_str() {
-            "" => None,
-            _ => Some(s),
-        }
-    };
+pub fn stmt_local(ident: Symbol, ty: Option<Symbol>, expr: Expr) -> Stmt {
     Stmt::Local {
-        ident: ident.into(),
+        ident: ident,
         ty: ty,
         init: expr,
     }

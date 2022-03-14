@@ -72,10 +72,10 @@ fn read_file(filename: &str) -> io::Result<String> {
 }
 
 fn run_input(input: &str) -> Result<(), Box<dyn Error>> {
-    let ast = parse_block_from_source_str(input);
+    let (ast, map) = parse_block_from_source_str(input);
     let thir = ast_lowering::LoweringContext::new().lower_body(&ast);
     let ir = {
-        let mut ctx = thir_lowering::LoweringContext::new();
+        let mut ctx = thir_lowering::LoweringContext::new(&map);
         ctx.lower_main_block(&thir);
         ctx.build()
     };
@@ -92,16 +92,16 @@ fn print_token(input: &str) {
 }
 
 fn print_ast(input: &str) {
-    let ast = parse_block_from_source_str(input);
+    let (ast, _) = parse_block_from_source_str(input);
 
     println!("{:#?}", ast);
 }
 
 fn print_ir(input: &str) {
-    let ast = parse_block_from_source_str(input);
+    let (ast, map) = parse_block_from_source_str(input);
     let thir = ast_lowering::LoweringContext::new().lower_body(&ast);
     let ir = {
-        let mut ctx = thir_lowering::LoweringContext::new();
+        let mut ctx = thir_lowering::LoweringContext::new(&map);
         ctx.lower_main_block(&thir);
         ctx.build()
     };
@@ -111,10 +111,10 @@ fn print_ir(input: &str) {
 }
 
 fn print_llvm(input: &str) {
-    let ast = parse_block_from_source_str(input);
+    let (ast, map) = parse_block_from_source_str(input);
     let thir = ast_lowering::LoweringContext::new().lower_body(&ast);
     let ir = {
-        let mut ctx = thir_lowering::LoweringContext::new();
+        let mut ctx = thir_lowering::LoweringContext::new(&map);
         ctx.lower_main_block(&thir);
         ctx.build()
     };

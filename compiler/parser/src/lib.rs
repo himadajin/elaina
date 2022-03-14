@@ -8,13 +8,13 @@ use crate::lexer::parse_all_token;
 use ast::{block::Block, token::*};
 use span::symbol::*;
 
-struct TokenCursor {
-    tokens: Vec<Token>,
+struct TokenCursor<'a> {
+    tokens: &'a Vec<Token>,
     cursor: usize,
 }
 
-impl TokenCursor {
-    fn new(tokens: Vec<Token>) -> Self {
+impl<'a> TokenCursor<'a> {
+    fn new(tokens: &'a Vec<Token>) -> Self {
         TokenCursor {
             tokens: tokens,
             cursor: 0,
@@ -35,21 +35,21 @@ impl TokenCursor {
 
 pub struct Parser<'a> {
     token: Token,
-    symbol_map: SymbolMap<'a>,
-    cursor: TokenCursor,
+    symbol_map: &'a SymbolMap<'a>,
+    cursor: TokenCursor<'a>,
 }
 
 impl<'a> Parser<'a> {
-    pub fn new(tokens: Tokens<'a>) -> Self {
+    pub fn new(tokens: &'a Tokens<'a>) -> Self {
         assert!(tokens.tokens.len() >= 1, "tokens is empty");
 
-        let mut cursor = TokenCursor::new(tokens.tokens);
+        let mut cursor = TokenCursor::new(&tokens.tokens);
 
         let token = cursor.next().unwrap();
 
         Self {
             token: token,
-            symbol_map: tokens.map,
+            symbol_map: &tokens.map,
             cursor: cursor,
         }
     }
@@ -114,10 +114,10 @@ impl<'a> Parser<'a> {
     }
 }
 
-pub fn parse_block_from_source_str(src: &str) -> Block {
+pub fn parse_block_from_source_str(src: &str) -> (Block, SymbolMap) {
     let tokens = parse_all_token(src);
 
-    Parser::new(tokens).parse_block()
+    (Parser::new(&tokens).parse_block(), tokens.map)
 }
 
 #[cfg(test)]
@@ -138,7 +138,7 @@ mod tests {
             Token::new(TokenKind::BinOp(BinOpToken::Slash), Span::new(0, 1)),
         ];
 
-        let mut cursor = TokenCursor::new(tokens);
+        let mut cursor = TokenCursor::new(&tokens);
         assert_eq!(
             cursor.next(),
             Some(Token::new(
