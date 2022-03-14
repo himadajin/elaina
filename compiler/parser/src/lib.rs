@@ -4,9 +4,9 @@ pub mod block;
 pub mod expr;
 pub mod stmt;
 
-use ast::{block::Block, token_old::*};
-use core::panic;
-use lexer_old::run_lexer;
+use crate::lexer::parse_all_token;
+use ast::{block::Block, token::*};
+use span::symbol::*;
 
 struct TokenCursor {
     tokens: Vec<Token>,
@@ -33,73 +33,64 @@ impl TokenCursor {
     }
 }
 
-pub struct Parser {
+pub struct Parser<'a> {
     token: Token,
-
+    symbol_map: SymbolMap<'a>,
     cursor: TokenCursor,
 }
 
-impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Self {
+impl<'a> Parser<'a> {
+    pub fn new(tokens: Vec<Token>, symbol_map: SymbolMap<'a>) -> Self {
         assert!(tokens.len() >= 1, "tokens is empty");
 
         let mut cursor = TokenCursor::new(tokens);
 
         let token = cursor.next().unwrap();
 
-        Parser {
+        Self {
             token: token,
+            symbol_map: symbol_map,
             cursor: cursor,
         }
     }
 
     /// Advance one token.
     fn bump(&mut self) {
-        let next_token = self.cursor.next().unwrap_or(Token::Eof);
+        let next_token = self
+            .cursor
+            .next()
+            .unwrap_or(Token::new(TokenKind::Eof, span::span::DUMMY_SP));
         self.token = next_token;
     }
 
     /// Expect the next token to be the given argument, and advance one token.
     /// If it is not, panic.
-    fn expect(&mut self, expected: &Token) {
-        if &self.token != expected {
+    fn expect(&mut self, expected: &TokenKind) {
+        if &self.token.kind != expected {
             panic!(
                 "expected {:?} but current token is {:?}",
-                expected, self.token
+                expected, self.token.kind
             );
         }
 
         self.bump();
     }
 
-    /// Expect the next token to be integer, and advance one token.
-    /// If it is not, panic.
-    fn expect_int(&mut self) -> String {
-        let digits = match &self.token {
-            Token::Integer(s) => s.clone(),
-            _ => panic!("unexpected token"),
+    fn expect_ident(&mut self) -> Symbol {
+        let symbol = match &self.token.kind {
+            TokenKind::Ident(s) => *s,
+            k => panic!("expected identifier, but got {:?}", &k),
         };
 
         self.bump();
 
-        digits
-    }
-
-    fn expect_ident(&mut self) -> String {
-        let ident = match &self.token {
-            Token::Ident(s) => s.clone(),
-            _ => panic!("unexpected token"),
-        };
-
-        self.bump();
-
-        ident
+        symbol
     }
 
     /// If the next token is equal to the given argument, advance one token and return `true`.
     /// Otherwise, do nothing and return `false`
-    fn consume(&mut self, expected: &Token) -> bool {
-        if &self.token == expected {
+    fn consume(&mut self, expected: &TokenKind) -> bool {
+        if &self.token.kind == expected {
             self.bump();
 
             return true;
@@ -107,31 +98,74 @@ impl Parser {
 
         false
     }
+
+    /// If the next token is Identifier and that symbol is equal to given keyword,
+    /// advance one token and return `true`.
+    /// Otherwise, do nothing and return `false`
+    fn consume_keyword(&mut self, kw: Symbol) -> bool {
+        if let TokenKind::Ident(s) = self.token.kind {
+            if s == kw {
+                self.bump();
+                return true;
+            }
+        }
+
+        false
+    }
 }
 
 pub fn parse_block_from_source_str(src: &str) -> Block {
-    let tokens = run_lexer(src);
+    let (tokens, symbol_map) = parse_all_token(src);
 
-    Parser::new(tokens).parse_block()
+    Parser::new(tokens, symbol_map).parse_block()
 }
 
 #[cfg(test)]
 mod tests {
+    use std::vec;
+
     use super::*;
-    use ast::token_old::Token;
+    use ast::token::Token;
+    // use cra::lexer::token;
+    use span::span::*;
 
     #[test]
     fn test_cursor() {
         let tokens = vec![
-            Token::Integer("1".into()),
-            Token::Plus,
-            Token::Integer("2".into()),
+            Token::new(TokenKind::BinOp(BinOpToken::Plus), Span::new(0, 1)),
+            Token::new(TokenKind::BinOp(BinOpToken::Minus), Span::new(0, 1)),
+            Token::new(TokenKind::BinOp(BinOpToken::Star), Span::new(0, 1)),
+            Token::new(TokenKind::BinOp(BinOpToken::Slash), Span::new(0, 1)),
         ];
-        let mut cursor = TokenCursor::new(tokens);
 
-        assert_eq!(cursor.next(), Some(Token::Integer("1".into())));
-        assert_eq!(cursor.next(), Some(Token::Plus));
-        assert_eq!(cursor.next(), Some(Token::Integer("2".into())));
-        assert_eq!(cursor.next(), None);
+        let mut cursor = TokenCursor::new(tokens);
+        assert_eq!(
+            cursor.next(),
+            Some(Token::new(
+                TokenKind::BinOp(BinOpToken::Plus),
+                Span::new(0, 1)
+            ))
+        );
+        assert_eq!(
+            cursor.next(),
+            Some(Token::new(
+                TokenKind::BinOp(BinOpToken::Minus),
+                Span::new(0, 1)
+            ))
+        );
+        assert_eq!(
+            cursor.next(),
+            Some(Token::new(
+                TokenKind::BinOp(BinOpToken::Star),
+                Span::new(0, 1)
+            ))
+        );
+        assert_eq!(
+            cursor.next(),
+            Some(Token::new(
+                TokenKind::BinOp(BinOpToken::Slash),
+                Span::new(0, 1)
+            ))
+        );
     }
 }

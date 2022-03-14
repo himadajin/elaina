@@ -2,15 +2,19 @@ use ast::token::*;
 use lexer::{first_token, token};
 use span::{span::Span, symbol::*};
 
-pub fn parse_all_token(src: &str) -> impl Iterator<Item = Token> + '_ {
+pub fn parse_all_token(src: &str) -> (Vec<Token>, SymbolMap) {
     let mut lexer = Lexer::new(src);
-    std::iter::from_fn(move || {
+
+    let mut tokens = Vec::new();
+    loop {
         let token = lexer.next_token();
         match token.kind {
-            TokenKind::Eof => None,
-            _ => Some(token),
+            TokenKind::Eof => break,
+            _ => tokens.push(token),
         }
-    })
+    }
+
+    (tokens, lexer.finish())
 }
 
 pub struct Lexer<'a> {
@@ -51,6 +55,10 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    fn finish(self) -> SymbolMap<'a> {
+        self.symbol_map
+    }
+
     fn cook_lexer_token(&mut self, token: token::TokenKind, start: usize) -> Option<TokenKind> {
         Some(match token {
             token::TokenKind::Whitespace => return None,
@@ -69,6 +77,7 @@ impl<'a> Lexer<'a> {
                 TokenKind::Literal(Lit { kind, symbol })
             }
             token::TokenKind::Semi => TokenKind::Semi,
+            token::TokenKind::Colon => TokenKind::Colon,
             token::TokenKind::OpenParen => TokenKind::OpenDelim(DelimToken::Paren),
             token::TokenKind::CloseParen => TokenKind::CloseDelim(DelimToken::Paren),
             token::TokenKind::OpenBrace => TokenKind::OpenDelim(DelimToken::Brace),
@@ -106,7 +115,7 @@ mod tests {
 
     macro_rules! test_lexer {
         ($input: expr, $expected: expr) => {
-            let tokens: Vec<Token> = parse_all_token($input).collect();
+            let (tokens, _) = parse_all_token($input);
 
             assert_eq!(tokens.len(), $expected.len());
 

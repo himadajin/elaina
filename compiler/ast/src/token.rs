@@ -16,7 +16,6 @@ pub enum DelimToken {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum LitKind {
-    Bool,
     Integer,
 }
 
@@ -54,6 +53,9 @@ pub enum TokenKind {
 
     /// `;`
     Semi,
+
+    /// `:`
+    Colon,
 
     /// Open delimiter: `(`, `{`
     OpenDelim(DelimToken),

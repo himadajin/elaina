@@ -109,6 +109,7 @@ impl Cursor<'_> {
             c if is_id_start(c) => self.ident(),
 
             ';' => TokenKind::Semi,
+            ':' => TokenKind::Colon,
             '(' => TokenKind::OpenParen,
             ')' => TokenKind::CloseParen,
             '{' => TokenKind::OpenBrace,

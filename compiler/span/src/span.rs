@@ -4,7 +4,7 @@ pub struct SpanData {
     pub hi: u32,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, Eq, Hash, Debug)]
 pub struct Span {
     index: u32,
     len: u16,
@@ -12,7 +12,10 @@ pub struct Span {
 
 const MAX_LEN: u32 = 0b0111_1111_1111_1111;
 
-pub const DUMMY_SP: Span = Span { index: 0, len: 0 };
+pub const DUMMY_SP: Span = Span {
+    index: u32::MAX,
+    len: u16::MAX,
+};
 
 impl Span {
     #[inline]
@@ -39,5 +42,17 @@ impl Span {
             lo: self.index,
             hi: self.index + self.len as u32,
         }
+    }
+}
+
+impl PartialEq for Span {
+    fn eq(&self, other: &Self) -> bool {
+        if (self.index == u32::MAX && self.len == u16::MAX)
+            || (other.index == u32::MAX && other.len == u16::MAX)
+        {
+            return true;
+        }
+
+        self.index == other.index && self.len == other.len
     }
 }

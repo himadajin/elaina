@@ -1,4 +1,5 @@
 use crate::{block::*, expr::*, lit::*, op::*, stmt::*};
+use span::span::DUMMY_SP;
 
 pub fn expr_binary(lhs: Expr, op: BinOp, rhs: Expr) -> Expr {
     Expr::Binary {
@@ -31,17 +32,21 @@ pub fn expr_block<T: Into<Vec<Stmt>>>(stmts: T) -> Expr {
     }
 }
 
-pub fn expr_lit_int<T: Into<String>>(digits: T) -> Expr {
+pub fn expr_lit_int(value: u128) -> Expr {
     Expr::Lit {
-        lit: Lit::Int {
-            digits: digits.into(),
+        lit: Lit {
+            kind: LitKind::Int(value),
+            span: DUMMY_SP,
         },
     }
 }
 
 pub fn expr_lit_bool(value: bool) -> Expr {
     Expr::Lit {
-        lit: Lit::Bool { value: value },
+        lit: Lit {
+            kind: LitKind::Bool(value),
+            span: DUMMY_SP,
+        },
     }
 }
 

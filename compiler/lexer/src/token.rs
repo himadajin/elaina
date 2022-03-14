@@ -25,6 +25,9 @@ pub enum TokenKind {
     /// `;`
     Semi,
 
+    /// `:`
+    Colon,
+
     /// `(`
     OpenParen,
 

@@ -149,10 +149,9 @@ impl LoweringContext {
     }
 
     fn lower_expr_lit(&mut self, lit: &Lit) -> thir::Expr {
-        match lit {
-            Lit::Int { digits } => {
+        match lit.kind {
+            LitKind::Int(value) => {
                 let lit = {
-                    let value: u128 = digits.parse().expect("error: couldn't parse LitInt.digits");
                     let lit_int = thir::LitInt { value: value };
 
                     thir::Lit::Int(lit_int)
@@ -164,8 +163,8 @@ impl LoweringContext {
 
                 thir::Expr::Lit { lit, ty }
             }
-            Lit::Bool { value } => {
-                let lit = thir::Lit::Bool { value: *value };
+            LitKind::Bool(value) => {
+                let lit = thir::Lit::Bool { value: value };
                 let ty = ty::Ty {
                     kind: ty::TyKind::Bool,
                 };
@@ -192,7 +191,7 @@ mod tests {
 
     #[test]
     fn lower_stmt_local() {
-        let stmt_local = stmt::stmt_local("a", "i32", expr::expr_lit_int("1"));
+        let stmt_local = stmt::stmt_local("a", "i32", expr::expr_lit_int(1));
         let expr_ident = expr::expr_ident("a");
 
         let thir = {
@@ -238,32 +237,44 @@ mod tests {
         };
 
         {
-            let ast =
-                expr::expr_binary(expr::expr_lit_int("1"), BinOp::Add, expr::expr_lit_int("2"));
+            let ast = expr::expr_binary(
+                expr::expr_lit_int(1),
+                BinOp::Add,
+                expr::expr_lit_int(2),
+            );
             let thir = thir_binary(thir::BinOp::Add, 1, 2);
 
             assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
         }
 
         {
-            let ast =
-                expr::expr_binary(expr::expr_lit_int("1"), BinOp::Sub, expr::expr_lit_int("2"));
+            let ast = expr::expr_binary(
+                expr::expr_lit_int(1),
+                BinOp::Sub,
+                expr::expr_lit_int(2),
+            );
             let thir = thir_binary(thir::BinOp::Sub, 1, 2);
 
             assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
         }
 
         {
-            let ast =
-                expr::expr_binary(expr::expr_lit_int("1"), BinOp::Mul, expr::expr_lit_int("2"));
+            let ast = expr::expr_binary(
+                expr::expr_lit_int(1),
+                BinOp::Mul,
+                expr::expr_lit_int(2),
+            );
             let thir = thir_binary(thir::BinOp::Mul, 1, 2);
 
             assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
         }
 
         {
-            let ast =
-                expr::expr_binary(expr::expr_lit_int("1"), BinOp::Div, expr::expr_lit_int("2"));
+            let ast = expr::expr_binary(
+                expr::expr_lit_int(1),
+                BinOp::Div,
+                expr::expr_lit_int(2),
+            );
             let thir = thir_binary(thir::BinOp::Div, 1, 2);
 
             assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
@@ -272,7 +283,7 @@ mod tests {
 
     #[test]
     fn lower_expr_unary() {
-        let ast = expr::expr_unary(UnOp::Neg, expr::expr_lit_int("1"));
+        let ast = expr::expr_unary(UnOp::Neg, expr::expr_lit_int(1));
         let thir = {
             let i32_ty = ty::Ty {
                 kind: ty::TyKind::Int(ty::IntTy::I32),
@@ -296,7 +307,7 @@ mod tests {
 
     #[test]
     fn lower_expr_lit_int() {
-        let ast = expr::expr_lit_int("1");
+        let ast = expr::expr_lit_int(1);
         let thir = {
             let lit = thir::Lit::Int(thir::LitInt { value: 1 });
             let ty = ty::Ty {

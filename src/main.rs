@@ -85,7 +85,8 @@ fn run_input(input: &str) -> Result<(), Box<dyn Error>> {
 }
 
 fn print_token(input: &str) {
-    for token in parse_all_token(input) {
+    let (tokens, _) = parse_all_token(input);
+    for token in tokens {
         println!("{:?}", token);
     }
 }
