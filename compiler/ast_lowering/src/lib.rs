@@ -31,7 +31,15 @@ impl LoweringContext {
             stmts.push(thir);
         }
 
-        thir::Block { stmts }
+        let ty = match stmts.last() {
+            Some(stmt) => match stmt {
+                thir::Stmt::Expr(expr) => expr.ty(),
+                _ => todo!("Since tuple type is not yet implemented, it is not possible to define a body type without a return value."),
+            },
+            None => todo!("Since tuple type is not yet implemented, it is not possible to define a body type without a return value."),
+        };
+
+        thir::Block { stmts, ty }
     }
 
     pub fn lower_stmt(&mut self, stmt: &Stmt) -> thir::Stmt {
@@ -76,10 +84,10 @@ impl LoweringContext {
             Expr::Binary { op, lhs, rhs } => self.lower_expr_binary(*op, &lhs, &rhs),
             Expr::Unary { op, expr } => self.lower_expr_unary(*op, &expr),
             Expr::If {
-                cond: _cond,
-                then: _then,
-                else_opt: _else_opt,
-            } => todo!(),
+                cond,
+                then,
+                else_opt,
+            } => self.lower_expr_if(cond.as_ref(), then.as_ref(), else_opt),
             Expr::Block { block: _block } => todo!(),
             Expr::Lit { lit } => self.lower_expr_lit(&lit),
             Expr::Ident { ident } => self.lower_expr_ident(ident.clone()),
@@ -151,6 +159,29 @@ impl LoweringContext {
         }
     }
 
+    fn lower_expr_if(
+        &mut self,
+        cond: &Expr,
+        then: &Block,
+        else_opt: &Option<Box<Expr>>,
+    ) -> thir::Expr {
+        let cond_thir = Box::new(self.lower_expr(cond));
+        let then_thir = Box::new(self.lower_body(then));
+        let else_thir = match else_opt {
+            Some(e) => Some(Box::new(self.lower_expr(e.as_ref()))),
+            None => None,
+        };
+
+        let then_ty = then_thir.ty;
+
+        thir::Expr::If {
+            cond: cond_thir,
+            then: then_thir,
+            else_opt: else_thir,
+            ty: then_ty,
+        }
+    }
+
     fn lower_expr_lit(&mut self, lit: &Lit) -> thir::Expr {
         match lit.kind {
             LitKind::Int(value) => {
@@ -195,7 +226,11 @@ mod tests {
 
     #[test]
     fn lower_stmt_local() {
-        let stmt_local = stmt::stmt_local(Symbol::ident_nth(0), Some(Kw::I32.as_symbol()), expr::expr_lit_int(1));
+        let stmt_local = stmt::stmt_local(
+            Symbol::ident_nth(0),
+            Some(Kw::I32.as_symbol()),
+            expr::expr_lit_int(1),
+        );
         let expr_ident = expr::expr_ident(Symbol::ident_nth(0));
 
         let thir = {

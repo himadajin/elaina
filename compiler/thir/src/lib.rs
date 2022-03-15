@@ -4,6 +4,7 @@ use ty;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Block {
     pub stmts: Vec<Stmt>,
+    pub ty: ty::Ty,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -39,6 +40,14 @@ pub enum Expr {
         ty: ty::Ty,
     },
 
+    /// An if expression: `if <cond> { <then> } else { <else_opt> }`
+    If {
+        cond: Box<Expr>,
+        then: Box<Block>,
+        else_opt: Option<Box<Expr>>,
+        ty: ty::Ty,
+    },
+
     /// A literal in place of an expression: `1`
     Lit { lit: Lit, ty: ty::Ty },
 
@@ -51,6 +60,7 @@ impl Expr {
         match self {
             Expr::Binary { ty, .. } => *ty,
             Expr::Unary { ty, .. } => *ty,
+            Expr::If { ty, .. } => *ty,
             Expr::Lit { ty, .. } => *ty,
             Expr::Ident { ty, .. } => *ty,
         }

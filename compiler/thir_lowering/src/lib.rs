@@ -76,6 +76,7 @@ impl<'a> LoweringContext<'a> {
         match expr {
             thir::Expr::Binary { op, lhs, rhs, ty } => self.lower_expr_binary(*op, lhs, rhs, *ty),
             thir::Expr::Unary { op, expr, ty } => self.lower_expr_unary(*op, expr, *ty),
+            thir::Expr::If { .. } => todo!(),
             thir::Expr::Lit { lit, ty } => self.lower_expr_lit(lit, *ty),
             thir::Expr::Ident { ident, ty } => self.lower_expr_ident(ident, *ty),
         }
