@@ -13,7 +13,6 @@ pub fn ir_to_string(body: &Body) -> String {
 pub fn write_ir_body(body: &Body, w: &mut dyn Write) -> fmt::Result {
     writeln!(w, "{{")?;
     write_ir_local_decls(&body.local_decls, w)?;
-    writeln!(w)?;
     write_ir_blocks(&body.blocks, w)?;
     writeln!(w, "}}")?;
     Ok(())
@@ -41,12 +40,13 @@ fn write_ir_local_decls(local_decls: &TiVec<LocalId, LocalDecl>, w: &mut dyn Wri
 
 fn write_ir_blocks(blocks: &TiVec<BlockId, Block>, w: &mut dyn Write) -> fmt::Result {
     for (id, block) in blocks.iter_enumerated() {
-        writeln!(w, "{}b{} {{", INDENT, id.0)?;
+        writeln!(w)?;
+        writeln!(w, "{}b{}: {{", INDENT, id.0)?;
         for stmt in &block.stmts {
             write_ir_stmt(&stmt, w)?;
-            if let Some(terminator) = &block.terminator {
-                write_ir_terminator(terminator, w)?;
-            }
+        }
+        if let Some(terminator) = &block.terminator {
+            write_ir_terminator(terminator, w)?;
         }
         writeln!(w, "{}}}", INDENT)?;
     }
@@ -75,8 +75,8 @@ fn write_ir_stmt(stmt: &Statement, w: &mut dyn Write) -> fmt::Result {
 fn write_ir_terminator(terminator: &Terminator, w: &mut dyn Write) -> fmt::Result {
     write!(w, "{}{}", INDENT, INDENT)?;
     match terminator {
-        Terminator::Goto { target } => write!(w, "goto -> b{}", target.0)?,
-        Terminator::Return => write!(w, "return;")?,
+        Terminator::Goto { target } => writeln!(w, "goto -> b{};", target.0)?,
+        Terminator::Return => writeln!(w, "return;")?,
     }
 
     Ok(())
