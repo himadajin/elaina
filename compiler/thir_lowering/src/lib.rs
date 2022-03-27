@@ -1,4 +1,4 @@
-use ir::{constant::*, stmt::*, *};
+use mir::{constant::*, stmt::*, *};
 use span::symbol::{Symbol, SymbolMap};
 use thir;
 

@@ -10,7 +10,7 @@ members = [
     "compiler/ast",
     "compiler/ast_lowering",
     "compiler/codegen_llvm",
-    "compiler/ir",
+    "compiler/mir",
     "compiler/lexer",
     "compiler/parser",
     "compiler/span",
@@ -23,7 +23,7 @@ members = [
 ast = { path = "compiler/ast" }
 ast_lowering = { path = "compiler/ast_lowering" }
 codegen_llvm = { path = "compiler/codegen_llvm" }
-ir = { path = "compiler/ir" }
+mir = { path = "compiler/mir" }
 lexer = { path = "compiler/lexer" }
 parser = { path = "compiler/parser" }
 span = { path = "compiler/span" }
