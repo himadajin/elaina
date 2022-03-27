@@ -29,7 +29,7 @@ impl<'a> LoweringContext<'a> {
     }
 
     pub fn lower_main_block(&mut self, block: &thir::Block) {
-        self.block_at = self.body.blocks.push_and_get_key(Block::new());
+        self.block_at = self.body.blocks.push_and_get_key(Block::new(None));
 
         for stmt in &block.stmts {
             self.lower_stmt(stmt);

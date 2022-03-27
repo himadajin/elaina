@@ -5,6 +5,7 @@ pub mod terminator;
 pub mod pretty;
 
 use crate::stmt::*;
+use crate::terminator::*;
 use ty;
 
 use std::fmt;
@@ -56,11 +57,15 @@ impl BlockId {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Block {
     pub stmts: Vec<Statement>,
+    pub terminator: Option<Terminator>,
 }
 
 impl Block {
-    pub fn new() -> Self {
-        Block { stmts: Vec::new() }
+    pub fn new(terminator: Option<Terminator>) -> Self {
+        Block {
+            stmts: Vec::new(),
+            terminator: terminator,
+        }
     }
 }
 
