@@ -33,7 +33,7 @@ pub enum Expr {
         ty: ty::Ty,
     },
 
-    /// A unary operation: `   -x`
+    /// A unary operation: `-x`
     Unary {
         op: UnOp,
         expr: Box<Expr>,
