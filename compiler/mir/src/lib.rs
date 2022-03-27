@@ -1,5 +1,6 @@
 pub mod constant;
 pub mod stmt;
+pub mod terminator;
 
 pub mod pretty;
 
