@@ -76,6 +76,23 @@ fn write_ir_terminator(terminator: &Terminator, w: &mut dyn Write) -> fmt::Resul
     write!(w, "{}{}", INDENT, INDENT)?;
     match terminator {
         Terminator::Goto { target } => writeln!(w, "goto -> b{};", target.0)?,
+        Terminator::SwitchInt {
+            discr,
+            switch_ty: _,
+            targets: SwitchTargets { values, targets },
+        } => {
+            assert!(values.len() == targets.len());
+            write!(w, "switchInt(")?;
+            write_ir_operand(discr, w)?;
+            write!(w, ") -> [")?;
+
+            let elements: Vec<String> = values
+                .iter()
+                .zip(targets)
+                .map(|(value, target)| format!("{}: {}", value, target.0))
+                .collect();
+            writeln!(w, "{}];", elements.join(", "))?;
+        }
         Terminator::Return => writeln!(w, "return;")?,
     }
 
