@@ -1,4 +1,4 @@
-use mir::{constant::*, stmt::*, *};
+use mir::{constant::*, stmt::*, terminator::*, *};
 use span::symbol::{Symbol, SymbolMap};
 use thir::{self};
 
@@ -34,6 +34,15 @@ impl<'a> LoweringContext<'a> {
         for stmt in &block.stmts {
             self.lower_stmt(stmt);
         }
+
+        let prev_block = self.block_at;
+        self.block_at = self
+            .body
+            .blocks
+            .push_and_get_key(Block::new(Some(Terminator::Return)));
+        self.body.blocks.get_mut(prev_block).unwrap().terminator = Some(Terminator::Goto {
+            target: self.block_at,
+        });
     }
 
     fn lower_stmt(&mut self, stmt: &thir::Stmt) {
