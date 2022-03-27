@@ -1,6 +1,6 @@
 use mir::{constant::*, stmt::*, *};
 use span::symbol::{Symbol, SymbolMap};
-use thir;
+use thir::{self};
 
 use std::collections::HashMap;
 
@@ -76,7 +76,12 @@ impl<'a> LoweringContext<'a> {
         match expr {
             thir::Expr::Binary { op, lhs, rhs, ty } => self.lower_expr_binary(*op, lhs, rhs, *ty),
             thir::Expr::Unary { op, expr, ty } => self.lower_expr_unary(*op, expr, *ty),
-            thir::Expr::If { .. } => todo!(),
+            thir::Expr::If {
+                cond,
+                then,
+                else_opt,
+                ty,
+            } => self.lower_expr_if(cond.as_ref(), then.as_ref(), else_opt, *ty),
             thir::Expr::Lit { lit, ty } => self.lower_expr_lit(lit, *ty),
             thir::Expr::Ident { ident, ty } => self.lower_expr_ident(ident, *ty),
         }
@@ -127,6 +132,16 @@ impl<'a> LoweringContext<'a> {
         self.push_stmt(stmt);
 
         Operand::Copy(place)
+    }
+
+    fn lower_expr_if(
+        &mut self,
+        _cond: &thir::Expr,
+        _then: &thir::Block,
+        _else_opt: &Option<Box<thir::Expr>>,
+        _ty: ty::Ty,
+    ) -> Operand {
+        todo!()
     }
 
     fn lower_expr_lit(&mut self, lit: &thir::Lit, ty: ty::Ty) -> Operand {
