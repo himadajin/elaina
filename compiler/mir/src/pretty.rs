@@ -1,4 +1,4 @@
-use crate::{constant::*, stmt::*, *};
+use crate::{constant::*, stmt::*, terminator::*, *};
 
 use std::{self, fmt::Write};
 
@@ -44,6 +44,9 @@ fn write_ir_blocks(blocks: &TiVec<BlockId, Block>, w: &mut dyn Write) -> fmt::Re
         writeln!(w, "{}b{} {{", INDENT, id.0)?;
         for stmt in &block.stmts {
             write_ir_stmt(&stmt, w)?;
+            if let Some(terminator) = &block.terminator {
+                write_ir_terminator(terminator, w)?;
+            }
         }
         writeln!(w, "{}}}", INDENT)?;
     }
@@ -66,6 +69,16 @@ fn write_ir_stmt(stmt: &Statement, w: &mut dyn Write) -> fmt::Result {
             writeln!(w, ");")?;
         }
     }
+    Ok(())
+}
+
+fn write_ir_terminator(terminator: &Terminator, w: &mut dyn Write) -> fmt::Result {
+    write!(w, "{}{}", INDENT, INDENT)?;
+    match terminator {
+        Terminator::Goto { target } => write!(w, "goto -> b{}", target.0)?,
+        Terminator::Return => write!(w, "return;")?,
+    }
+
     Ok(())
 }
 
