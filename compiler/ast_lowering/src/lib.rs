@@ -32,11 +32,13 @@ impl LoweringContext {
         }
 
         let ty = match stmts.last() {
-            Some(stmt) => match stmt {
-                thir::Stmt::Expr(expr) => expr.ty(),
-                _ => todo!("Since tuple type is not yet implemented, it is not possible to define a body type without a return value."),
-            },
-            None => todo!("Since tuple type is not yet implemented, it is not possible to define a body type without a return value."),
+            Some(thir::Stmt::Expr(expr)) => expr.ty(),
+            _ => {
+                // Since the tuple type is not yet implemented, the type is temporarily set to i32.
+                Ty {
+                    kind: TyKind::Int(IntTy::I32),
+                }
+            }
         };
 
         thir::Block { stmts, ty }
