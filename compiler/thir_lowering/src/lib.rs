@@ -36,13 +36,13 @@ impl<'a> LoweringContext<'a> {
         }
 
         let prev_block = self.block_at;
-        self.block_at = self
-            .body
-            .blocks
-            .push_and_get_key(Block::new(Some(Terminator::Return)));
-        self.body.blocks.get_mut(prev_block).unwrap().terminator = Some(Terminator::Goto {
-            target: self.block_at,
-        });
+        self.push_block(Some(Terminator::Return));
+        self.set_terminator(
+            prev_block,
+            Terminator::Goto {
+                target: self.block_at,
+            },
+        );
     }
 
     fn lower_stmt(&mut self, stmt: &thir::Stmt) {
@@ -200,5 +200,14 @@ impl<'a> LoweringContext<'a> {
 
     fn push_stmt(&mut self, stmt: Statement) {
         self.body.blocks[self.block_at].stmts.push(stmt);
+    }
+
+    fn push_block(&mut self, terminator: Option<Terminator>) -> BlockId {
+        self.block_at = self.body.blocks.push_and_get_key(Block::new(terminator));
+        self.block_at
+    }
+
+    fn set_terminator(&mut self, target: BlockId, terminator: Terminator) {
+        self.body.blocks.get_mut(target).unwrap().terminator = Some(terminator);
     }
 }
