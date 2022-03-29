@@ -8,6 +8,15 @@ pub struct Constant {
     pub literal: ConstValue,
 }
 
+impl Constant {
+    pub const UNIT: &'static Constant = &Constant {
+        ty: ty::Ty {
+            kind: ty::TyKind::Tuple(Vec::new()),
+        },
+        literal: ConstValue::Scalar(ScalarInt::ZST),
+    };
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum ConstValue {
     Scalar(ScalarInt),
