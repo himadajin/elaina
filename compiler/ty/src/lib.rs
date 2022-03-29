@@ -3,6 +3,15 @@ pub struct Ty {
     pub kind: TyKind,
 }
 
+impl Ty {
+    pub fn is_zst(&self) -> bool {
+        match &self.kind {
+            TyKind::Tuple(ts) => ts.is_empty(),
+            _ => true,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TyKind {
     Bool,
