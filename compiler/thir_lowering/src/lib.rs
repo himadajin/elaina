@@ -168,13 +168,9 @@ impl<'a> LoweringContext<'a> {
                 Operand::Constant(Box::new(constant))
             }
             thir::Lit::Bool { value } => {
-                let data = match value {
-                    true => 1,
-                    false => 0,
-                };
-                let scalar = ConstValue::Scalar(ScalarInt {
-                    data: data,
-                    size: 32,
+                let scalar = ConstValue::Scalar(match value {
+                    true => ScalarInt::TRUE,
+                    false => ScalarInt::FALSE,
                 });
                 let constant = Constant {
                     ty: ty,

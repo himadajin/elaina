@@ -27,6 +27,11 @@ pub struct ScalarInt {
     pub size: u8,
 }
 
+impl ScalarInt {
+    pub const TRUE: ScalarInt = ScalarInt { data: 1, size: 1 };
+    pub const FALSE: ScalarInt = ScalarInt { data: 0, size: 1 };
+}
+
 impl fmt::Display for ScalarInt {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.data)
