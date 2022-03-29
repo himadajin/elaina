@@ -23,7 +23,7 @@ impl LoweringContext {
         }
     }
 
-    pub fn lower_body(&mut self, body: &Block) -> thir::Block {
+    pub fn lower_block(&mut self, body: &Block) -> thir::Block {
         let (stmts, expr) = self.lower_stmts(&body.stmts);
 
         let ty = match expr {
@@ -175,7 +175,7 @@ impl LoweringContext {
         else_opt: &Option<Box<Expr>>,
     ) -> thir::Expr {
         let cond_thir = Box::new(self.lower_expr(cond));
-        let then_thir = Box::new(self.lower_body(then));
+        let then_thir = Box::new(self.lower_block(then));
         let else_thir = match else_opt {
             Some(e) => Some(Box::new(self.lower_expr(e.as_ref()))),
             None => None,

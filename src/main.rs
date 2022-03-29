@@ -73,7 +73,7 @@ fn read_file(filename: &str) -> io::Result<String> {
 
 fn run_input(input: &str) -> Result<(), Box<dyn Error>> {
     let (ast, map) = parse_block_from_source_str(input);
-    let thir = ast_lowering::LoweringContext::new().lower_body(&ast);
+    let thir = ast_lowering::LoweringContext::new().lower_block(&ast);
     let ir = {
         let mut ctx = thir_lowering::LoweringContext::new(&map);
         ctx.lower_main_block(&thir);
@@ -99,7 +99,7 @@ fn print_ast(input: &str) {
 
 fn print_ir(input: &str) {
     let (ast, map) = parse_block_from_source_str(input);
-    let thir = ast_lowering::LoweringContext::new().lower_body(&ast);
+    let thir = ast_lowering::LoweringContext::new().lower_block(&ast);
     let ir = {
         let mut ctx = thir_lowering::LoweringContext::new(&map);
         ctx.lower_main_block(&thir);
@@ -112,7 +112,7 @@ fn print_ir(input: &str) {
 
 fn print_llvm(input: &str) {
     let (ast, map) = parse_block_from_source_str(input);
-    let thir = ast_lowering::LoweringContext::new().lower_body(&ast);
+    let thir = ast_lowering::LoweringContext::new().lower_block(&ast);
     let ir = {
         let mut ctx = thir_lowering::LoweringContext::new(&map);
         ctx.lower_main_block(&thir);
