@@ -30,6 +30,7 @@ pub struct ScalarInt {
 impl ScalarInt {
     pub const TRUE: ScalarInt = ScalarInt { data: 1, size: 1 };
     pub const FALSE: ScalarInt = ScalarInt { data: 0, size: 1 };
+    pub const ZST: ScalarInt = ScalarInt { data: 0, size: 0 };
 }
 
 impl fmt::Display for ScalarInt {
