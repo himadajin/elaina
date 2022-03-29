@@ -24,35 +24,42 @@ impl LoweringContext {
     }
 
     pub fn lower_body(&mut self, body: &Block) -> thir::Block {
-        let mut stmts = Vec::new();
+        let (stmts, expr) = self.lower_stmts(&body.stmts);
 
-        for stmt in &body.stmts {
-            let thir = self.lower_stmt(stmt);
-            stmts.push(thir);
-        }
-
-        let ty = match stmts.last() {
-            Some(thir::Stmt::Expr(expr)) => expr.ty(),
-            _ => {
-                // Since the tuple type is not yet implemented, the type is temporarily set to i32.
-                Ty {
-                    kind: TyKind::Int(IntTy::I32),
-                }
-            }
+        let ty = match expr {
+            Some(ref e) => e.ty(),
+            None => Ty {
+                kind: TyKind::Tuple(Vec::new()),
+            },
         };
 
-        thir::Block { stmts, ty }
+        thir::Block { stmts, expr, ty }
     }
 
-    pub fn lower_stmt(&mut self, stmt: &Stmt) -> thir::Stmt {
-        match stmt {
-            Stmt::Local { ident, ty, init } => {
-                self.lower_stmt_local(ident.clone(), ty.clone(), &init)
+    pub fn lower_stmts(&mut self, mut ast_stmts: &[Stmt]) -> (Vec<thir::Stmt>, Option<thir::Expr>) {
+        let mut stmts = Vec::new();
+        let mut expr = None;
+
+        while let [s, tail @ ..] = ast_stmts {
+            match s {
+                Stmt::Local { ident, ty, init } => {
+                    stmts.push(self.lower_stmt_local(ident.clone(), ty.clone(), &init))
+                }
+                Stmt::Expr(e) => {
+                    let e = self.lower_expr(e);
+                    if tail.is_empty() {
+                        expr = Some(e);
+                    } else {
+                        stmts.push(thir::Stmt::Expr(e));
+                    }
+                }
+                Stmt::Semi(expr) => stmts.push(thir::Stmt::Semi(self.lower_expr(expr))),
+                Stmt::Println(expr) => stmts.push(thir::Stmt::Println(self.lower_expr(expr))),
             }
-            Stmt::Expr(expr) => thir::Stmt::Expr(self.lower_expr(expr)),
-            Stmt::Semi(expr) => thir::Stmt::Semi(self.lower_expr(expr)),
-            Stmt::Println(expr) => thir::Stmt::Println(self.lower_expr(expr)),
+            ast_stmts = &ast_stmts[1..];
         }
+
+        (stmts, expr)
     }
 
     fn lower_stmt_local(&mut self, ident: Symbol, ty: Option<Symbol>, init: &Expr) -> thir::Stmt {
@@ -247,7 +254,7 @@ mod tests {
         };
 
         let mut ctx = LoweringContext::new();
-        ctx.lower_stmt(&stmt_local);
+        ctx.lower_stmts(&[stmt_local]);
         assert_eq!(thir, ctx.lower_expr(&expr_ident));
     }
 
@@ -261,13 +268,19 @@ mod tests {
             let lhs = {
                 let lit = thir::Lit::Int(thir::LitInt { value: lhs });
 
-                thir::Expr::Lit { lit, ty: i32_ty.clone() }
+                thir::Expr::Lit {
+                    lit,
+                    ty: i32_ty.clone(),
+                }
             };
 
             let rhs = {
                 let lit = thir::Lit::Int(thir::LitInt { value: rhs });
 
-                thir::Expr::Lit { lit, ty: i32_ty.clone() }
+                thir::Expr::Lit {
+                    lit,
+                    ty: i32_ty.clone(),
+                }
             };
 
             thir::Expr::Binary {
@@ -318,7 +331,10 @@ mod tests {
             let expr_lit = {
                 let lit = thir::Lit::Int(thir::LitInt { value: 1 });
 
-                thir::Expr::Lit { lit, ty: i32_ty.clone() }
+                thir::Expr::Lit {
+                    lit,
+                    ty: i32_ty.clone(),
+                }
             };
 
             thir::Expr::Unary {

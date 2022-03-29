@@ -4,6 +4,7 @@ use ty;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Block {
     pub stmts: Vec<Stmt>,
+    pub expr: Option<Expr>,
     pub ty: ty::Ty,
 }
 
