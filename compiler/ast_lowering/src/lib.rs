@@ -174,7 +174,7 @@ impl LoweringContext {
             None => None,
         };
 
-        let then_ty = then_thir.ty;
+        let then_ty = then_thir.ty.clone();
 
         thir::Expr::If {
             cond: cond_thir,
@@ -211,10 +211,11 @@ impl LoweringContext {
     }
 
     fn lower_expr_ident(&mut self, ident: Symbol) -> thir::Expr {
-        let ty = *self
+        let ty = self
             .ty_ctxt
             .get(&ident)
-            .expect("error: definition of identity not found");
+            .expect("error: definition of identity not found")
+            .clone();
 
         thir::Expr::Ident { ident, ty }
     }
@@ -260,20 +261,20 @@ mod tests {
             let lhs = {
                 let lit = thir::Lit::Int(thir::LitInt { value: lhs });
 
-                thir::Expr::Lit { lit, ty: i32_ty }
+                thir::Expr::Lit { lit, ty: i32_ty.clone() }
             };
 
             let rhs = {
                 let lit = thir::Lit::Int(thir::LitInt { value: rhs });
 
-                thir::Expr::Lit { lit, ty: i32_ty }
+                thir::Expr::Lit { lit, ty: i32_ty.clone() }
             };
 
             thir::Expr::Binary {
                 op: op,
                 lhs: Box::new(lhs),
                 rhs: Box::new(rhs),
-                ty: i32_ty,
+                ty: i32_ty.clone(),
             }
         };
 
@@ -317,13 +318,13 @@ mod tests {
             let expr_lit = {
                 let lit = thir::Lit::Int(thir::LitInt { value: 1 });
 
-                thir::Expr::Lit { lit, ty: i32_ty }
+                thir::Expr::Lit { lit, ty: i32_ty.clone() }
             };
 
             thir::Expr::Unary {
                 op: thir::UnOp::Neg,
                 expr: Box::new(expr_lit),
-                ty: i32_ty,
+                ty: i32_ty.clone(),
             }
         };
 

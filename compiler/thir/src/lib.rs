@@ -58,11 +58,11 @@ pub enum Expr {
 impl Expr {
     pub fn ty(&self) -> ty::Ty {
         match self {
-            Expr::Binary { ty, .. } => *ty,
-            Expr::Unary { ty, .. } => *ty,
-            Expr::If { ty, .. } => *ty,
-            Expr::Lit { ty, .. } => *ty,
-            Expr::Ident { ty, .. } => *ty,
+            Expr::Binary { ty, .. } => ty.clone(),
+            Expr::Unary { ty, .. } => ty.clone(),
+            Expr::If { ty, .. } => ty.clone(),
+            Expr::Lit { ty, .. } => ty.clone(),
+            Expr::Ident { ty, .. } => ty.clone(),
         }
     }
 }

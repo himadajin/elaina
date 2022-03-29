@@ -83,16 +83,16 @@ impl<'a> LoweringContext<'a> {
 
     fn lower_expr(&mut self, expr: &thir::Expr) -> Operand {
         match expr {
-            thir::Expr::Binary { op, lhs, rhs, ty } => self.lower_expr_binary(*op, lhs, rhs, *ty),
-            thir::Expr::Unary { op, expr, ty } => self.lower_expr_unary(*op, expr, *ty),
+            thir::Expr::Binary { op, lhs, rhs, ty } => self.lower_expr_binary(*op, lhs, rhs, ty.clone()),
+            thir::Expr::Unary { op, expr, ty } => self.lower_expr_unary(*op, expr, ty.clone()),
             thir::Expr::If {
                 cond,
                 then,
                 else_opt,
                 ty,
-            } => self.lower_expr_if(cond.as_ref(), then.as_ref(), else_opt, *ty),
-            thir::Expr::Lit { lit, ty } => self.lower_expr_lit(lit, *ty),
-            thir::Expr::Ident { ident, ty } => self.lower_expr_ident(ident, *ty),
+            } => self.lower_expr_if(cond.as_ref(), then.as_ref(), else_opt, ty.clone()),
+            thir::Expr::Lit { lit, ty } => self.lower_expr_lit(lit, ty.clone()),
+            thir::Expr::Ident { ident, ty } => self.lower_expr_ident(ident, ty.clone()),
         }
     }
 

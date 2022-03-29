@@ -60,9 +60,11 @@ impl<'ctx> CodegenContext<'ctx> {
 
             let ty_llvm = match local.ty.kind {
                 TyKind::Bool => self.context.bool_type(),
+
                 TyKind::Int(ty) => match ty {
                     IntTy::I32 => self.context.i32_type(),
                 },
+                TyKind::Tuple(_) => todo!(),
             };
             let local_ptr = self.builder.build_alloca(ty_llvm, name);
             self.local_values.push(local_ptr);
@@ -170,7 +172,7 @@ impl<'ctx> CodegenContext<'ctx> {
                 self.builder.build_load(ptr, "").into_int_value()
             }
             Operand::Constant(constant) => {
-                let _ty = constant.ty;
+                let _ty = constant.ty.clone();
                 match &constant.literal {
                     ConstValue::Scalar(s) => self.scalar_int(s),
                 }
