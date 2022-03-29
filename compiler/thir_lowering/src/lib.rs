@@ -83,7 +83,9 @@ impl<'a> LoweringContext<'a> {
 
     fn lower_expr(&mut self, expr: &thir::Expr) -> Operand {
         match expr {
-            thir::Expr::Binary { op, lhs, rhs, ty } => self.lower_expr_binary(*op, lhs, rhs, ty.clone()),
+            thir::Expr::Binary { op, lhs, rhs, ty } => {
+                self.lower_expr_binary(*op, lhs, rhs, ty.clone())
+            }
             thir::Expr::Unary { op, expr, ty } => self.lower_expr_unary(*op, expr, ty.clone()),
             thir::Expr::If {
                 cond,
@@ -168,13 +170,9 @@ impl<'a> LoweringContext<'a> {
                 Operand::Constant(Box::new(constant))
             }
             thir::Lit::Bool { value } => {
-                let scalar = ConstValue::Scalar(match value {
-                    true => ScalarInt::TRUE,
-                    false => ScalarInt::FALSE,
-                });
-                let constant = Constant {
-                    ty: ty,
-                    literal: scalar,
+                let constant = match value {
+                    true => Constant::TRUE,
+                    false => Constant::FALSE,
                 };
 
                 Operand::Constant(Box::new(constant))

@@ -9,7 +9,21 @@ pub struct Constant {
 }
 
 impl Constant {
-    pub const UNIT: &'static Constant = &Constant {
+    pub const TRUE: Constant = Constant {
+        ty: ty::Ty {
+            kind: ty::TyKind::Bool,
+        },
+        literal: ConstValue::Scalar(ScalarInt::TRUE),
+    };
+
+    pub const FALSE: Constant = Constant {
+        ty: ty::Ty {
+            kind: ty::TyKind::Bool,
+        },
+        literal: ConstValue::Scalar(ScalarInt::FALSE),
+    };
+
+    pub const UNIT: Constant = Constant {
         ty: ty::Ty {
             kind: ty::TyKind::Tuple(Vec::new()),
         },
