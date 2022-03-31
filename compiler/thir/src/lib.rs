@@ -49,6 +49,9 @@ pub enum Expr {
         ty: ty::Ty,
     },
 
+    /// A block expression: `{ <stmts> }`, `{ <stmts>; <expr>}`
+    Block { block: Box<Block> },
+
     /// A literal in place of an expression: `1`
     Lit { lit: Lit, ty: ty::Ty },
 
@@ -62,6 +65,7 @@ impl Expr {
             Expr::Binary { ty, .. } => ty.clone(),
             Expr::Unary { ty, .. } => ty.clone(),
             Expr::If { ty, .. } => ty.clone(),
+            Expr::Block { block } => block.ty.clone(),
             Expr::Lit { ty, .. } => ty.clone(),
             Expr::Ident { ty, .. } => ty.clone(),
         }
