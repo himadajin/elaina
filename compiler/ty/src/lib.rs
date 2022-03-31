@@ -7,7 +7,7 @@ impl Ty {
     pub fn is_zst(&self) -> bool {
         match &self.kind {
             TyKind::Tuple(ts) => ts.is_empty(),
-            _ => true,
+            _ => false,
         }
     }
 }
