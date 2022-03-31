@@ -34,7 +34,8 @@ enum Commands {
 enum PrintMode {
     Token,
     AST,
-    IR,
+    THIR,
+    MIR,
     LLVM,
 }
 
@@ -52,7 +53,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             match mode {
                 PrintMode::Token => print_token(&input),
                 PrintMode::AST => print_ast(&input),
-                PrintMode::IR => print_ir(&input),
+                PrintMode::MIR => print_mir(&input),
+                PrintMode::THIR => print_thir(&input),
                 PrintMode::LLVM => print_llvm(&input),
             }
         }
@@ -97,7 +99,13 @@ fn print_ast(input: &str) {
     println!("{:#?}", ast);
 }
 
-fn print_ir(input: &str) {
+fn print_thir(input: &str) {
+    let (ast, _) = parse_block_from_source_str(input);
+    let thir = ast_lowering::LoweringContext::new().lower_block(&ast);
+    println!("{:#?}", thir);
+}
+
+fn print_mir(input: &str) {
     let (ast, map) = parse_block_from_source_str(input);
     let thir = ast_lowering::LoweringContext::new().lower_block(&ast);
     let ir = {
