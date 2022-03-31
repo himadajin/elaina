@@ -1,5 +1,5 @@
 use crate::Parser;
-use ast::{block::*, stmt::*, token::*};
+use ast::{block::*, token::*};
 
 impl Parser<'_> {
     pub fn parse_block(&mut self) -> Block {
@@ -8,15 +8,6 @@ impl Parser<'_> {
         let mut stmts = Vec::new();
         while !self.consume(&TokenKind::CloseDelim(DelimToken::Brace)) {
             let stmt = self.parse_stmt();
-
-            // If the parsed statement is expression statement, it is return value.
-            // Therefore, this block should have reached its end.
-            if matches!(stmt, Stmt::Expr(_)) {
-                self.expect(&TokenKind::CloseDelim(DelimToken::Brace));
-                stmts.push(stmt);
-                break;
-            }
-
             stmts.push(stmt);
         }
 
