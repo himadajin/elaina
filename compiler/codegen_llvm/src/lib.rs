@@ -101,7 +101,22 @@ impl<'ctx> CodegenContext<'ctx> {
                 let target = self.blocks[target];
                 self.builder.build_unconditional_branch(target);
             }
-            terminator::Terminator::SwitchInt { .. } => todo!(),
+            terminator::Terminator::SwitchInt {
+                discr,
+                switch_ty: _,
+                targets,
+            } => {
+                if targets.values.len() == 2 {
+                    let comp = self.int_value(discr);
+                    let else_block = self.blocks[&targets.targets[0]];
+                    let then_block = self.blocks[&targets.targets[1]];
+
+                    self.builder
+                        .build_conditional_branch(comp, then_block, else_block);
+                } else {
+                    todo!();
+                }
+            }
             terminator::Terminator::Return => {
                 let ret_ptr = self.local_values.first().unwrap().clone();
                 let ret_val = self.builder.build_load(ret_ptr, "").into_int_value();
