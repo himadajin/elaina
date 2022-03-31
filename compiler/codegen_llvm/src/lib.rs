@@ -2,16 +2,20 @@ use mir::{constant::*, stmt::*, *};
 use ty::*;
 
 use inkwell::{
-    builder::Builder, context::Context, module::Module, values::*, AddressSpace, IntPredicate,
+    basic_block::BasicBlock, builder::Builder, context::Context, module::Module, values::*,
+    AddressSpace, IntPredicate,
 };
 use typed_index_collections::TiVec;
 
+use std::collections::HashMap;
 use std::error::Error;
 
 pub struct CodegenContext<'ctx> {
     context: &'ctx Context,
     builder: Builder<'ctx>,
+
     local_values: TiVec<LocalId, PointerValue<'ctx>>,
+    blocks: HashMap<BlockId, BasicBlock<'ctx>>,
 }
 
 impl<'ctx> CodegenContext<'ctx> {
@@ -20,6 +24,8 @@ impl<'ctx> CodegenContext<'ctx> {
             context: context,
             builder: context.create_builder(),
             local_values: TiVec::new(),
+
+            blocks: HashMap::new(),
         }
     }
 
@@ -37,18 +43,17 @@ impl<'ctx> CodegenContext<'ctx> {
         let function = module.add_function("main", main_type, None);
         self.codegen_body(&module, function, body);
 
-        // add return statement like `return 0`
-        let ret_ptr = self.local_values.first().unwrap().clone();
-        let ret_val = self.builder.build_load(ret_ptr, "").into_int_value();
-        self.builder.build_return(Some(&ret_val));
-
         module
     }
 
     pub fn codegen_body(&mut self, module: &Module<'ctx>, function: FunctionValue, body: Body) {
-        let basic_block = self.context.append_basic_block(function, "entry");
-        self.builder.position_at_end(basic_block);
-        // let block = self.context.append_basic_block(function, name)
+        for block_key in body.blocks.keys() {
+            let block = self.context.append_basic_block(function, "");
+            self.blocks.insert(block_key, block);
+        }
+
+        self.builder
+            .position_at_end(self.blocks[&body.blocks.first_key().unwrap()]);
 
         // allocate local values
         for local_id in body.local_decls.keys() {
@@ -73,6 +78,8 @@ impl<'ctx> CodegenContext<'ctx> {
         // codegen bodies
         for block_id in body.blocks.keys() {
             let block = &body.blocks[block_id];
+
+            self.builder.position_at_end(self.blocks[&block_id]);
             self.codegen_block(module, function, block);
         }
     }
@@ -83,6 +90,23 @@ impl<'ctx> CodegenContext<'ctx> {
 
         for stmt in &block.stmts {
             self.codegen_stmt(module, function, stmt);
+        }
+
+        match block
+            .terminator
+            .as_ref()
+            .expect("The Terminator in the Block is None.")
+        {
+            terminator::Terminator::Goto { target } => {
+                let target = self.blocks[target];
+                self.builder.build_unconditional_branch(target);
+            }
+            terminator::Terminator::SwitchInt { .. } => todo!(),
+            terminator::Terminator::Return => {
+                let ret_ptr = self.local_values.first().unwrap().clone();
+                let ret_val = self.builder.build_load(ret_ptr, "").into_int_value();
+                self.builder.build_return(Some(&ret_val));
+            }
         }
     }
 

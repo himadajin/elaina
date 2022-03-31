@@ -45,7 +45,7 @@ impl Body {
     }
 }
 
-#[derive(Debug, From, Into, PartialEq, Clone, Copy)]
+#[derive(Debug, From, Into, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct BlockId(usize);
 
 impl BlockId {
