@@ -95,7 +95,13 @@ impl<'a> LoweringContext<'a> {
                 else_opt,
                 ty,
             } => self.lower_expr_if(cond.as_ref(), then.as_ref(), else_opt, ty.clone()),
-            thir::Expr::Block { block: _block } => todo!(),
+            thir::Expr::Block { block } => {
+                let entry_block = self.block_at;
+                let (block, operand) = self.lower_block(block);
+                self.set_terminator(entry_block, Terminator::Goto { target: block });
+
+                operand
+            }
             thir::Expr::Lit { lit, ty } => self.lower_expr_lit(lit, ty.clone()),
             thir::Expr::Ident { ident, ty } => self.lower_expr_ident(ident, ty.clone()),
         }
