@@ -186,8 +186,8 @@ impl<'a> LoweringContext<'a> {
         // Create opt block if it exists.
         let else_block = match else_opt {
             Some(e) => {
-                let else_block = self.push_block(None);
                 let else_operand = self.lower_expr(e);
+                let else_block = self.block_at;
 
                 if let Some(p) = &expr_val {
                     let rvalue = RValue::Use(else_operand);
