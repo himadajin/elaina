@@ -1,3 +1,5 @@
+mod builder;
+
 use mir::{constant::*, stmt::*, terminator::*, *};
 use span::symbol::{Symbol, SymbolMap};
 use thir::{self};
