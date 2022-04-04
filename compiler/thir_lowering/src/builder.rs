@@ -3,20 +3,12 @@ use mir::{stmt::*, terminator::*, *};
 #[allow(dead_code)]
 pub(crate) struct MirBuilder {
     body: Body,
-    tail: BlockId,
 }
 
 #[allow(dead_code)]
 impl MirBuilder {
     pub(crate) fn new() -> Self {
-        Self {
-            body: Body::new(),
-            tail: BlockId::dummy(),
-        }
-    }
-
-    pub(crate) fn tail(&self) -> BlockId {
-        self.tail
+        Self { body: Body::new() }
     }
 
     pub(crate) fn push_local_decl(&mut self, decl: LocalDecl) -> Place {
@@ -29,8 +21,7 @@ impl MirBuilder {
     }
 
     pub(crate) fn push_block(&mut self, terminator: Option<Terminator>) -> BlockId {
-        self.tail = self.body.blocks.push_and_get_key(Block::new(terminator));
-        self.tail
+        self.body.blocks.push_and_get_key(Block::new(terminator))
     }
 
     pub(crate) fn set_terminator(&mut self, target: BlockId, terminator: Terminator) {
