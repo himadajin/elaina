@@ -86,6 +86,11 @@ impl Parser<'_> {
             return Some(self.parse_if_expr());
         }
 
+        // Try to parse loop expression
+        if self.consume_keyword(Kw::Loop.as_symbol()) {
+            return Some(self.parse_loop_expr());
+        }
+
         None
     }
 
@@ -133,6 +138,14 @@ impl Parser<'_> {
             cond: Box::new(cond),
             then: Box::new(then),
             else_opt: None,
+        }
+    }
+
+    fn parse_loop_expr(&mut self) -> Expr {
+        let block = self.parse_block();
+
+        Expr::Loop {
+            block: Box::new(block),
         }
     }
 
@@ -432,6 +445,12 @@ mod tests {
                 ))
             )
         );
+    }
+
+    #[test]
+    fn test_parse_expr_loop() {
+        test_expr!("loop { 0 }", expr_loop(block([stmt_expr(expr_lit_int(0))])));
+        
     }
 
     #[test]
