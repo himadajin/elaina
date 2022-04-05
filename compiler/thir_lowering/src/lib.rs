@@ -7,9 +7,59 @@ use thir::{self};
 
 use std::collections::HashMap;
 
+struct ControlFlowResolution {
+    heads: Vec<BlockId>,
+    tails: Vec<BlockId>,
+}
+
+#[allow(dead_code)]
+struct ControlFlowResolver {
+    scopes: Vec<ControlFlowResolution>,
+}
+
+#[allow(dead_code)]
+impl ControlFlowResolver {
+    fn new() -> Self {
+        Self { scopes: Vec::new() }
+    }
+
+    fn push_scope(&mut self) {
+        let res = ControlFlowResolution {
+            heads: Vec::new(),
+            tails: Vec::new(),
+        };
+
+        self.scopes.push(res);
+    }
+
+    fn pop_scope(&mut self) -> ControlFlowResolution {
+        self.scopes
+            .pop()
+            .expect("error: Tried to pop scope even though there is no scope to resolve")
+    }
+
+    fn push_head(&mut self, block: BlockId) {
+        self.scopes
+            .last_mut()
+            .expect("error: Tried to pop scope even though there is no scope to resolve")
+            .heads
+            .push(block);
+    }
+
+    fn push_tail(&mut self, block: BlockId) {
+        self.scopes
+            .last_mut()
+            .expect("error: Tried to pop scope even though there is no scope to resolve")
+            .tails
+            .push(block);
+    }
+}
+
 #[allow(dead_code)]
 pub struct LoweringContext<'a> {
     builder: MirBuilder,
+
+    loop_resolver: ControlFlowResolver,
 
     local_name_table: HashMap<Symbol, Place>,
     symbol_map: &'a SymbolMap<'a>,
@@ -19,6 +69,8 @@ impl<'a> LoweringContext<'a> {
     pub fn new(symbol_map: &'a SymbolMap<'a>) -> Self {
         LoweringContext {
             builder: MirBuilder::new(),
+
+            loop_resolver: ControlFlowResolver::new(),
 
             local_name_table: HashMap::new(),
             symbol_map: symbol_map,
@@ -75,10 +127,9 @@ impl<'a> LoweringContext<'a> {
                 let (tail, _) = self.lower_expr(entry_block, e);
                 tail
             }
-            thir::Stmt::Semi(_) => {
-                // Do nothing because this statement does not have any side effect at this stage.
-                // So there is no need to compile it.
-                entry_block
+            thir::Stmt::Semi(e) => {
+                let (tail, _) = self.lower_expr(entry_block, e);
+                tail
             }
             thir::Stmt::Println(expr) => {
                 let (tail, operand) = self.lower_expr(entry_block, expr);
@@ -109,9 +160,11 @@ impl<'a> LoweringContext<'a> {
                 else_opt,
                 ty.clone(),
             ),
-            thir::Expr::Loop { block: _ } => todo!(),
-            thir::Expr::Break { expr: _, ty: _ } => todo!(),
-            thir::Expr::Continue { expr: _, ty: _ } => todo!(),
+            thir::Expr::Loop { block } => self.lower_expr_loop(entry_block, block.as_ref()),
+            thir::Expr::Break { expr, ty } => self.lower_expr_break(entry_block, expr, ty.clone()),
+            thir::Expr::Continue { expr, ty } => {
+                self.lower_expr_continue(entry_block, expr, ty.clone())
+            }
             thir::Expr::Block { block } => {
                 let id = self.builder.push_block(None);
                 self.builder
@@ -274,6 +327,74 @@ impl<'a> LoweringContext<'a> {
         };
 
         (end_entry, operand)
+    }
+
+    fn lower_expr_loop(&mut self, entry_block: BlockId, block: &thir::Block) -> (BlockId, Operand) {
+        let loop_head = self.builder.push_block(None);
+        self.builder
+            .set_terminator(entry_block, Terminator::Goto { target: loop_head });
+        self.loop_resolver.push_scope();
+
+        let (loop_tail, _) = self.lower_block(loop_head, &block.stmts, &block.expr);
+        let end_head = self.builder.push_block(None);
+
+        // Set terminator to tail of loop body.
+        self.builder
+            .set_terminator(loop_tail, Terminator::Goto { target: loop_head });
+
+        let res = self.loop_resolver.pop_scope();
+
+        // Set terminator <resolved> -> <loop_head>
+        for resolved in res.heads {
+            println!("head resolved: {:?}", &resolved);
+            self.builder
+                .set_terminator(resolved, Terminator::Goto { target: loop_head });
+        }
+
+        // Set terminator <resolved> -> <end_head>
+        for resolved in res.tails {
+            println!(" tail resolved: {:?}", &resolved);
+            self.builder
+                .set_terminator(resolved, Terminator::Goto { target: end_head });
+        }
+
+        (end_head, Operand::Constant(Box::new(Constant::UNIT)))
+    }
+
+    fn lower_expr_break(
+        &mut self,
+        entry_block: BlockId,
+        expr: &Option<Box<thir::Expr>>,
+        _ty: ty::Ty,
+    ) -> (BlockId, Operand) {
+        // Expression in break expression is still ignored for now.
+        let (block, _) = match expr {
+            Some(expr) => self.lower_expr(entry_block, expr.as_ref()),
+            None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
+        };
+
+        println!("push tail: {:?}", block);
+        self.loop_resolver.push_tail(block);
+
+        (block, Operand::Constant(Box::new(Constant::UNIT)))
+    }
+
+    fn lower_expr_continue(
+        &mut self,
+        entry_block: BlockId,
+        expr: &Option<Box<thir::Expr>>,
+        _ty: ty::Ty,
+    ) -> (BlockId, Operand) {
+        // Expression in break expression is still ignored for now.
+        let (block, _) = match expr {
+            Some(expr) => self.lower_expr(entry_block, expr.as_ref()),
+            None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
+        };
+
+        println!("push head: {:?}", block);
+        self.loop_resolver.push_head(block);
+
+        (block, Operand::Constant(Box::new(Constant::UNIT)))
     }
 
     fn lower_expr_lit(&mut self, lit: &thir::Lit, ty: ty::Ty) -> Operand {
