@@ -20,6 +20,9 @@ pub enum Expr {
         else_opt: Option<Box<Expr>>,
     },
 
+    /// Loop expression: `loop { block }`
+    Loop { block: Box<Block> },
+
     /// Block expression: `{ 0 }`, `{let a = 1; a}`
     Block { block: Box<Block> },
 

@@ -97,6 +97,7 @@ impl LoweringContext {
                 then,
                 else_opt,
             } => self.lower_expr_if(cond.as_ref(), then.as_ref(), else_opt),
+            Expr::Loop { block: _ } => todo!(),
             Expr::Block { block } => thir::Expr::Block {
                 block: Box::new(self.lower_block(block.as_ref())),
             },
