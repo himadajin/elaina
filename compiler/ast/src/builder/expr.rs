@@ -50,6 +50,13 @@ pub fn expr_block<T: Into<Vec<Stmt>>>(stmts: T) -> Expr {
     }
 }
 
+pub fn expr_assign(lhs: Expr, rhs: Expr) -> Expr {
+    Expr::Assign {
+        lhs: Box::new(lhs),
+        rhs: Box::new(rhs),
+    }
+}
+
 pub fn expr_lit_int(value: u128) -> Expr {
     Expr::Lit {
         lit: Lit {

@@ -103,6 +103,7 @@ impl LoweringContext {
             Expr::Block { block } => thir::Expr::Block {
                 block: Box::new(self.lower_block(block.as_ref())),
             },
+            Expr::Assign { lhs: _, rhs: _ } => todo!(),
             Expr::Lit { lit } => self.lower_expr_lit(&lit),
             Expr::Ident { ident } => self.lower_expr_ident(ident.clone()),
         }

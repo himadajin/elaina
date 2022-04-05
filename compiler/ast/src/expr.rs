@@ -32,6 +32,9 @@ pub enum Expr {
     /// Block expression: `{ 0 }`, `{let a = 1; a}`
     Block { block: Box<Block> },
 
+    /// Assign expression: `a = 1`
+    Assign { lhs: Box<Expr>, rhs: Box<Expr> },
+
     /// A literal in place of an expression: `1`
     Lit { lit: Lit },
 
