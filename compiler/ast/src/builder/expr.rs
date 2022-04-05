@@ -24,6 +24,12 @@ pub fn expr_if(cond: Expr, then: Block, else_opt: Option<Expr>) -> Expr {
     }
 }
 
+pub fn expr_loop(block: Block) -> Expr {
+    Expr::Loop {
+        block: Box::new(block),
+    }
+}
+
 pub fn expr_block<T: Into<Vec<Stmt>>>(stmts: T) -> Expr {
     Expr::Block {
         block: Box::new(Block {
