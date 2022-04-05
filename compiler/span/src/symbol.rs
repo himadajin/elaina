@@ -99,6 +99,10 @@ keywords![
     False; "false",
     Println;"println",
 
+    Loop; "loop",
+    Break; "break",
+    Continue; "continue",
+
     I32; "i32",
     Bool; "bool"
 ];
@@ -117,6 +121,10 @@ mod tests {
         assert_eq!(Kw::True.as_symbol(), m.insert("true"));
         assert_eq!(Kw::False.as_symbol(), m.insert("false"));
         assert_eq!(Kw::Println.as_symbol(), m.insert("println"));
+
+        assert_eq!(Kw::Loop.as_symbol(), m.insert("loop"));
+        assert_eq!(Kw::Break.as_symbol(), m.insert("break"));
+        assert_eq!(Kw::Continue.as_symbol(), m.insert("continue"));
 
         assert_eq!(Kw::I32.as_symbol(), m.insert("i32"));
         assert_eq!(Kw::Bool.as_symbol(), m.insert("bool"));
