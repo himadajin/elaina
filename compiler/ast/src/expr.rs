@@ -23,6 +23,12 @@ pub enum Expr {
     /// Loop expression: `loop { block }`
     Loop { block: Box<Block> },
 
+    /// Break expression: `break;`, `break expr;`
+    Break { expr: Option<Box<Expr>> },
+
+    /// Continue expression: `continue;`, `continue expr;`
+    Continue { expr: Option<Box<Expr>> },
+
     /// Block expression: `{ 0 }`, `{let a = 1; a}`
     Block { block: Box<Block> },
 

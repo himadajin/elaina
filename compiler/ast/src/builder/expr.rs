@@ -30,6 +30,18 @@ pub fn expr_loop(block: Block) -> Expr {
     }
 }
 
+pub fn expr_break(expr: Option<Expr>) -> Expr {
+    Expr::Break {
+        expr: expr.map(|e| Box::new(e)),
+    }
+}
+
+pub fn expr_continue(expr: Option<Expr>) -> Expr {
+    Expr::Continue {
+        expr: expr.map(|e| Box::new(e)),
+    }
+}
+
 pub fn expr_block<T: Into<Vec<Stmt>>>(stmts: T) -> Expr {
     Expr::Block {
         block: Box::new(Block {
