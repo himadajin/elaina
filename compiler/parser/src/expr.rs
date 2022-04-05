@@ -168,7 +168,17 @@ impl Parser<'_> {
     }
 
     fn parse_operator_expr(&mut self) -> Expr {
-        self.parse_expr_equality()
+        let lhs = self.parse_expr_equality();
+
+        if self.consume(&TokenKind::Eq) {
+            let rhs = self.parse_expr();
+            return Expr::Assign {
+                lhs: Box::new(lhs),
+                rhs: Box::new(rhs),
+            };
+        }
+
+        lhs
     }
 
     fn parse_expr_equality(&mut self) -> Expr {
@@ -487,6 +497,22 @@ mod tests {
         test_expr!(
             "{0; 1}",
             expr_block([stmt_semi(expr_lit_int(0)), stmt_expr(expr_lit_int(1))])
+        );
+    }
+
+    #[test]
+    fn test_parse_expr_assign() {
+        test_expr!(
+            "a = 0",
+            expr_assign(expr_ident(Symbol::ident_nth(0)), expr_lit_int(0))
+        );
+
+        test_expr!(
+            "a = 1 + 1",
+            expr_assign(
+                expr_ident(Symbol::ident_nth(0)),
+                expr_binary(expr_lit_int(1), BinOp::Add, expr_lit_int(1))
+            )
         );
     }
 
