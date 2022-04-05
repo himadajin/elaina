@@ -172,11 +172,9 @@ impl<'a> LoweringContext<'a> {
 
                 self.lower_block(id, &block.stmts, &block.expr)
             }
-            thir::Expr::Assign {
-                lhs: _,
-                rhs: _,
-                ty: _,
-            } => todo!(),
+            thir::Expr::Assign { lhs, rhs, ty } => {
+                self.lower_expr_assign(entry_block, lhs.as_ref(), rhs.as_ref(), ty.clone())
+            }
             thir::Expr::Lit { lit, ty } => (entry_block, self.lower_expr_lit(lit, ty.clone())),
             thir::Expr::Ident { ident, ty } => {
                 (entry_block, self.lower_expr_ident(ident, ty.clone()))
@@ -398,6 +396,32 @@ impl<'a> LoweringContext<'a> {
 
         println!("push head: {:?}", block);
         self.loop_resolver.push_head(block);
+
+        (block, Operand::Constant(Box::new(Constant::UNIT)))
+    }
+
+    fn lower_expr_assign(
+        &mut self,
+        entry_block: BlockId,
+        lhs: &thir::Expr,
+        rhs: &thir::Expr,
+        _ty: ty::Ty,
+    ) -> (BlockId, Operand) {
+        let (block, rhs) = self.lower_expr(entry_block, rhs);
+
+        match lhs {
+            thir::Expr::Ident { ident, .. } => {
+                let place = self
+                    .local_name_table
+                    .get(ident)
+                    .expect("error: cannot found place of given ident")
+                    .clone();
+                let rvalue = RValue::Use(rhs);
+                let stmt = Statement::Assign(Box::new((place, rvalue)));
+                self.builder.push_stmt(block, stmt);
+            }
+            _ => unreachable!(),
+        }
 
         (block, Operand::Constant(Box::new(Constant::UNIT)))
     }
