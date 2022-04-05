@@ -49,6 +49,15 @@ pub enum Expr {
         ty: ty::Ty,
     },
 
+    /// Loop expression: `loop { block }`
+    Loop { block: Box<Block> },
+
+    /// Break expression: `break;`, `break expr;`
+    Break { expr: Option<Box<Expr>>, ty: ty::Ty },
+
+    /// Continue expression: `continue;`, `continue expr;`
+    Continue { expr: Option<Box<Expr>>, ty: ty::Ty },
+
     /// A block expression: `{ <stmts> }`, `{ <stmts>; <expr>}`
     Block { block: Box<Block> },
 
@@ -65,6 +74,9 @@ impl Expr {
             Expr::Binary { ty, .. } => ty.clone(),
             Expr::Unary { ty, .. } => ty.clone(),
             Expr::If { ty, .. } => ty.clone(),
+            Expr::Loop { block } => block.ty.clone(),
+            Expr::Break { ty, .. } => ty.clone(),
+            Expr::Continue { ty, .. } => ty.clone(),
             Expr::Block { block } => block.ty.clone(),
             Expr::Lit { ty, .. } => ty.clone(),
             Expr::Ident { ty, .. } => ty.clone(),

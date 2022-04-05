@@ -109,6 +109,9 @@ impl<'a> LoweringContext<'a> {
                 else_opt,
                 ty.clone(),
             ),
+            thir::Expr::Loop { block: _ } => todo!(),
+            thir::Expr::Break { expr: _, ty: _ } => todo!(),
+            thir::Expr::Continue { expr: _, ty: _ } => todo!(),
             thir::Expr::Block { block } => {
                 let id = self.builder.push_block(None);
                 self.builder
