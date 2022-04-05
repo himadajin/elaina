@@ -172,6 +172,11 @@ impl<'a> LoweringContext<'a> {
 
                 self.lower_block(id, &block.stmts, &block.expr)
             }
+            thir::Expr::Assign {
+                lhs: _,
+                rhs: _,
+                ty: _,
+            } => todo!(),
             thir::Expr::Lit { lit, ty } => (entry_block, self.lower_expr_lit(lit, ty.clone())),
             thir::Expr::Ident { ident, ty } => {
                 (entry_block, self.lower_expr_ident(ident, ty.clone()))

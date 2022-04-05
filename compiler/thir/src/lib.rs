@@ -61,6 +61,13 @@ pub enum Expr {
     /// A block expression: `{ <stmts> }`, `{ <stmts>; <expr>}`
     Block { block: Box<Block> },
 
+    /// Assign expression: `a = 1`
+    Assign {
+        lhs: Box<Expr>,
+        rhs: Box<Expr>,
+        ty: ty::Ty,
+    },
+
     /// A literal in place of an expression: `1`
     Lit { lit: Lit, ty: ty::Ty },
 
@@ -78,6 +85,7 @@ impl Expr {
             Expr::Break { ty, .. } => ty.clone(),
             Expr::Continue { ty, .. } => ty.clone(),
             Expr::Block { block } => block.ty.clone(),
+            Expr::Assign { ty, .. } => ty.clone(),
             Expr::Lit { ty, .. } => ty.clone(),
             Expr::Ident { ty, .. } => ty.clone(),
         }
