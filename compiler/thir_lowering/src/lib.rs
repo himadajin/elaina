@@ -349,14 +349,12 @@ impl<'a> LoweringContext<'a> {
 
         // Set terminator <resolved> -> <loop_head>
         for resolved in res.heads {
-            println!("head resolved: {:?}", &resolved);
             self.builder
                 .set_terminator(resolved, Terminator::Goto { target: loop_head });
         }
 
         // Set terminator <resolved> -> <end_head>
         for resolved in res.tails {
-            println!(" tail resolved: {:?}", &resolved);
             self.builder
                 .set_terminator(resolved, Terminator::Goto { target: end_head });
         }
@@ -376,7 +374,6 @@ impl<'a> LoweringContext<'a> {
             None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
         };
 
-        println!("push tail: {:?}", block);
         self.loop_resolver.push_tail(block);
 
         (block, Operand::Constant(Box::new(Constant::UNIT)))
@@ -394,7 +391,6 @@ impl<'a> LoweringContext<'a> {
             None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
         };
 
-        println!("push head: {:?}", block);
         self.loop_resolver.push_head(block);
 
         (block, Operand::Constant(Box::new(Constant::UNIT)))
