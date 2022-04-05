@@ -103,7 +103,7 @@ impl LoweringContext {
             Expr::Block { block } => thir::Expr::Block {
                 block: Box::new(self.lower_block(block.as_ref())),
             },
-            Expr::Assign { lhs: _, rhs: _ } => todo!(),
+            Expr::Assign { lhs, rhs } => self.lower_expr_assign(lhs.as_ref(), rhs.as_ref()),
             Expr::Lit { lit } => self.lower_expr_lit(&lit),
             Expr::Ident { ident } => self.lower_expr_ident(ident.clone()),
         }
@@ -221,6 +221,25 @@ impl LoweringContext {
         };
 
         thir::Expr::Continue { expr, ty }
+    }
+
+    fn lower_expr_assign(&mut self, lhs: &Expr, rhs: &Expr) -> thir::Expr {
+        let lhs = match lhs {
+            Expr::Ident { ident } => self.lower_expr_ident(*ident),
+            _ => panic!("error: invalid left-hand side of assignment."),
+        };
+        let rhs = self.lower_expr(rhs);
+
+        // The type of assign expression is unit.
+        let ty = ty::Ty {
+            kind: TyKind::Tuple(Vec::new()),
+        };
+
+        thir::Expr::Assign {
+            lhs: Box::new(lhs),
+            rhs: Box::new(rhs),
+            ty,
+        }
     }
 
     fn lower_expr_lit(&mut self, lit: &Lit) -> thir::Expr {
