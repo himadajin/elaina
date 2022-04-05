@@ -68,7 +68,25 @@ impl Parser<'_> {
         self.parse_expr_without_block()
     }
 
+    fn parse_expr_opt(&mut self) -> Option<Expr> {
+        if self.token.can_begin_expr() {
+            return Some(self.parse_expr());
+        }
+
+        None
+    }
+
     pub fn parse_expr_without_block(&mut self) -> Expr {
+        if self.consume_keyword(Kw::Break.as_symbol()) {
+            let expr = self.parse_expr_opt().map(|e| Box::new(e));
+            return Expr::Break { expr };
+        }
+
+        if self.consume_keyword(Kw::Continue.as_symbol()) {
+            let expr = self.parse_expr_opt().map(|e| Box::new(e));
+            return Expr::Continue { expr };
+        }
+
         self.parse_operator_expr()
     }
 
@@ -450,7 +468,18 @@ mod tests {
     #[test]
     fn test_parse_expr_loop() {
         test_expr!("loop { 0 }", expr_loop(block([stmt_expr(expr_lit_int(0))])));
-        
+    }
+
+    #[test]
+    fn test_parse_expr_break() {
+        test_expr!("break", expr_break(None));
+        test_expr!("break 0;", expr_break(Some(expr_lit_int(0))));
+    }
+
+    #[test]
+    fn test_parse_expr_continue() {
+        test_expr!("continue", expr_continue(None));
+        test_expr!("continue 0;", expr_continue(Some(expr_lit_int(0))));
     }
 
     #[test]

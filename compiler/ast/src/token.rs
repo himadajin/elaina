@@ -1,6 +1,6 @@
 use span::{
     span::Span,
-    symbol::{Symbol, SymbolMap},
+    symbol::{Kw, Symbol, SymbolMap},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -86,6 +86,28 @@ impl Token {
     pub fn new(kind: TokenKind, span: Span) -> Self {
         Self { kind, span }
     }
+
+    pub fn can_begin_expr(&self) -> bool {
+        match self.kind {
+            TokenKind::BinOp(BinOpToken::Minus) // unary minus
+            | TokenKind::OpenDelim(_) // parensized expr, block
+            | TokenKind::Literal(_) => true, // literal
+            TokenKind::Ident(name) => ident_can_begin_expr(&name), // identifier
+            _ => false,
+        }
+    }
+}
+
+pub fn ident_can_begin_expr(name: &Symbol) -> bool {
+    [
+        Kw::Let.as_symbol(),
+        Kw::If.as_symbol(),
+        Kw::True.as_symbol(),
+        Kw::False.as_symbol(),
+        Kw::Break.as_symbol(),
+        Kw::Continue.as_symbol(),
+    ]
+    .contains(name)
 }
 
 pub struct Tokens<'a> {
