@@ -97,9 +97,9 @@ impl LoweringContext {
                 then,
                 else_opt,
             } => self.lower_expr_if(cond.as_ref(), then.as_ref(), else_opt),
-            Expr::Loop { block: _ } => todo!(),
-            Expr::Break { expr: _ } => todo!(),
-            Expr::Continue { expr: _ } => todo!(),
+            Expr::Loop { block } => self.lower_expr_loop(block.as_ref()),
+            Expr::Break { expr } => self.lower_expr_break(expr),
+            Expr::Continue { expr } => self.lower_expr_continue(expr),
             Expr::Block { block } => thir::Expr::Block {
                 block: Box::new(self.lower_block(block.as_ref())),
             },
@@ -194,6 +194,32 @@ impl LoweringContext {
             else_opt: else_thir,
             ty: then_ty,
         }
+    }
+
+    fn lower_expr_loop(&mut self, block: &Block) -> thir::Expr {
+        let block = Box::new(self.lower_block(block));
+
+        thir::Expr::Loop { block }
+    }
+
+    fn lower_expr_break(&mut self, expr: &Option<Box<Expr>>) -> thir::Expr {
+        let expr = expr.as_ref().map(|e| Box::new(self.lower_expr(e.as_ref())));
+        // The type of break expression is tentatively set to unit type.
+        let ty = ty::Ty {
+            kind: TyKind::Tuple(Vec::new()),
+        };
+
+        thir::Expr::Break { expr, ty }
+    }
+
+    fn lower_expr_continue(&mut self, expr: &Option<Box<Expr>>) -> thir::Expr {
+        let expr = expr.as_ref().map(|e| Box::new(self.lower_expr(e.as_ref())));
+        // The type of continue expression is tentatively set to unit type.
+        let ty = ty::Ty {
+            kind: TyKind::Tuple(Vec::new()),
+        };
+
+        thir::Expr::Continue { expr, ty }
     }
 
     fn lower_expr_lit(&mut self, lit: &Lit) -> thir::Expr {
