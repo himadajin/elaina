@@ -6,6 +6,11 @@ use span::symbol::Symbol;
 use ty;
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct Path {
+    res: DefId,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Block {
     pub stmts: Vec<Stmt>,
     pub expr: Option<Expr>,
@@ -82,8 +87,8 @@ pub enum Expr {
     /// A literal in place of an expression: `1`
     Lit { lit: Lit, ty: ty::Ty },
 
-    /// A identifier such as variables, functions, etx: `foo`, `bar`
-    Ident { ident: Symbol, ty: ty::Ty },
+    /// A path such as variables, functions, etx: `foo`, `bar`
+    Path { path: Path },
 }
 
 #[derive(Debug, PartialEq, Clone)]
