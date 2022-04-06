@@ -1,5 +1,7 @@
 pub mod def_id;
 
+use crate::def_id::DefId;
+
 use span::symbol::Symbol;
 use ty;
 
@@ -10,9 +12,23 @@ pub struct Block {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct Pat {
+    pub kind: PatKind,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum PatKind {
+    Binding(DefId, Symbol),
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     /// Local represents a let statement: `let <ident> = <expr>;`
-    Local { ident: Symbol, init: Expr },
+    Local {
+        pat: Pat,
+        ty: Option<ty::Ty>,
+        init: Expr,
+    },
 
     /// Expression statement: `1 + 1`
     Expr(Expr),
