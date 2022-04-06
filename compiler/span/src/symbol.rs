@@ -1,3 +1,5 @@
+use crate::span::Span;
+
 use derive_more::{From, Into};
 use typed_index_collections::TiVec;
 
@@ -15,6 +17,19 @@ impl Symbol {
     #[inline]
     pub const fn ident_nth(n: usize) -> Self {
         Symbol(KEYWORDS.len() + n)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Ident {
+    pub name: Symbol,
+    pub span: Span,
+}
+
+impl Ident {
+    #[inline]
+    pub const fn new(name: Symbol, span: Span) -> Self {
+        Self { name, span }
     }
 }
 
