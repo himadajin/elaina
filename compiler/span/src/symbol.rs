@@ -1,4 +1,4 @@
-use crate::span::Span;
+use crate::span::{Span, DUMMY_SP};
 
 use derive_more::{From, Into};
 use typed_index_collections::TiVec;
@@ -30,6 +30,14 @@ impl Ident {
     #[inline]
     pub const fn new(name: Symbol, span: Span) -> Self {
         Self { name, span }
+    }
+
+    #[inline]
+    pub const fn with_dummy_span(name: Symbol) -> Self {
+        Self {
+            name,
+            span: DUMMY_SP,
+        }
     }
 }
 

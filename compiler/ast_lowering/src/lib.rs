@@ -106,6 +106,7 @@ impl LoweringContext {
             Expr::Assign { lhs, rhs } => self.lower_expr_assign(lhs.as_ref(), rhs.as_ref()),
             Expr::Lit { lit } => self.lower_expr_lit(&lit),
             Expr::Ident { ident } => self.lower_expr_ident(ident.clone()),
+            Expr::Path(_) => todo!(),
         }
     }
 
