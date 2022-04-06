@@ -1,3 +1,5 @@
+pub mod def_id;
+
 use span::symbol::Symbol;
 use ty;
 
