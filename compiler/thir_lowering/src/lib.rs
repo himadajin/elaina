@@ -114,20 +114,17 @@ impl<'a> LoweringContext<'a> {
 
     fn lower_stmt(&mut self, entry_block: BlockId, stmt: &thir::Stmt) -> BlockId {
         match stmt {
-            thir::Stmt::Local { ident, init } => {
-                let place = self.push_local(Some(ident.clone()), init.ty());
-                let (tail, operand) = self.lower_expr(entry_block, init);
-                let rvalue = RValue::Use(operand);
-                let stmt = Statement::Assign(Box::new((place, rvalue)));
-                self.builder.push_stmt(tail, stmt);
+            thir::Stmt::Local { def: _, init: _ } => todo!(),
+            // thir::Stmt::Local { ident, init } => {
+            //     let place = self.push_local(Some(ident.clone()), init.ty());
+            //     let (tail, operand) = self.lower_expr(entry_block, init);
+            //     let rvalue = RValue::Use(operand);
+            //     let stmt = Statement::Assign(Box::new((place, rvalue)));
+            //     self.builder.push_stmt(tail, stmt);
 
-                tail
-            }
+            //     tail
+            // }
             thir::Stmt::Expr(e) => {
-                let (tail, _) = self.lower_expr(entry_block, e);
-                tail
-            }
-            thir::Stmt::Semi(e) => {
                 let (tail, _) = self.lower_expr(entry_block, e);
                 tail
             }

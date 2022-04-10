@@ -1,3 +1,4 @@
+use hir::def_id::DefId;
 use span::symbol::Symbol;
 use ty;
 
@@ -11,13 +12,10 @@ pub struct Block {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     /// Local represents a let statement: `let <ident> = <expr>;`
-    Local { ident: Symbol, init: Expr },
+    Local { def: DefId, init: Expr },
 
     /// Expression statement: `1 + 1`
     Expr(Expr),
-
-    /// Expression statement with semicolon: `1 + 1;`
-    Semi(Expr),
 
     /// Function call of `println`
     /// This statement is temporary, used until the function call is implemented
