@@ -19,6 +19,8 @@ pub enum TyKind {
     Int(IntTy),
 
     Tuple(Vec<Ty>),
+
+    Never,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
