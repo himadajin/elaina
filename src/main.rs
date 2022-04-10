@@ -1,11 +1,14 @@
 use clap::{ArgEnum, Parser, Subcommand};
 
 use ast_lowering;
+#[allow(unused_imports)]
 use codegen_llvm::{codegen_and_execute, codegen_string};
+#[allow(unused_imports)]
 use mir::pretty;
 use parser::lexer::parse_all_token;
 use parser::{self, parse_block_from_source_str};
 use resolve::ASTNameResolver;
+#[allow(unused_imports)]
 use thir_lowering;
 
 use std::{
@@ -35,6 +38,7 @@ enum Commands {
 enum PrintMode {
     Token,
     AST,
+    HIR,
     THIR,
     MIR,
     LLVM,
@@ -54,9 +58,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             match mode {
                 PrintMode::Token => print_token(&input),
                 PrintMode::AST => print_ast(&input),
-                PrintMode::MIR => print_mir(&input),
-                PrintMode::THIR => print_thir(&input),
-                PrintMode::LLVM => print_llvm(&input),
+                PrintMode::HIR => print_hir(&input),
+                _ => todo!(),
             }
         }
     }
@@ -74,22 +77,23 @@ fn read_file(filename: &str) -> io::Result<String> {
     Ok(input)
 }
 
-fn run_input(input: &str) -> Result<(), Box<dyn Error>> {
-    let (ast, map) = parse_block_from_source_str(input);
-    let res = {
-        let mut resolver = ASTNameResolver::new();
-        resolver.resolve_block(&ast);
-        resolver.finish()
-    };
-    let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-    let ir = {
-        let mut ctx = thir_lowering::LoweringContext::new(&map);
-        ctx.lower_main_block(&thir);
-        ctx.build()
-    };
+fn run_input(_input: &str) -> Result<(), Box<dyn Error>> {
+    todo!()
+    // let (ast, map) = parse_block_from_source_str(input);
+    // let res = {
+    //     let mut resolver = ASTNameResolver::new();
+    //     resolver.resolve_block(&ast);
+    //     resolver.finish()
+    // };
+    // let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
+    // let ir = {
+    //     let mut ctx = thir_lowering::LoweringContext::new(&map);
+    //     ctx.lower_main_block(&thir);
+    //     ctx.build()
+    // };
 
-    let _ = codegen_and_execute(ir)?;
-    Ok(())
+    // let _ = codegen_and_execute(ir)?;
+    // Ok(())
 }
 
 fn print_token(input: &str) {
@@ -105,47 +109,58 @@ fn print_ast(input: &str) {
     println!("{:#?}", ast);
 }
 
-fn print_thir(input: &str) {
+fn print_hir(input: &str) {
     let (ast, _) = parse_block_from_source_str(input);
     let res = {
         let mut resolver = ASTNameResolver::new();
         resolver.resolve_block(&ast);
         resolver.finish()
     };
-    let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-    println!("{:#?}", thir);
+    let hir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
+    println!("{:#?}", hir);
 }
 
-fn print_mir(input: &str) {
-    let (ast, map) = parse_block_from_source_str(input);
-    let res = {
-        let mut resolver = ASTNameResolver::new();
-        resolver.resolve_block(&ast);
-        resolver.finish()
-    };
-    let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-    let ir = {
-        let mut ctx = thir_lowering::LoweringContext::new(&map);
-        ctx.lower_main_block(&thir);
-        ctx.build()
-    };
+// fn print_thir(input: &str) {
+//     let (ast, _) = parse_block_from_source_str(input);
+//     let res = {
+//         let mut resolver = ASTNameResolver::new();
+//         resolver.resolve_block(&ast);
+//         resolver.finish()
+//     };
+//     let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
+//     println!("{:#?}", thir);
+// }
 
-    let pretty = pretty::ir_to_string(&ir);
-    println!("{}", pretty);
-}
+// fn print_mir(input: &str) {
+//     let (ast, map) = parse_block_from_source_str(input);
+//     let res = {
+//         let mut resolver = ASTNameResolver::new();
+//         resolver.resolve_block(&ast);
+//         resolver.finish()
+//     };
+//     let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
+//     let ir = {
+//         let mut ctx = thir_lowering::LoweringContext::new(&map);
+//         ctx.lower_main_block(&thir);
+//         ctx.build()
+//     };
 
-fn print_llvm(input: &str) {
-    let (ast, map) = parse_block_from_source_str(input);
-    let res = {
-        let mut resolver = ASTNameResolver::new();
-        resolver.resolve_block(&ast);
-        resolver.finish()
-    };
-    let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-    let ir = {
-        let mut ctx = thir_lowering::LoweringContext::new(&map);
-        ctx.lower_main_block(&thir);
-        ctx.build()
-    };
-    print!("{}", codegen_string(ir));
-}
+//     let pretty = pretty::ir_to_string(&ir);
+//     println!("{}", pretty);
+// }
+
+// fn print_llvm(input: &str) {
+//     let (ast, map) = parse_block_from_source_str(input);
+//     let res = {
+//         let mut resolver = ASTNameResolver::new();
+//         resolver.resolve_block(&ast);
+//         resolver.finish()
+//     };
+//     let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
+//     let ir = {
+//         let mut ctx = thir_lowering::LoweringContext::new(&map);
+//         ctx.lower_main_block(&thir);
+//         ctx.build()
+//     };
+//     print!("{}", codegen_string(ir));
+// }

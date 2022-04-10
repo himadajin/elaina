@@ -5,7 +5,7 @@ pub mod expr;
 pub mod stmt;
 
 use crate::lexer::parse_all_token;
-use ast::{block::Block, token::*};
+use ast::{block::Block, expr::Expr, stmt::Stmt, token::*};
 use span::symbol::*;
 
 struct TokenCursor<'a> {
@@ -119,6 +119,18 @@ pub fn parse_block_from_source_str(src: &str) -> (Block, SymbolMap) {
     let tokens = parse_all_token(src);
 
     (Parser::new(&tokens).parse_block(), tokens.map)
+}
+
+pub fn parse_stmt_from_source_str(src: &str) -> (Stmt, SymbolMap) {
+    let tokens = parse_all_token(src);
+
+    (Parser::new(&tokens).parse_stmt(), tokens.map)
+}
+
+pub fn parse_expr_from_source_str(src: &str) -> (Expr, SymbolMap) {
+    let tokens = parse_all_token(src);
+
+    (Parser::new(&tokens).parse_expr(), tokens.map)
 }
 
 #[cfg(test)]

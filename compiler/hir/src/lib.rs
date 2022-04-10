@@ -7,7 +7,7 @@ use ty;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Path {
-    res: DefId,
+    pub res: DefId,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -81,7 +81,6 @@ pub enum Expr {
     Assign {
         lhs: Box<Expr>,
         rhs: Box<Expr>,
-        ty: ty::Ty,
     },
 
     /// A literal in place of an expression: `1`

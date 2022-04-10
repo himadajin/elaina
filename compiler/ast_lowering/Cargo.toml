@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 ast = { path = "../ast" }
 hir = { path = "../hir" }
-thir = { path = "../thir" }
+parser = { path = "../parser" }
 resolve = { path = "../resolve" }
 span = { path = "../span" }
 ty = { path = "../ty" }

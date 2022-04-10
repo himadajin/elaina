@@ -5,12 +5,11 @@ use ast::{
     op::{BinOp, UnOp},
     stmt::*,
 };
-use hir::def_id::DefId;
+use hir::{self, def_id::DefId};
 use span::{
     span::Span,
     symbol::{Ident, Kw, Symbol},
 };
-use thir;
 use ty::*;
 
 use std::collections::HashMap;
@@ -29,20 +28,12 @@ impl LoweringContext {
         }
     }
 
-    pub fn lower_block(&mut self, body: &Block) -> thir::Block {
+    pub fn lower_block(&mut self, body: &Block) -> hir::Block {
         let (stmts, expr) = self.lower_stmts(&body.stmts);
-
-        let ty = match expr {
-            Some(ref e) => e.ty(),
-            None => Ty {
-                kind: TyKind::Tuple(Vec::new()),
-            },
-        };
-
-        thir::Block { stmts, expr, ty }
+        hir::Block { stmts, expr }
     }
 
-    pub fn lower_stmts(&mut self, mut ast_stmts: &[Stmt]) -> (Vec<thir::Stmt>, Option<thir::Expr>) {
+    pub fn lower_stmts(&mut self, mut ast_stmts: &[Stmt]) -> (Vec<hir::Stmt>, Option<hir::Expr>) {
         let mut stmts = Vec::new();
         let mut expr = None;
 
@@ -56,11 +47,11 @@ impl LoweringContext {
                     if tail.is_empty() {
                         expr = Some(e);
                     } else {
-                        stmts.push(thir::Stmt::Expr(e));
+                        stmts.push(hir::Stmt::Expr(e));
                     }
                 }
-                Stmt::Semi(expr) => stmts.push(thir::Stmt::Semi(self.lower_expr(expr))),
-                Stmt::Println(expr) => stmts.push(thir::Stmt::Println(self.lower_expr(expr))),
+                Stmt::Semi(expr) => stmts.push(hir::Stmt::Semi(self.lower_expr(expr))),
+                Stmt::Println(expr) => stmts.push(hir::Stmt::Println(self.lower_expr(expr))),
             }
             ast_stmts = &ast_stmts[1..];
         }
@@ -68,7 +59,14 @@ impl LoweringContext {
         (stmts, expr)
     }
 
-    fn lower_stmt_local(&mut self, ident: Ident, ty: Option<Ident>, init: &Expr) -> thir::Stmt {
+    fn lower_stmt_local(&mut self, ident: Ident, ty: Option<Ident>, init: &Expr) -> hir::Stmt {
+        let pat = {
+            let def = self.name_res[&ident.span];
+            hir::Pat {
+                kind: hir::PatKind::Binding(def, ident.name),
+            }
+        };
+
         let ty = {
             let ty_ident = ty.expect("error: type annotation is required").name;
             if ty_ident == Kw::I32.as_symbol() {
@@ -84,17 +82,18 @@ impl LoweringContext {
             }
         };
 
-        self.ty_ctxt.insert(ident.name.clone(), ty);
+        self.ty_ctxt.insert(ident.name.clone(), ty.clone());
 
-        let thir_init = self.lower_expr(init);
+        let init = self.lower_expr(init);
 
-        thir::Stmt::Local {
-            ident: ident.name,
-            init: thir_init,
+        hir::Stmt::Local {
+            pat,
+            ty: Some(ty),
+            init,
         }
     }
 
-    pub fn lower_expr(&mut self, expr: &Expr) -> thir::Expr {
+    pub fn lower_expr(&mut self, expr: &Expr) -> hir::Expr {
         match expr {
             Expr::Binary { op, lhs, rhs } => self.lower_expr_binary(*op, &lhs, &rhs),
             Expr::Unary { op, expr } => self.lower_expr_unary(*op, &expr),
@@ -106,29 +105,29 @@ impl LoweringContext {
             Expr::Loop { block } => self.lower_expr_loop(block.as_ref()),
             Expr::Break { expr } => self.lower_expr_break(expr),
             Expr::Continue { expr } => self.lower_expr_continue(expr),
-            Expr::Block { block } => thir::Expr::Block {
+            Expr::Block { block } => hir::Expr::Block {
                 block: Box::new(self.lower_block(block.as_ref())),
             },
             Expr::Assign { lhs, rhs } => self.lower_expr_assign(lhs.as_ref(), rhs.as_ref()),
             Expr::Lit { lit } => self.lower_expr_lit(&lit),
-            Expr::Ident { ident } => self.lower_expr_ident(ident.clone()),
-            Expr::Path(_) => todo!(),
+            Expr::Ident { .. } => todo!(),
+            Expr::Path(path) => self.lower_expr_path(path),
         }
     }
 
-    fn lower_expr_binary(&mut self, op: BinOp, lhs: &Expr, rhs: &Expr) -> thir::Expr {
-        let thir_op = |op| -> thir::BinOp {
+    fn lower_expr_binary(&mut self, op: BinOp, lhs: &Expr, rhs: &Expr) -> hir::Expr {
+        let hir_op = |op| -> hir::BinOp {
             match op {
-                BinOp::Add => thir::BinOp::Add,
-                BinOp::Mul => thir::BinOp::Mul,
-                BinOp::Div => thir::BinOp::Div,
-                BinOp::Sub => thir::BinOp::Sub,
-                BinOp::Eq => thir::BinOp::Eq,
-                BinOp::Lt => thir::BinOp::Lt,
-                BinOp::Le => thir::BinOp::Le,
-                BinOp::Ne => thir::BinOp::Ne,
-                BinOp::Ge => thir::BinOp::Ge,
-                BinOp::Gt => thir::BinOp::Gt,
+                BinOp::Add => hir::BinOp::Add,
+                BinOp::Mul => hir::BinOp::Mul,
+                BinOp::Div => hir::BinOp::Div,
+                BinOp::Sub => hir::BinOp::Sub,
+                BinOp::Eq => hir::BinOp::Eq,
+                BinOp::Lt => hir::BinOp::Lt,
+                BinOp::Le => hir::BinOp::Le,
+                BinOp::Ne => hir::BinOp::Ne,
+                BinOp::Ge => hir::BinOp::Ge,
+                BinOp::Gt => hir::BinOp::Gt,
             }
         };
 
@@ -136,46 +135,34 @@ impl LoweringContext {
             BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div => {
                 let thir_lhs = self.lower_expr(lhs);
                 let thir_rhs = self.lower_expr(rhs);
-                let i32_ty = ty::Ty {
-                    kind: ty::TyKind::Int(ty::IntTy::I32),
-                };
 
-                thir::Expr::Binary {
-                    op: thir_op(op),
+                hir::Expr::Binary {
+                    op: hir_op(op),
                     lhs: Box::new(thir_lhs),
                     rhs: Box::new(thir_rhs),
-                    ty: i32_ty,
                 }
             }
             BinOp::Eq | BinOp::Lt | BinOp::Le | BinOp::Ne | BinOp::Ge | BinOp::Gt => {
                 let thir_lhs = self.lower_expr(lhs);
                 let thir_rhs = self.lower_expr(rhs);
-                let bool_ty = ty::Ty {
-                    kind: ty::TyKind::Bool,
-                };
 
-                thir::Expr::Binary {
-                    op: thir_op(op),
+                hir::Expr::Binary {
+                    op: hir_op(op),
                     lhs: Box::new(thir_lhs),
                     rhs: Box::new(thir_rhs),
-                    ty: bool_ty,
                 }
             }
         }
     }
 
-    fn lower_expr_unary(&mut self, op: UnOp, expr: &Expr) -> thir::Expr {
+    fn lower_expr_unary(&mut self, op: UnOp, expr: &Expr) -> hir::Expr {
         match op {
             UnOp::Neg => {
                 let thir_expr = self.lower_expr(expr);
-                let ty = ty::Ty {
-                    kind: ty::TyKind::Int(ty::IntTy::I32),
-                };
 
-                thir::Expr::Unary {
-                    op: thir::UnOp::Neg,
+                hir::Expr::Unary {
+                    op: hir::UnOp::Neg,
                     expr: Box::new(thir_expr),
-                    ty: ty,
                 }
             }
         }
@@ -186,7 +173,7 @@ impl LoweringContext {
         cond: &Expr,
         then: &Block,
         else_opt: &Option<Box<Expr>>,
-    ) -> thir::Expr {
+    ) -> hir::Expr {
         let cond_thir = Box::new(self.lower_expr(cond));
         let then_thir = Box::new(self.lower_block(then));
         let else_thir = match else_opt {
@@ -194,263 +181,215 @@ impl LoweringContext {
             None => None,
         };
 
-        let then_ty = then_thir.ty.clone();
-
-        thir::Expr::If {
+        hir::Expr::If {
             cond: cond_thir,
             then: then_thir,
             else_opt: else_thir,
-            ty: then_ty,
         }
     }
 
-    fn lower_expr_loop(&mut self, block: &Block) -> thir::Expr {
+    fn lower_expr_loop(&mut self, block: &Block) -> hir::Expr {
         let block = Box::new(self.lower_block(block));
 
-        thir::Expr::Loop { block }
+        hir::Expr::Loop { block }
     }
 
-    fn lower_expr_break(&mut self, expr: &Option<Box<Expr>>) -> thir::Expr {
+    fn lower_expr_break(&mut self, expr: &Option<Box<Expr>>) -> hir::Expr {
         let expr = expr.as_ref().map(|e| Box::new(self.lower_expr(e.as_ref())));
-        // The type of break expression is tentatively set to unit type.
-        let ty = ty::Ty {
-            kind: TyKind::Tuple(Vec::new()),
-        };
-
-        thir::Expr::Break { expr, ty }
+        hir::Expr::Break { expr }
     }
 
-    fn lower_expr_continue(&mut self, expr: &Option<Box<Expr>>) -> thir::Expr {
+    fn lower_expr_continue(&mut self, expr: &Option<Box<Expr>>) -> hir::Expr {
         let expr = expr.as_ref().map(|e| Box::new(self.lower_expr(e.as_ref())));
-        // The type of continue expression is tentatively set to unit type.
-        let ty = ty::Ty {
-            kind: TyKind::Tuple(Vec::new()),
-        };
 
-        thir::Expr::Continue { expr, ty }
+        hir::Expr::Continue { expr }
     }
 
-    fn lower_expr_assign(&mut self, lhs: &Expr, rhs: &Expr) -> thir::Expr {
+    fn lower_expr_assign(&mut self, lhs: &Expr, rhs: &Expr) -> hir::Expr {
         let lhs = match lhs {
-            Expr::Ident { ident } => self.lower_expr_ident(*ident),
+            Expr::Path(path) => self.lower_expr_path(path),
             _ => panic!("error: invalid left-hand side of assignment."),
         };
         let rhs = self.lower_expr(rhs);
 
-        // The type of assign expression is unit.
-        let ty = ty::Ty {
-            kind: TyKind::Tuple(Vec::new()),
-        };
-
-        thir::Expr::Assign {
+        hir::Expr::Assign {
             lhs: Box::new(lhs),
             rhs: Box::new(rhs),
-            ty,
         }
     }
 
-    fn lower_expr_lit(&mut self, lit: &Lit) -> thir::Expr {
+    fn lower_expr_lit(&mut self, lit: &Lit) -> hir::Expr {
         match lit.kind {
             LitKind::Int(value) => {
                 let lit = {
-                    let lit_int = thir::LitInt { value: value };
+                    let lit_int = hir::LitInt { value: value };
 
-                    thir::Lit::Int(lit_int)
+                    hir::Lit::Int(lit_int)
                 };
 
                 let ty = ty::Ty {
                     kind: ty::TyKind::Int(ty::IntTy::I32),
                 };
 
-                thir::Expr::Lit { lit, ty }
+                hir::Expr::Lit { lit, ty }
             }
             LitKind::Bool(value) => {
-                let lit = thir::Lit::Bool { value: value };
+                let lit = hir::Lit::Bool { value: value };
                 let ty = ty::Ty {
                     kind: ty::TyKind::Bool,
                 };
 
-                thir::Expr::Lit { lit, ty }
+                hir::Expr::Lit { lit, ty }
             }
         }
     }
 
-    fn lower_expr_ident(&mut self, ident: Symbol) -> thir::Expr {
-        let ty = self
-            .ty_ctxt
-            .get(&ident)
-            .expect("error: definition of identity not found")
-            .clone();
+    fn lower_expr_path(&mut self, path: &Path) -> hir::Expr {
+        let ident = &path.ident;
+        let def = self.name_res[&ident.span];
+        let path = hir::Path { res: def };
 
-        thir::Expr::Ident { ident, ty }
+        hir::Expr::Path { path }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::builder::{expr, stmt};
+    use parser::*;
     use resolve::ASTNameResolver;
     use span::symbol::Symbol;
 
+    const I32_TY: ty::Ty = ty::Ty {
+        kind: ty::TyKind::Int(ty::IntTy::I32),
+    };
+
     #[test]
     fn lower_stmt_local() {
-        let stmt_local = stmt::stmt_local(
-            Ident::with_dummy_span(Symbol::ident_nth(0)),
-            Some(Ident::with_dummy_span(Kw::I32.as_symbol())),
-            expr::expr_lit_int(1),
-        );
-        let expr_ident = expr::expr_ident(Symbol::ident_nth(0));
-
-        let thir = {
-            let i32_ty = ty::Ty {
-                kind: ty::TyKind::Int(ty::IntTy::I32),
-            };
-            thir::Expr::Ident {
-                ident: Symbol::ident_nth(0),
-                ty: i32_ty,
-            }
+        let src = r"
+{
+    let x: i32 = 0;
+    x
+}";
+        let (ast, _) = parse_block_from_source_str(src);
+        let hir = hir::Block {
+            stmts: vec![hir::Stmt::Local {
+                pat: hir::Pat {
+                    kind: hir::PatKind::Binding(DefId::from_usize(0), Symbol::ident_nth(0)),
+                },
+                ty: Some(I32_TY.clone()),
+                init: hir::Expr::Lit {
+                    lit: hir::Lit::Int(hir::LitInt { value: 0 }),
+                    ty: I32_TY.clone(),
+                },
+            }],
+            expr: Some(hir::Expr::Path {
+                path: hir::Path {
+                    res: DefId::from_usize(0),
+                },
+            }),
         };
 
         let res = {
             let mut resolver = ASTNameResolver::new();
-            resolver.resolve_stmt(&stmt_local);
+            resolver.resolve_block(&ast);
             resolver.finish()
         };
         let mut ctx = LoweringContext::new(res);
-        ctx.lower_stmts(&[stmt_local]);
-        assert_eq!(thir, ctx.lower_expr(&expr_ident));
+        assert_eq!(hir, ctx.lower_block(&ast));
     }
 
     #[test]
     fn lower_expr_binary() {
-        let thir_binary = |op, lhs, rhs| {
-            let i32_ty = ty::Ty {
-                kind: ty::TyKind::Int(ty::IntTy::I32),
-            };
+        let hir_lit_int = |value| {
+            let lit = hir::Lit::Int(hir::LitInt { value });
+            hir::Expr::Lit { lit, ty: I32_TY }
+        };
 
-            let lhs = {
-                let lit = thir::Lit::Int(thir::LitInt { value: lhs });
-
-                thir::Expr::Lit {
-                    lit,
-                    ty: i32_ty.clone(),
-                }
-            };
-
-            let rhs = {
-                let lit = thir::Lit::Int(thir::LitInt { value: rhs });
-
-                thir::Expr::Lit {
-                    lit,
-                    ty: i32_ty.clone(),
-                }
-            };
-
-            thir::Expr::Binary {
-                op: op,
+        let hir_bin = |op, lhs, rhs| {
+            let lhs = hir_lit_int(lhs);
+            let rhs = hir_lit_int(rhs);
+            hir::Expr::Binary {
+                op,
                 lhs: Box::new(lhs),
                 rhs: Box::new(rhs),
-                ty: i32_ty.clone(),
             }
         };
 
         {
-            let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Add, expr::expr_lit_int(2));
-            let thir = thir_binary(thir::BinOp::Add, 1, 2);
+            let src = r"1 + 2";
+            let ast = parse_expr_from_source_str(src).0;
+            let hir = hir_bin(hir::BinOp::Add, 1, 2);
+
             let res = {
                 let mut resolver = ASTNameResolver::new();
                 resolver.resolve_expr(&ast);
                 resolver.finish()
             };
-            assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
+            let mut ctx = LoweringContext::new(res);
+            assert_eq!(hir, ctx.lower_expr(&ast));
         }
 
         {
-            let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Sub, expr::expr_lit_int(2));
-            let thir = thir_binary(thir::BinOp::Sub, 1, 2);
+            let src = r"1 - 2";
+            let ast = parse_expr_from_source_str(src).0;
+            let hir = hir_bin(hir::BinOp::Sub, 1, 2);
+
             let res = {
                 let mut resolver = ASTNameResolver::new();
                 resolver.resolve_expr(&ast);
                 resolver.finish()
             };
-            assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
+            let mut ctx = LoweringContext::new(res);
+            assert_eq!(hir, ctx.lower_expr(&ast));
         }
 
         {
-            let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Mul, expr::expr_lit_int(2));
-            let thir = thir_binary(thir::BinOp::Mul, 1, 2);
+            let src = r"1 * 2";
+            let ast = parse_expr_from_source_str(src).0;
+            let hir = hir_bin(hir::BinOp::Mul, 1, 2);
 
             let res = {
                 let mut resolver = ASTNameResolver::new();
                 resolver.resolve_expr(&ast);
                 resolver.finish()
             };
-            assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
+            let mut ctx = LoweringContext::new(res);
+            assert_eq!(hir, ctx.lower_expr(&ast));
         }
 
         {
-            let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Div, expr::expr_lit_int(2));
-            let thir = thir_binary(thir::BinOp::Div, 1, 2);
+            let src = r"1 / 2";
+            let ast = parse_expr_from_source_str(src).0;
+            let hir = hir_bin(hir::BinOp::Div, 1, 2);
+
             let res = {
                 let mut resolver = ASTNameResolver::new();
                 resolver.resolve_expr(&ast);
                 resolver.finish()
             };
-
-            assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
+            let mut ctx = LoweringContext::new(res);
+            assert_eq!(hir, ctx.lower_expr(&ast));
         }
     }
 
     #[test]
     fn lower_expr_unary() {
-        let ast = expr::expr_unary(UnOp::Neg, expr::expr_lit_int(1));
-        let thir = {
-            let i32_ty = ty::Ty {
-                kind: ty::TyKind::Int(ty::IntTy::I32),
-            };
-
-            let expr_lit = {
-                let lit = thir::Lit::Int(thir::LitInt { value: 1 });
-
-                thir::Expr::Lit {
-                    lit,
-                    ty: i32_ty.clone(),
-                }
-            };
-
-            thir::Expr::Unary {
-                op: thir::UnOp::Neg,
-                expr: Box::new(expr_lit),
-                ty: i32_ty.clone(),
-            }
+        let src = r"-1";
+        let ast = parse_expr_from_source_str(src).0;
+        let hir = hir::Expr::Unary {
+            op: hir::UnOp::Neg,
+            expr: Box::new(hir::Expr::Lit {
+                lit: hir::Lit::Int(hir::LitInt { value: 1 }),
+                ty: I32_TY.clone(),
+            }),
         };
-
         let res = {
             let mut resolver = ASTNameResolver::new();
             resolver.resolve_expr(&ast);
             resolver.finish()
         };
-        assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
-    }
-
-    #[test]
-    fn lower_expr_lit_int() {
-        let ast = expr::expr_lit_int(1);
-        let thir = {
-            let lit = thir::Lit::Int(thir::LitInt { value: 1 });
-            let ty = ty::Ty {
-                kind: ty::TyKind::Int(ty::IntTy::I32),
-            };
-
-            thir::Expr::Lit { lit, ty }
-        };
-
-        let res = {
-            let mut resolver = ASTNameResolver::new();
-            resolver.resolve_expr(&ast);
-            resolver.finish()
-        };
-        assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
+        let mut ctx = LoweringContext::new(res);
+        assert_eq!(hir, ctx.lower_expr(&ast));
     }
 }
