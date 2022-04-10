@@ -5,6 +5,7 @@ use codegen_llvm::{codegen_and_execute, codegen_string};
 use mir::pretty;
 use parser::lexer::parse_all_token;
 use parser::{self, parse_block_from_source_str};
+use resolve::ASTNameResolver;
 use thir_lowering;
 
 use std::{
@@ -75,7 +76,12 @@ fn read_file(filename: &str) -> io::Result<String> {
 
 fn run_input(input: &str) -> Result<(), Box<dyn Error>> {
     let (ast, map) = parse_block_from_source_str(input);
-    let thir = ast_lowering::LoweringContext::new().lower_block(&ast);
+    let res = {
+        let mut resolver = ASTNameResolver::new();
+        resolver.resolve_block(&ast);
+        resolver.finish()
+    };
+    let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
     let ir = {
         let mut ctx = thir_lowering::LoweringContext::new(&map);
         ctx.lower_main_block(&thir);
@@ -101,13 +107,23 @@ fn print_ast(input: &str) {
 
 fn print_thir(input: &str) {
     let (ast, _) = parse_block_from_source_str(input);
-    let thir = ast_lowering::LoweringContext::new().lower_block(&ast);
+    let res = {
+        let mut resolver = ASTNameResolver::new();
+        resolver.resolve_block(&ast);
+        resolver.finish()
+    };
+    let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
     println!("{:#?}", thir);
 }
 
 fn print_mir(input: &str) {
     let (ast, map) = parse_block_from_source_str(input);
-    let thir = ast_lowering::LoweringContext::new().lower_block(&ast);
+    let res = {
+        let mut resolver = ASTNameResolver::new();
+        resolver.resolve_block(&ast);
+        resolver.finish()
+    };
+    let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
     let ir = {
         let mut ctx = thir_lowering::LoweringContext::new(&map);
         ctx.lower_main_block(&thir);
@@ -120,7 +136,12 @@ fn print_mir(input: &str) {
 
 fn print_llvm(input: &str) {
     let (ast, map) = parse_block_from_source_str(input);
-    let thir = ast_lowering::LoweringContext::new().lower_block(&ast);
+    let res = {
+        let mut resolver = ASTNameResolver::new();
+        resolver.resolve_block(&ast);
+        resolver.finish()
+    };
+    let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
     let ir = {
         let mut ctx = thir_lowering::LoweringContext::new(&map);
         ctx.lower_main_block(&thir);

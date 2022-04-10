@@ -5,7 +5,11 @@ use ast::{
     op::{BinOp, UnOp},
     stmt::*,
 };
-use span::symbol::{Ident, Kw, Symbol};
+use hir::def_id::DefId;
+use span::{
+    span::Span,
+    symbol::{Ident, Kw, Symbol},
+};
 use thir;
 use ty::*;
 
@@ -14,12 +18,14 @@ use std::collections::HashMap;
 #[allow(dead_code)]
 pub struct LoweringContext {
     ty_ctxt: HashMap<Symbol, Ty>,
+    name_res: HashMap<Span, DefId>,
 }
 
 impl LoweringContext {
-    pub fn new() -> Self {
+    pub fn new(name_res: HashMap<Span, DefId>) -> Self {
         LoweringContext {
             ty_ctxt: HashMap::new(),
+            name_res,
         }
     }
 
@@ -284,6 +290,7 @@ impl LoweringContext {
 mod tests {
     use super::*;
     use ast::builder::{expr, stmt};
+    use resolve::ASTNameResolver;
     use span::symbol::Symbol;
 
     #[test]
@@ -305,7 +312,12 @@ mod tests {
             }
         };
 
-        let mut ctx = LoweringContext::new();
+        let res = {
+            let mut resolver = ASTNameResolver::new();
+            resolver.resolve_stmt(&stmt_local);
+            resolver.finish()
+        };
+        let mut ctx = LoweringContext::new(res);
         ctx.lower_stmts(&[stmt_local]);
         assert_eq!(thir, ctx.lower_expr(&expr_ident));
     }
@@ -346,29 +358,47 @@ mod tests {
         {
             let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Add, expr::expr_lit_int(2));
             let thir = thir_binary(thir::BinOp::Add, 1, 2);
-
-            assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
+            let res = {
+                let mut resolver = ASTNameResolver::new();
+                resolver.resolve_expr(&ast);
+                resolver.finish()
+            };
+            assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
         }
 
         {
             let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Sub, expr::expr_lit_int(2));
             let thir = thir_binary(thir::BinOp::Sub, 1, 2);
-
-            assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
+            let res = {
+                let mut resolver = ASTNameResolver::new();
+                resolver.resolve_expr(&ast);
+                resolver.finish()
+            };
+            assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
         }
 
         {
             let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Mul, expr::expr_lit_int(2));
             let thir = thir_binary(thir::BinOp::Mul, 1, 2);
 
-            assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
+            let res = {
+                let mut resolver = ASTNameResolver::new();
+                resolver.resolve_expr(&ast);
+                resolver.finish()
+            };
+            assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
         }
 
         {
             let ast = expr::expr_binary(expr::expr_lit_int(1), BinOp::Div, expr::expr_lit_int(2));
             let thir = thir_binary(thir::BinOp::Div, 1, 2);
+            let res = {
+                let mut resolver = ASTNameResolver::new();
+                resolver.resolve_expr(&ast);
+                resolver.finish()
+            };
 
-            assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
+            assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
         }
     }
 
@@ -396,7 +426,12 @@ mod tests {
             }
         };
 
-        assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
+        let res = {
+            let mut resolver = ASTNameResolver::new();
+            resolver.resolve_expr(&ast);
+            resolver.finish()
+        };
+        assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
     }
 
     #[test]
@@ -411,6 +446,11 @@ mod tests {
             thir::Expr::Lit { lit, ty }
         };
 
-        assert_eq!(thir, LoweringContext::new().lower_expr(&ast));
+        let res = {
+            let mut resolver = ASTNameResolver::new();
+            resolver.resolve_expr(&ast);
+            resolver.finish()
+        };
+        assert_eq!(thir, LoweringContext::new(res).lower_expr(&ast));
     }
 }
