@@ -1,11 +1,11 @@
-use span::symbol::Symbol;
+use span::symbol::Ident;
 
 use crate::{expr::*, stmt::*};
 
-pub fn stmt_local(ident: Symbol, ty: Option<Symbol>, expr: Expr) -> Stmt {
+pub fn stmt_local(ident: Ident, ty: Option<Ident>, expr: Expr) -> Stmt {
     Stmt::Local {
-        ident: ident,
-        ty: ty,
+        ident,
+        ty,
         init: expr,
     }
 }

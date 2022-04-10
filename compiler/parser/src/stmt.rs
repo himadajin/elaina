@@ -76,7 +76,7 @@ mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
     use ast::builder::{expr::*, stmt::*};
-    use span::symbol::{Kw, Symbol};
+    use span::symbol::{Ident, Kw, Symbol};
 
     macro_rules! test_stmt {
         ($input: expr, $expected: expr) => {
@@ -91,12 +91,16 @@ mod tests {
     fn parse_local() {
         test_stmt!(
             "let a = 1;",
-            stmt_local(Symbol::ident_nth(0), None, expr_lit_int(1))
+            stmt_local(
+                Ident::with_dummy_span(Symbol::ident_nth(0)),
+                None,
+                expr_lit_int(1)
+            )
         );
         test_stmt!(
             "let a = 1 + 2;",
             stmt_local(
-                Symbol::ident_nth(0),
+                Ident::with_dummy_span(Symbol::ident_nth(0)),
                 None,
                 expr_binary(expr_lit_int(1), ast::op::BinOp::Add, expr_lit_int(2))
             )
@@ -105,16 +109,16 @@ mod tests {
         test_stmt!(
             "let a:i32 = 1;",
             stmt_local(
-                Symbol::ident_nth(0),
-                Some(Kw::I32.as_symbol()),
+                Ident::with_dummy_span(Symbol::ident_nth(0)),
+                Some(Ident::with_dummy_span(Kw::I32.as_symbol())),
                 expr_lit_int(1)
             )
         );
         test_stmt!(
             "let a:i32 = 1 + 2;",
             stmt_local(
-                Symbol::ident_nth(0),
-                Some(Kw::I32.as_symbol()),
+                Ident::with_dummy_span(Symbol::ident_nth(0)),
+                Some(Ident::with_dummy_span(Kw::I32.as_symbol())),
                 expr_binary(expr_lit_int(1), ast::op::BinOp::Add, expr_lit_int(2))
             )
         );
@@ -122,8 +126,8 @@ mod tests {
         test_stmt!(
             "let a:bool = true;",
             stmt_local(
-                Symbol::ident_nth(0),
-                Some(Kw::Bool.as_symbol()),
+                Ident::with_dummy_span(Symbol::ident_nth(0)),
+                Some(Ident::with_dummy_span(Kw::Bool.as_symbol())),
                 expr_lit_bool(true)
             )
         );

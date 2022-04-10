@@ -5,7 +5,7 @@ use ast::{
     op::{BinOp, UnOp},
     stmt::*,
 };
-use span::symbol::{Kw, Symbol};
+use span::symbol::{Ident, Kw, Symbol};
 use thir;
 use ty::*;
 
@@ -62,9 +62,9 @@ impl LoweringContext {
         (stmts, expr)
     }
 
-    fn lower_stmt_local(&mut self, ident: Symbol, ty: Option<Symbol>, init: &Expr) -> thir::Stmt {
+    fn lower_stmt_local(&mut self, ident: Ident, ty: Option<Ident>, init: &Expr) -> thir::Stmt {
         let ty = {
-            let ty_ident = ty.expect("error: type annotation is required");
+            let ty_ident = ty.expect("error: type annotation is required").name;
             if ty_ident == Kw::I32.as_symbol() {
                 ty::Ty {
                     kind: ty::TyKind::Int(ty::IntTy::I32),
@@ -78,12 +78,12 @@ impl LoweringContext {
             }
         };
 
-        self.ty_ctxt.insert(ident.clone(), ty);
+        self.ty_ctxt.insert(ident.name.clone(), ty);
 
         let thir_init = self.lower_expr(init);
 
         thir::Stmt::Local {
-            ident: ident,
+            ident: ident.name,
             init: thir_init,
         }
     }
@@ -289,8 +289,8 @@ mod tests {
     #[test]
     fn lower_stmt_local() {
         let stmt_local = stmt::stmt_local(
-            Symbol::ident_nth(0),
-            Some(Kw::I32.as_symbol()),
+            Ident::with_dummy_span(Symbol::ident_nth(0)),
+            Some(Ident::with_dummy_span(Kw::I32.as_symbol())),
             expr::expr_lit_int(1),
         );
         let expr_ident = expr::expr_ident(Symbol::ident_nth(0));

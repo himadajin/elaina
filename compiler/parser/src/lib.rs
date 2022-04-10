@@ -76,15 +76,16 @@ impl<'a> Parser<'a> {
         self.bump();
     }
 
-    fn expect_ident(&mut self) -> Symbol {
-        let symbol = match &self.token.kind {
+    fn expect_ident(&mut self) -> Ident {
+        let name = match &self.token.kind {
             TokenKind::Ident(s) => *s,
             k => panic!("expected identifier, but got {:?}", &k),
         };
+        let span = self.token.span;
 
         self.bump();
 
-        symbol
+        Ident { name, span }
     }
 
     /// If the next token is equal to the given argument, advance one token and return `true`.
