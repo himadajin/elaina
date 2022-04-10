@@ -60,6 +60,18 @@ impl Parser<'_> {
         None
     }
 
+    fn parse_path(&mut self) -> Path {
+        if let TokenKind::Ident(name) = self.token.kind {
+            let span = self.token.span;
+            self.bump();
+            return Path {
+                ident: Ident { name, span },
+            };
+        }
+
+        panic!("expected identifier, but got {:?}", self.token.kind);
+    }
+
     pub fn parse_expr(&mut self) -> Expr {
         if let Some(expr) = self.parse_expr_with_block() {
             return expr;
@@ -343,13 +355,15 @@ impl Parser<'_> {
             return Expr::Lit { lit: lit };
         }
 
-        // Try to parse identifier
-        if matches!(self.token.kind, TokenKind::Ident(_)) {
-            let symbol = self.expect_ident();
-            return Expr::Ident { ident: symbol };
-        }
+        // Parse path;
+        let path = self.parse_path();
+        Expr::Path(path)
+        // if matches!(self.token.kind, TokenKind::Ident(_)) {
+        //     let symbol = self.expect_ident();
+        //     return Expr::Ident { ident: symbol };
+        // }
 
-        panic!("Error: unexpected token while parsing primary expression.");
+        // panic!("Error: unexpected token while parsing primary expression.");
     }
 }
 
@@ -504,13 +518,13 @@ mod tests {
     fn test_parse_expr_assign() {
         test_expr!(
             "a = 0",
-            expr_assign(expr_ident(Symbol::ident_nth(0)), expr_lit_int(0))
+            expr_assign(expr_path(Symbol::ident_nth(0)), expr_lit_int(0))
         );
 
         test_expr!(
             "a = 1 + 1",
             expr_assign(
-                expr_ident(Symbol::ident_nth(0)),
+                expr_path(Symbol::ident_nth(0)),
                 expr_binary(expr_lit_int(1), BinOp::Add, expr_lit_int(1))
             )
         );
@@ -662,16 +676,25 @@ mod tests {
         );
     }
 
+    // #[test]
+    // fn ident() {
+    //     test_expr!("a", expr_ident(Symbol::ident_nth(0)));
+    //     test_expr!(
+    //         "a + 1",
+    //         expr_binary(
+    //             expr_ident(Symbol::ident_nth(0)),
+    //             BinOp::Add,
+    //             expr_lit_int(1)
+    //         )
+    //     );
+    // }
+
     #[test]
-    fn ident() {
-        test_expr!("a", expr_ident(Symbol::ident_nth(0)));
+    fn path() {
+        test_expr!("a", expr_path(Symbol::ident_nth(0)));
         test_expr!(
             "a + 1",
-            expr_binary(
-                expr_ident(Symbol::ident_nth(0)),
-                BinOp::Add,
-                expr_lit_int(1)
-            )
+            expr_binary(expr_path(Symbol::ident_nth(0)), BinOp::Add, expr_lit_int(1))
         );
     }
 }
