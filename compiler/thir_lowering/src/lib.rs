@@ -176,6 +176,7 @@ impl<'a> LoweringContext<'a> {
             thir::Expr::Ident { ident, ty } => {
                 (entry_block, self.lower_expr_ident(ident, ty.clone()))
             }
+            thir::Expr::VarRef { def: _, ty: _ } => todo!(),
         }
     }
 

@@ -71,6 +71,9 @@ pub enum Expr {
 
     /// A identifier such as variables, functions, etx: `foo`, `bar`
     Ident { ident: Symbol, ty: ty::Ty },
+
+    /// Local variable.
+    VarRef { def: DefId, ty: ty::Ty },
 }
 
 impl Expr {
@@ -86,6 +89,7 @@ impl Expr {
             Expr::Assign { ty, .. } => ty.clone(),
             Expr::Lit { ty, .. } => ty.clone(),
             Expr::Ident { ty, .. } => ty.clone(),
+            Expr::VarRef { ty, .. } => ty.clone(),
         }
     }
 }

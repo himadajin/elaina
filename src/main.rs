@@ -3,6 +3,7 @@ use clap::{ArgEnum, Parser, Subcommand};
 use ast_lowering;
 #[allow(unused_imports)]
 use codegen_llvm::{codegen_and_execute, codegen_string};
+use hir_lowering;
 #[allow(unused_imports)]
 use mir::pretty;
 use parser::lexer::parse_all_token;
@@ -59,6 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 PrintMode::Token => print_token(&input),
                 PrintMode::AST => print_ast(&input),
                 PrintMode::HIR => print_hir(&input),
+                PrintMode::THIR => print_thir(&input),
                 _ => todo!(),
             }
         }
@@ -120,16 +122,17 @@ fn print_hir(input: &str) {
     println!("{:#?}", hir);
 }
 
-// fn print_thir(input: &str) {
-//     let (ast, _) = parse_block_from_source_str(input);
-//     let res = {
-//         let mut resolver = ASTNameResolver::new();
-//         resolver.resolve_block(&ast);
-//         resolver.finish()
-//     };
-//     let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-//     println!("{:#?}", thir);
-// }
+fn print_thir(input: &str) {
+    let (ast, _) = parse_block_from_source_str(input);
+    let res = {
+        let mut resolver = ASTNameResolver::new();
+        resolver.resolve_block(&ast);
+        resolver.finish()
+    };
+    let hir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
+    let thir = hir_lowering::LoweringContext::new().lower_block(&hir);
+    println!("{:#?}", thir);
+}
 
 // fn print_mir(input: &str) {
 //     let (ast, map) = parse_block_from_source_str(input);
