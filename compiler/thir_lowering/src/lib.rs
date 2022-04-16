@@ -1,6 +1,7 @@
 mod builder;
 
 use builder::MirBuilder;
+use hir::def_id::DefId;
 use mir::{constant::*, stmt::*, terminator::*, *};
 use span::symbol::{Symbol, SymbolMap};
 use thir::{self};
@@ -61,7 +62,8 @@ pub struct LoweringContext<'a> {
 
     loop_resolver: ControlFlowResolver,
 
-    local_name_table: HashMap<Symbol, Place>,
+    // local_name_table: HashMap<Symbol, Place>,
+    local_def: HashMap<DefId, Place>,
     symbol_map: &'a SymbolMap<'a>,
 }
 
@@ -72,7 +74,8 @@ impl<'a> LoweringContext<'a> {
 
             loop_resolver: ControlFlowResolver::new(),
 
-            local_name_table: HashMap::new(),
+            // local_name_table: HashMap::new(),
+            local_def: HashMap::new(),
             symbol_map: symbol_map,
         }
     }
@@ -114,16 +117,19 @@ impl<'a> LoweringContext<'a> {
 
     fn lower_stmt(&mut self, entry_block: BlockId, stmt: &thir::Stmt) -> BlockId {
         match stmt {
-            thir::Stmt::Local { def: _, init: _ } => todo!(),
-            // thir::Stmt::Local { ident, init } => {
-            //     let place = self.push_local(Some(ident.clone()), init.ty());
-            //     let (tail, operand) = self.lower_expr(entry_block, init);
-            //     let rvalue = RValue::Use(operand);
-            //     let stmt = Statement::Assign(Box::new((place, rvalue)));
-            //     self.builder.push_stmt(tail, stmt);
+            thir::Stmt::Local { pat, init } => {
+                let place = match pat.kind.as_ref() {
+                    thir::PatKind::Binding { res, name, ty } => {
+                        self.push_local(*res, Some(*name), ty.clone())
+                    }
+                };
+                let (tail, operand) = self.lower_expr(entry_block, init);
+                let rvalue = RValue::Use(operand);
+                let stmt = Statement::Assign(Box::new((place, rvalue)));
+                self.builder.push_stmt(tail, stmt);
 
-            //     tail
-            // }
+                tail
+            }
             thir::Stmt::Expr(e) => {
                 let (tail, _) = self.lower_expr(entry_block, e);
                 tail
@@ -173,10 +179,9 @@ impl<'a> LoweringContext<'a> {
                 self.lower_expr_assign(entry_block, lhs.as_ref(), rhs.as_ref(), ty.clone())
             }
             thir::Expr::Lit { lit, ty } => (entry_block, self.lower_expr_lit(lit, ty.clone())),
-            thir::Expr::Ident { ident, ty } => {
-                (entry_block, self.lower_expr_ident(ident, ty.clone()))
+            thir::Expr::VarRef { def, ty } => {
+                (entry_block, self.lower_expr_var_ref(*def, ty.clone()))
             }
-            thir::Expr::VarRef { def: _, ty: _ } => todo!(),
         }
     }
 
@@ -205,7 +210,7 @@ impl<'a> LoweringContext<'a> {
         let (tail, rhs) = self.lower_expr(tail, rhs);
 
         let rvalue = RValue::BinaryOp(op, Box::new((lhs, rhs)));
-        let place = self.push_local(None, ty);
+        let place = self.push_temp(ty);
         let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
 
         self.builder.push_stmt(tail, stmt);
@@ -226,7 +231,7 @@ impl<'a> LoweringContext<'a> {
 
         let (tail, expr) = self.lower_expr(entry_block, expr);
         let rvalue = RValue::UnaryOp(op, Box::new(expr));
-        let place = self.push_local(None, ty);
+        let place = self.push_temp(ty);
         let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
 
         self.builder.push_stmt(tail, stmt);
@@ -251,7 +256,7 @@ impl<'a> LoweringContext<'a> {
 
         // If `ty` is not ZST(Zero Size Type), create local and treat it as the value of the expression.
         let expr_val = if !ty.is_zst() {
-            Some(self.push_local(None, ty.clone()))
+            Some(self.push_temp(ty.clone()))
         } else {
             None
         };
@@ -404,11 +409,11 @@ impl<'a> LoweringContext<'a> {
         let (block, rhs) = self.lower_expr(entry_block, rhs);
 
         match lhs {
-            thir::Expr::Ident { ident, .. } => {
+            thir::Expr::VarRef { def, ty: _ } => {
                 let place = self
-                    .local_name_table
-                    .get(ident)
-                    .expect("error: cannot found place of given ident")
+                    .local_def
+                    .get(def)
+                    .expect("error: cannot found place of given def")
                     .clone();
                 let rvalue = RValue::Use(rhs);
                 let stmt = Statement::Assign(Box::new((place, rvalue)));
@@ -445,20 +450,23 @@ impl<'a> LoweringContext<'a> {
         }
     }
 
-    fn lower_expr_ident(&mut self, ident: &Symbol, _ty: ty::Ty) -> Operand {
-        let local = self.local_name_table.get(ident).unwrap().clone();
+    fn lower_expr_var_ref(&mut self, def: DefId, _ty: ty::Ty) -> Operand {
+        let local = self.local_def.get(&def).unwrap().clone();
         Operand::Copy(local)
     }
 
-    fn push_local(&mut self, name: Option<Symbol>, ty: ty::Ty) -> Place {
+    fn push_local(&mut self, res: DefId, name: Option<Symbol>, ty: ty::Ty) -> Place {
         let name_string = name.map(|s| self.symbol_map.get(s).to_string());
         let decl = LocalDecl::new(name_string, ty);
         let place = self.builder.push_local_decl(decl);
 
-        if let Some(name) = name {
-            self.local_name_table.insert(name, place.clone());
-        }
+        self.local_def.insert(res, place.clone());
 
         place
+    }
+
+    fn push_temp(&mut self, ty: ty::Ty) -> Place {
+        let decl = LocalDecl::new(None, ty);
+        self.builder.push_local_decl(decl)
     }
 }

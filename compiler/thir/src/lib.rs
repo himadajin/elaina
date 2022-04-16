@@ -2,6 +2,21 @@ use hir::def_id::DefId;
 use span::symbol::Symbol;
 use ty;
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct Pat {
+    pub ty: ty::Ty,
+    pub kind: Box<PatKind>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum PatKind {
+    Binding {
+        res: DefId,
+        name: Symbol,
+        ty: ty::Ty,
+    },
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Block {
     pub stmts: Vec<Stmt>,
@@ -12,7 +27,7 @@ pub struct Block {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     /// Local represents a let statement: `let <ident> = <expr>;`
-    Local { def: DefId, init: Expr },
+    Local { pat: Pat, init: Expr },
 
     /// Expression statement: `1 + 1`
     Expr(Expr),
@@ -69,9 +84,6 @@ pub enum Expr {
     /// A literal in place of an expression: `1`
     Lit { lit: Lit, ty: ty::Ty },
 
-    /// A identifier such as variables, functions, etx: `foo`, `bar`
-    Ident { ident: Symbol, ty: ty::Ty },
-
     /// Local variable.
     VarRef { def: DefId, ty: ty::Ty },
 }
@@ -88,7 +100,6 @@ impl Expr {
             Expr::Block { block } => block.ty.clone(),
             Expr::Assign { ty, .. } => ty.clone(),
             Expr::Lit { ty, .. } => ty.clone(),
-            Expr::Ident { ty, .. } => ty.clone(),
             Expr::VarRef { ty, .. } => ty.clone(),
         }
     }

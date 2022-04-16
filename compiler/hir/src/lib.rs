@@ -26,7 +26,7 @@ pub struct Pat {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum PatKind {
-    Binding(DefId, Symbol),
+    Binding { res: DefId, name: Symbol },
 }
 
 #[derive(Debug, PartialEq, Clone)]

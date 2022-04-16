@@ -61,9 +61,12 @@ impl LoweringContext {
 
     fn lower_stmt_local(&mut self, ident: Ident, ty: Option<Ident>, init: &Expr) -> hir::Stmt {
         let pat = {
-            let def = self.name_res[&ident.span];
+            let res = self.name_res[&ident.span];
             hir::Pat {
-                kind: hir::PatKind::Binding(def, ident.name),
+                kind: hir::PatKind::Binding {
+                    res,
+                    name: ident.name,
+                },
             }
         };
 
@@ -275,7 +278,10 @@ mod tests {
         let hir = hir::Block {
             stmts: vec![hir::Stmt::Local {
                 pat: hir::Pat {
-                    kind: hir::PatKind::Binding(DefId::from_usize(0), Symbol::ident_nth(0)),
+                    kind: hir::PatKind::Binding {
+                        res: DefId::from_usize(0),
+                        name: Symbol::ident_nth(0),
+                    },
                 },
                 ty: Some(I32_TY.clone()),
                 init: hir::Expr::Lit {

@@ -25,6 +25,20 @@ impl LoweringContext {
         }
     }
 
+    pub fn lower_pat(&self, pat: &hir::Pat, ty: ty::Ty) -> Pat {
+        let kind = match &pat.kind {
+            hir::PatKind::Binding { res, name } => PatKind::Binding {
+                res: *res,
+                name: *name,
+                ty: ty.clone(),
+            },
+        };
+        Pat {
+            ty,
+            kind: Box::new(kind),
+        }
+    }
+
     pub fn lower_expr(&mut self, expr: &hir::Expr) -> Expr {
         match expr {
             hir::Expr::Binary { op, lhs, rhs } => {
@@ -137,12 +151,14 @@ impl LoweringContext {
                 let init = self.lower_expr(init);
 
                 let def = match pat.kind {
-                    hir::PatKind::Binding(def, _) => def,
+                    hir::PatKind::Binding { res, .. } => res,
                 };
                 let ty = ty.clone().expect("Type annotation is required");
                 self.ty_ctxt.insert(def, ty.clone());
 
-                Stmt::Local { def, init }
+                let pat = self.lower_pat(pat, ty.clone());
+
+                Stmt::Local { pat, init }
             }
             hir::Stmt::Expr(expr) | hir::Stmt::Semi(expr) => Stmt::Expr(self.lower_expr(expr)),
             hir::Stmt::Println(expr) => Stmt::Println(self.lower_expr(expr)),
