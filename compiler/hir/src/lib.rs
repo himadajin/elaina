@@ -210,3 +210,11 @@ pub enum UnOp {
     /// The `-` operator (negation)
     Neg,
 }
+
+impl fmt::Display for UnOp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            UnOp::Neg => write!(f, "-"),
+        }
+    }
+}
