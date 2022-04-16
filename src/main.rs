@@ -112,14 +112,16 @@ fn print_ast(input: &str) {
 }
 
 fn print_hir(input: &str) {
-    let (ast, _) = parse_block_from_source_str(input);
+    let (ast, map) = parse_block_from_source_str(input);
     let res = {
         let mut resolver = ASTNameResolver::new();
         resolver.resolve_block(&ast);
         resolver.finish()
     };
     let hir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-    println!("{:#?}", hir);
+
+    let hir_print = hir::pp::print_block(&map, &hir);
+    println!("{}", hir_print);
 }
 
 fn print_thir(input: &str) {
