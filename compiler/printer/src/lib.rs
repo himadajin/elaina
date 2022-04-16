@@ -48,20 +48,20 @@ impl Printer {
     /// # Examples
     /// ```
     /// use printer::{Delim, Printer};
-    /// 
+    ///
     /// let mut p = Printer::new();
-    /// 
+    ///
     /// p.word("a ");
     /// p.begin(Delim::Brace);
     /// p.word("b");
     /// p.end(Delim::Brace);
-    /// 
-    /// let s = 
+    ///
+    /// let s =
     /// r"a {
     ///     b
     /// }";
-    /// 
-    /// 
+    ///
+    ///
     /// assert_eq!(s, p.finish());
     /// ```
     pub fn begin(&mut self, delim: Delim) {
@@ -74,20 +74,20 @@ impl Printer {
     /// # Examples
     /// ```
     /// use printer::{Delim, Printer};
-    /// 
+    ///
     /// let mut p = Printer::new();
-    /// 
+    ///
     /// p.word("a ");
     /// p.begin(Delim::Brace);
     /// p.word("b");
     /// p.end(Delim::Brace);
-    /// 
-    /// let s = 
+    ///
+    /// let s =
     /// r"a {
     ///     b
     /// }";
-    /// 
-    /// 
+    ///
+    ///
     /// assert_eq!(s, p.finish());
     /// ```
     pub fn end(&mut self, delim: Delim) {
@@ -103,17 +103,47 @@ impl Printer {
             .extend(iter::repeat(' ').take(INDENT_SIZE * self.indent));
     }
 
+    /// Print single space.
+    /// # Examples
+    /// ```
+    /// use printer::Printer;
+    ///
+    /// let mut p = Printer::new();
+    ///
+    /// p.space();
+    ///
+    /// assert_eq!(" ", p.finish());
+    /// ```
+    pub fn space(&mut self) {
+        self.spaces(1);
+    }
+
+    /// Print multiple space.
+    /// # Examples
+    /// ```
+    /// use printer::Printer;
+    ///
+    /// let mut p = Printer::new();
+    ///
+    /// p.spaces(3);
+    ///
+    /// assert_eq!("   ", p.finish());
+    /// ```
+    pub fn spaces(&mut self, n: usize) {
+        self.out.extend(iter::repeat(' ').take(n));
+    }
+
     /// Print the given open [`Delim`]
     /// # Examples
     /// ```
     /// use printer::{Delim, Printer};
-    /// 
+    ///
     /// let mut p = Printer::new();
-    /// 
+    ///
     /// p.popen(Delim::Paren);
     /// p.popen(Delim::Bracket);
     /// p.popen(Delim::Brace);
-    /// 
+    ///
     /// assert_eq!("([{", p.finish());
     /// ```
     pub fn popen(&mut self, delim: Delim) {
@@ -124,13 +154,13 @@ impl Printer {
     /// # Examples
     /// ```
     /// use printer::{Delim, Printer};
-    /// 
+    ///
     /// let mut p = Printer::new();
-    /// 
+    ///
     /// p.pclose(Delim::Paren);
     /// p.pclose(Delim::Bracket);
     /// p.pclose(Delim::Brace);
-    /// 
+    ///
     /// assert_eq!(")]}", p.finish());
     /// ```
     pub fn pclose(&mut self, delim: Delim) {
@@ -141,12 +171,12 @@ impl Printer {
     /// # Examples
     /// ```
     /// use printer::{Delim, Printer};
-    /// 
+    ///
     /// let mut p = Printer::new();
-    /// 
+    ///
     /// p.word("foo");
     /// p.word(123.to_string());
-    /// 
+    ///
     /// assert_eq!("foo123", p.finish());
     /// ```
     pub fn word<S: Into<Cow<'static, str>>>(&mut self, w: S) {
