@@ -15,6 +15,7 @@ members = [
     "compiler/mir",
     "compiler/lexer",
     "compiler/parser",
+    "compiler/printer",
     "compiler/resolve",
     "compiler/span",
     "compiler/thir",
@@ -31,6 +32,7 @@ hir_lowering = { path = "compiler/hir_lowering" }
 mir = { path = "compiler/mir" }
 lexer = { path = "compiler/lexer" }
 parser = { path = "compiler/parser" }
+printer = { path = "compiler/printer" }
 resolve = { path = "compiler/resolve" }
 span = { path = "compiler/span" }
 thir = {path = "compiler/thir" }
