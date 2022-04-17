@@ -84,7 +84,7 @@ impl<'a> SymbolMap<'a> {
 }
 
 macro_rules! keywords {
-    ($( $name:ident ; $string:expr),* ) => {
+    ($( $name:ident : $string:expr),* ) => {
         #[derive(Clone, Copy, PartialEq, Eq, Debug)]
         pub enum Kw {
             $(
@@ -115,19 +115,19 @@ macro_rules! keywords {
 }
 
 keywords![
-    Let; "let",
-    If; "if",
-    Else; "else",
-    True; "true",
-    False; "false",
-    Println;"println",
+    Let: "let",
+    If: "if",
+    Else: "else",
+    True: "true",
+    False: "false",
+    Println:"println",
 
-    Loop; "loop",
-    Break; "break",
-    Continue; "continue",
+    Loop: "loop",
+    Break: "break",
+    Continue: "continue",
 
-    I32; "i32",
-    Bool; "bool"
+    I32: "i32",
+    Bool: "bool"
 ];
 
 #[cfg(test)]
