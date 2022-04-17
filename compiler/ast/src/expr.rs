@@ -1,5 +1,5 @@
-use crate::{block::*, lit::*, op::*};
-use span::symbol::{Ident, Symbol};
+use crate::{block::*, lit::*, op::*, *};
+use span::symbol::Symbol;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
@@ -44,9 +44,4 @@ pub enum Expr {
 
     /// A path such as variables, functions, etx: `foo`, `bar`
     Path(Path),
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct Path {
-    pub ident: Ident,
 }

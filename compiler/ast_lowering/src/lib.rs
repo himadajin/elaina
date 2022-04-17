@@ -4,6 +4,7 @@ use ast::{
     lit::*,
     op::{BinOp, UnOp},
     stmt::*,
+    *,
 };
 use hir::{self, def_id::DefId};
 use span::{

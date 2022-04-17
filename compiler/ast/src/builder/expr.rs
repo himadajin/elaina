@@ -1,4 +1,4 @@
-use crate::{block::*, expr::*, lit::*, op::*, stmt::*};
+use crate::{block::*, expr::*, lit::*, op::*, stmt::*, *};
 use span::{
     span::DUMMY_SP,
     symbol::{Ident, Symbol},
