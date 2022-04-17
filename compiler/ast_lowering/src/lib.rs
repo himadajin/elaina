@@ -4,7 +4,7 @@ use ast::{
     lit::*,
     op::{BinOp, UnOp},
     stmt::*,
-    *,
+    Path,
 };
 use hir::{self, def_id::DefId};
 use span::{
