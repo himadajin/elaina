@@ -6,8 +6,6 @@ pub mod stmt;
 pub mod token;
 pub mod ty;
 
-pub mod builder;
-
 use span::symbol::Ident;
 
 #[derive(Debug, PartialEq, Clone)]

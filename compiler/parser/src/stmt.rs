@@ -75,7 +75,7 @@ impl Parser<'_> {
 mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
-    use ast::builder::{expr::*, stmt::*};
+    use ast::{expr::*, op::*};
     use span::symbol::{Ident, Kw, Symbol};
 
     macro_rules! test_stmt {
@@ -91,44 +91,52 @@ mod tests {
     fn parse_local() {
         test_stmt!(
             "let a = 1;",
-            stmt_local(
+            Stmt::local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
                 None,
-                expr_lit_int(1)
+                Expr::lit_from_value_dummy(1)
             )
         );
         test_stmt!(
             "let a = 1 + 2;",
-            stmt_local(
+            Stmt::local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
                 None,
-                expr_binary(expr_lit_int(1), ast::op::BinOp::Add, expr_lit_int(2))
+                Expr::binary(
+                    BinOp::Add,
+                    Expr::lit_from_value_dummy(1),
+                    Expr::lit_from_value_dummy(2)
+                )
             )
         );
 
         test_stmt!(
             "let a:i32 = 1;",
-            stmt_local(
+            Stmt::local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
                 Some(Ident::with_dummy_span(Kw::I32)),
-                expr_lit_int(1)
+                Expr::lit_from_value_dummy(1)
             )
         );
         test_stmt!(
             "let a:i32 = 1 + 2;",
-            stmt_local(
+            Stmt::local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
                 Some(Ident::with_dummy_span(Kw::I32)),
-                expr_binary(expr_lit_int(1), ast::op::BinOp::Add, expr_lit_int(2))
+                Expr::binary(
+                    BinOp::Add,
+                    Expr::lit_from_value_dummy(1),
+                    Expr::lit_from_value_dummy(2)
+                )
             )
         );
 
         test_stmt!(
             "let a:bool = true;",
-            stmt_local(
+            Stmt::local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
                 Some(Ident::with_dummy_span(Kw::Bool)),
-                expr_lit_bool(true)
+                Expr::lit_from_value_dummy(true)
             )
         );
     }
@@ -137,10 +145,10 @@ mod tests {
     fn parse_expr() {
         test_stmt!(
             "1 + 2",
-            stmt_expr(expr_binary(
-                expr_lit_int(1),
-                ast::op::BinOp::Add,
-                expr_lit_int(2)
+            Stmt::expr(Expr::binary(
+                BinOp::Add,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
             ))
         );
     }
@@ -149,10 +157,10 @@ mod tests {
     fn parse_semi() {
         test_stmt!(
             "1 + 2;",
-            stmt_semi(expr_binary(
-                expr_lit_int(1),
-                ast::op::BinOp::Add,
-                expr_lit_int(2)
+            Stmt::semi(Expr::binary(
+                BinOp::Add,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
             ))
         );
     }

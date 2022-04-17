@@ -20,3 +20,21 @@ pub enum Stmt {
     /// This statement is temporary, used until the function call is implemented
     Println(Expr),
 }
+
+impl Stmt {
+    pub fn local(ident: Ident, ty: Option<Ident>, init: Expr) -> Stmt {
+        Stmt::Local { ident, ty, init }
+    }
+
+    pub fn expr(expr: Expr) -> Stmt {
+        Stmt::Expr(expr)
+    }
+
+    pub fn semi(expr: Expr) -> Stmt {
+        Stmt::Semi(expr)
+    }
+
+    pub fn println(expr: Expr) -> Stmt {
+        Stmt::Println(expr)
+    }
+}

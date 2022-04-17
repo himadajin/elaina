@@ -349,7 +349,8 @@ impl Parser<'_> {
 mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
-    use ast::builder::{block::*, expr::*, lit::*, stmt::*};
+
+    use ast::{expr::Expr, stmt::Stmt};
     use span::symbol::Symbol;
 
     macro_rules! test_lit {
@@ -372,82 +373,101 @@ mod tests {
 
     #[test]
     fn test_parse_lit() {
-        test_lit!("10", lit_int(10));
-        test_lit!("true", lit_bool(true));
-        test_lit!("false", lit_bool(false));
+        test_lit!("10", Lit::new_dummy(LitKind::from(10)));
+        test_lit!("true", Lit::new_dummy(LitKind::from(true)));
+
+        test_lit!("false", Lit::new_dummy(LitKind::from(false)));
     }
 
     #[test]
     fn test_parse_expr() {
         test_expr!(
             "1 * 2 + 3",
-            expr_binary(
-                expr_binary(expr_lit_int(1), BinOp::Mul, expr_lit_int(2)),
+            Expr::binary(
                 BinOp::Add,
-                expr_lit_int(3),
+                Expr::binary(
+                    BinOp::Mul,
+                    Expr::lit_from_value_dummy(1),
+                    Expr::lit_from_value_dummy(2)
+                ),
+                Expr::lit_from_value_dummy(3),
             )
         );
 
         test_expr!(
             "1 + 2 * 3",
-            expr_binary(
-                expr_lit_int(1),
+            Expr::binary(
                 BinOp::Add,
-                expr_binary(expr_lit_int(2), BinOp::Mul, expr_lit_int(3)),
+                Expr::lit_from_value_dummy(1),
+                Expr::binary(
+                    BinOp::Mul,
+                    Expr::lit_from_value_dummy(2),
+                    Expr::lit_from_value_dummy(3)
+                )
             )
         );
 
         test_expr!(
             "1 * (2 + 3)",
-            expr_binary(
-                expr_lit_int(1),
+            Expr::binary(
                 BinOp::Mul,
-                expr_binary(expr_lit_int(2), BinOp::Add, expr_lit_int(3)),
+                Expr::lit_from_value_dummy(1),
+                Expr::binary(
+                    BinOp::Add,
+                    Expr::lit_from_value_dummy(2),
+                    Expr::lit_from_value_dummy(3)
+                )
             )
         );
     }
 
     #[test]
-    fn test_parse_expr_if() {
+    fn test_parse_if_() {
         test_expr!(
             "if 1 + 2 == 3 { 0 }",
-            expr_if(
-                expr_binary(
-                    expr_binary(expr_lit_int(1), BinOp::Add, expr_lit_int(2)),
+            Expr::if_(
+                Expr::binary(
                     BinOp::Eq,
-                    expr_lit_int(3)
+                    Expr::binary(
+                        BinOp::Add,
+                        Expr::lit_from_value_dummy(1),
+                        Expr::lit_from_value_dummy(2)
+                    ),
+                    Expr::lit_from_value_dummy(3)
                 ),
-                block([stmt_expr(expr_lit_int(0))]),
+                [Stmt::Expr(Expr::lit_from_value_dummy(0))],
                 None
             )
         );
 
         test_expr!(
             "if true { 0 }",
-            expr_if(
-                expr_lit_bool(true),
-                block([stmt_expr(expr_lit_int(0))]),
+            Expr::if_(
+                Expr::lit_from_value_dummy(true),
+                [Stmt::expr(Expr::lit_from_value_dummy(0))],
                 None
             )
         );
 
         test_expr!(
             "if true { 0 } else { 1 }",
-            expr_if(
-                expr_lit_bool(true),
-                block([stmt_expr(expr_lit_int(0))]),
-                Some(expr_block([stmt_expr(expr_lit_int(1))]))
+            Expr::if_(
+                Expr::lit_from_value_dummy(true),
+                [Stmt::expr(Expr::lit_from_value_dummy(0))],
+                Some(Expr::block_from([Stmt::expr(Expr::lit_from_value_dummy(
+                    1
+                ))]))
             )
         );
 
         test_expr!(
             "if true { 0 } else if true { 1 }",
-            expr_if(
-                expr_lit_bool(true),
-                block([stmt_expr(expr_lit_int(0))]),
-                Some(expr_if(
-                    expr_lit_bool(true),
-                    block([stmt_expr(expr_lit_int(1))]),
+            Expr::if_(
+                Expr::lit_from_value_dummy(true),
+                [Stmt::Expr(Expr::lit_from_value_dummy(0))],
+                Some(Expr::if_(
+                    Expr::lit_from_value_dummy(true),
+                    [Stmt::Expr(Expr::lit_from_value_dummy(1))],
                     None
                 ))
             )
@@ -455,13 +475,15 @@ mod tests {
 
         test_expr!(
             "if true { 0 } else if true { 1 } else { 2 }",
-            expr_if(
-                expr_lit_bool(true),
-                block([stmt_expr(expr_lit_int(0))]),
-                Some(expr_if(
-                    expr_lit_bool(true),
-                    block([stmt_expr(expr_lit_int(1))]),
-                    Some(expr_block([stmt_expr(expr_lit_int(2))]))
+            Expr::if_(
+                Expr::lit_from_value_dummy(true),
+                [Stmt::Expr(Expr::lit_from_value_dummy(0))],
+                Some(Expr::if_(
+                    Expr::lit_from_value_dummy(true),
+                    [Stmt::Expr(Expr::lit_from_value_dummy(1))],
+                    Some(Expr::block_from([Stmt::Expr(Expr::lit_from_value_dummy(
+                        2
+                    ))])),
                 ))
             )
         );
@@ -469,26 +491,38 @@ mod tests {
 
     #[test]
     fn test_parse_expr_loop() {
-        test_expr!("loop { 0 }", expr_loop(block([stmt_expr(expr_lit_int(0))])));
+        test_expr!(
+            "loop { 0 }",
+            Expr::loop_from([Stmt::Expr(Expr::lit_from_value_dummy(0))])
+        );
     }
 
     #[test]
     fn test_parse_expr_break() {
-        test_expr!("break", expr_break(None));
-        test_expr!("break 0;", expr_break(Some(expr_lit_int(0))));
+        test_expr!("break", Expr::break_(None));
+        test_expr!(
+            "break 0;",
+            Expr::break_(Some(Expr::lit_from_value_dummy(0)))
+        );
     }
 
     #[test]
     fn test_parse_expr_continue() {
-        test_expr!("continue", expr_continue(None));
-        test_expr!("continue 0;", expr_continue(Some(expr_lit_int(0))));
+        test_expr!("continue", Expr::continue_(None));
+        test_expr!(
+            "continue 0;",
+            Expr::continue_(Some(Expr::lit_from_value_dummy(0)))
+        );
     }
 
     #[test]
     fn test_parse_block() {
         test_expr!(
             "{0; 1}",
-            expr_block([stmt_semi(expr_lit_int(0)), stmt_expr(expr_lit_int(1))])
+            Expr::block_from([
+                Stmt::semi(Expr::lit_from_value_dummy(0)),
+                Stmt::expr(Expr::lit_from_value_dummy(1))
+            ])
         );
     }
 
@@ -496,14 +530,21 @@ mod tests {
     fn test_parse_expr_assign() {
         test_expr!(
             "a = 0",
-            expr_assign(expr_path(Symbol::ident_nth(0)), expr_lit_int(0))
+            Expr::assign(
+                Expr::path_dummy(Symbol::ident_nth(0)),
+                Expr::lit_from_value_dummy(0)
+            )
         );
 
         test_expr!(
-            "a = 1 + 1",
-            expr_assign(
-                expr_path(Symbol::ident_nth(0)),
-                expr_binary(expr_lit_int(1), BinOp::Add, expr_lit_int(1))
+            "a = 1 + 2",
+            Expr::assign(
+                Expr::path_dummy(Symbol::ident_nth(0)),
+                Expr::binary(
+                    BinOp::Add,
+                    Expr::lit_from_value_dummy(1),
+                    Expr::lit_from_value_dummy(2)
+                )
             )
         );
     }
@@ -512,65 +553,121 @@ mod tests {
     fn test_parse_relational() {
         test_expr!(
             "1 == 2",
-            expr_binary(expr_lit_int(1), BinOp::Eq, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Eq,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
 
         test_expr!(
             "1 < 2",
-            expr_binary(expr_lit_int(1), BinOp::Lt, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Lt,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
 
         test_expr!(
             "1 <= 2",
-            expr_binary(expr_lit_int(1), BinOp::Le, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Le,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
 
         test_expr!(
             "1 != 2",
-            expr_binary(expr_lit_int(1), BinOp::Ne, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Ne,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
 
         test_expr!(
             "1 >= 2",
-            expr_binary(expr_lit_int(1), BinOp::Ge, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Ge,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
 
         test_expr!(
             "1 > 2",
-            expr_binary(expr_lit_int(1), BinOp::Gt, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Gt,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
 
         test_expr!(
             "1 + 2 == 3 + 4",
-            expr_binary(
-                expr_binary(expr_lit_int(1), BinOp::Add, expr_lit_int(2)),
+            Expr::binary(
                 BinOp::Eq,
-                expr_binary(expr_lit_int(3), BinOp::Add, expr_lit_int(4))
+                Expr::binary(
+                    BinOp::Add,
+                    Expr::lit_from_value_dummy(1),
+                    Expr::lit_from_value_dummy(2)
+                ),
+                Expr::binary(
+                    BinOp::Add,
+                    Expr::lit_from_value_dummy(3),
+                    Expr::lit_from_value_dummy(4)
+                )
             )
         );
 
         test_expr!(
             "1 < 2 == 3 < 4",
-            expr_binary(
-                expr_binary(expr_lit_int(1), BinOp::Lt, expr_lit_int(2)),
+            Expr::binary(
                 BinOp::Eq,
-                expr_binary(expr_lit_int(3), BinOp::Lt, expr_lit_int(4))
+                Expr::binary(
+                    BinOp::Lt,
+                    Expr::lit_from_value_dummy(1),
+                    Expr::lit_from_value_dummy(2)
+                ),
+                Expr::binary(
+                    BinOp::Lt,
+                    Expr::lit_from_value_dummy(3),
+                    Expr::lit_from_value_dummy(4)
+                )
             )
         );
 
         test_expr!(
             "1 + 2 < 3 + 4 == 5 + 6 < 7 + 8",
-            expr_binary(
-                expr_binary(
-                    expr_binary(expr_lit_int(1), BinOp::Add, expr_lit_int(2)),
-                    BinOp::Lt,
-                    expr_binary(expr_lit_int(3), BinOp::Add, expr_lit_int(4))
-                ),
+            Expr::binary(
                 BinOp::Eq,
-                expr_binary(
-                    expr_binary(expr_lit_int(5), BinOp::Add, expr_lit_int(6)),
+                Expr::binary(
                     BinOp::Lt,
-                    expr_binary(expr_lit_int(7), BinOp::Add, expr_lit_int(8))
+                    Expr::binary(
+                        BinOp::Add,
+                        Expr::lit_from_value_dummy(1),
+                        Expr::lit_from_value_dummy(2)
+                    ),
+                    Expr::binary(
+                        BinOp::Add,
+                        Expr::lit_from_value_dummy(3),
+                        Expr::lit_from_value_dummy(4)
+                    )
+                ),
+                Expr::binary(
+                    BinOp::Lt,
+                    Expr::binary(
+                        BinOp::Add,
+                        Expr::lit_from_value_dummy(5),
+                        Expr::lit_from_value_dummy(6)
+                    ),
+                    Expr::binary(
+                        BinOp::Add,
+                        Expr::lit_from_value_dummy(7),
+                        Expr::lit_from_value_dummy(8)
+                    )
                 )
             )
         );
@@ -580,29 +677,41 @@ mod tests {
     fn test_parse_add() {
         test_expr!(
             "1 + 2",
-            expr_binary(expr_lit_int(1), BinOp::Add, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Add,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
 
         test_expr!(
             "1 - 2",
-            expr_binary(expr_lit_int(1), BinOp::Sub, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Sub,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
 
         test_expr!(
             "1 + 2 - 3",
-            expr_binary(
-                expr_lit_int(1),
+            Expr::binary(
                 BinOp::Add,
-                expr_binary(expr_lit_int(2), BinOp::Sub, expr_lit_int(3))
+                Expr::lit_from_value_dummy(1),
+                Expr::binary(
+                    BinOp::Sub,
+                    Expr::lit_from_value_dummy(2),
+                    Expr::lit_from_value_dummy(3)
+                )
             )
         );
 
         test_expr!(
             "-1 - 2",
-            expr_binary(
-                expr_unary(UnOp::Neg, expr_lit_int(1)),
+            Expr::binary(
                 BinOp::Sub,
-                expr_lit_int(2),
+                Expr::unary(UnOp::Neg, Expr::lit_from_value_dummy(1)),
+                Expr::lit_from_value_dummy(2),
             )
         );
     }
@@ -611,68 +720,75 @@ mod tests {
     fn test_parse_mul() {
         test_expr!(
             "1 * 2",
-            expr_binary(expr_lit_int(1), BinOp::Mul, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Mul,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
 
         test_expr!(
             "1 / 2",
-            expr_binary(expr_lit_int(1), BinOp::Div, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Div,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
 
         test_expr!(
             "1 * 2 / 3",
-            expr_binary(
-                expr_lit_int(1),
+            Expr::binary(
                 BinOp::Mul,
-                expr_binary(expr_lit_int(2), BinOp::Div, expr_lit_int(3))
+                Expr::lit_from_value_dummy(1),
+                Expr::binary(
+                    BinOp::Div,
+                    Expr::lit_from_value_dummy(2),
+                    Expr::lit_from_value_dummy(3)
+                )
             )
         );
 
         test_expr!(
             "-1 * 2",
-            expr_binary(
-                expr_unary(UnOp::Neg, expr_lit_int(1)),
+            Expr::binary(
                 BinOp::Mul,
-                expr_lit_int(2)
+                Expr::unary(UnOp::Neg, Expr::lit_from_value_dummy(1)),
+                Expr::lit_from_value_dummy(2)
             )
         );
     }
 
     #[test]
     fn test_parse_unary() {
-        test_expr!("-1", expr_unary(UnOp::Neg, expr_lit_int(1)));
-        test_expr!("1", expr_lit_int(1));
+        test_expr!("-1", Expr::unary(UnOp::Neg, Expr::lit_from_value_dummy(1)));
+        test_expr!("1", Expr::lit_from_value_dummy(1));
     }
 
     #[test]
     fn test_parse_primary() {
-        test_expr!("1", expr_lit_int(1));
-        test_expr!("(1)", expr_lit_int(1));
+        test_expr!("1", Expr::lit_from_value_dummy(1));
+        test_expr!("(1)", Expr::lit_from_value_dummy(1));
         test_expr!(
             "(1 * 2)",
-            expr_binary(expr_lit_int(1), BinOp::Mul, expr_lit_int(2))
+            Expr::binary(
+                BinOp::Mul,
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            )
         );
     }
 
-    // #[test]
-    // fn ident() {
-    //     test_expr!("a", expr_ident(Symbol::ident_nth(0)));
-    //     test_expr!(
-    //         "a + 1",
-    //         expr_binary(
-    //             expr_ident(Symbol::ident_nth(0)),
-    //             BinOp::Add,
-    //             expr_lit_int(1)
-    //         )
-    //     );
-    // }
-
     #[test]
     fn path() {
-        test_expr!("a", expr_path(Symbol::ident_nth(0)));
+        test_expr!("a", Expr::path_dummy(Symbol::ident_nth(0)));
         test_expr!(
             "a + 1",
-            expr_binary(expr_path(Symbol::ident_nth(0)), BinOp::Add, expr_lit_int(1))
+            Expr::binary(
+                BinOp::Add,
+                Expr::path_dummy(Symbol::ident_nth(0)),
+                Expr::lit_from_value_dummy(1)
+            )
         );
     }
 }

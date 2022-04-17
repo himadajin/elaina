@@ -21,8 +21,9 @@ impl Parser<'_> {
 mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
-    use ast::builder::{block::*, expr::*, stmt::*};
+    // use ast::builder::{block::*, expr::*, stmt::*};
     use ast::op::*;
+    use ast::{expr::Expr, stmt::Stmt};
 
     macro_rules! test_block {
         ($input: expr, $expected: expr) => {
@@ -35,28 +36,30 @@ mod tests {
 
     #[test]
     fn block_empty() {
-        test_block!("{}", block([]));
+        test_block!("{}", [].into());
     }
 
     #[test]
     fn block_one_stmt() {
-        test_block!("{1}", block([stmt_expr(expr_lit_int(1))]));
-        test_block!("{1;}", block([stmt_semi(expr_lit_int(1))]));
+        test_block!("{1}", [Stmt::expr(Expr::lit_from_value_dummy(1))].into());
+        test_block!("{1;}", [Stmt::semi(Expr::lit_from_value_dummy(1))].into());
         test_block!(
             "{1+2}",
-            block([stmt_expr(expr_binary(
-                expr_lit_int(1),
+            [Stmt::expr(Expr::binary(
                 BinOp::Add,
-                expr_lit_int(2)
-            ))])
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            ))]
+            .into()
         );
         test_block!(
             "{1+2;}",
-            block([stmt_semi(expr_binary(
-                expr_lit_int(1),
+            [Stmt::semi(Expr::binary(
                 BinOp::Add,
-                expr_lit_int(2)
-            ))])
+                Expr::lit_from_value_dummy(1),
+                Expr::lit_from_value_dummy(2)
+            ))]
+            .into()
         );
     }
 
@@ -64,14 +67,23 @@ mod tests {
     fn block_stmts() {
         test_block!(
             "{1;2}",
-            block([stmt_semi(expr_lit_int(1)), stmt_expr(expr_lit_int(2))])
+            [
+                Stmt::semi(Expr::lit_from_value_dummy(1)),
+                Stmt::expr(Expr::lit_from_value_dummy(2))
+            ]
+            .into()
         );
         test_block!(
             "{1+2;3}",
-            block([
-                stmt_semi(expr_binary(expr_lit_int(1), BinOp::Add, expr_lit_int(2))),
-                stmt_expr(expr_lit_int(3))
-            ])
+            [
+                Stmt::semi(Expr::binary(
+                    BinOp::Add,
+                    Expr::lit_from_value_dummy(1),
+                    Expr::lit_from_value_dummy(2)
+                )),
+                Stmt::expr(Expr::lit_from_value_dummy(3))
+            ]
+            .into()
         );
     }
 }
