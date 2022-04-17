@@ -37,7 +37,7 @@ impl Parser<'_> {
     fn parse_bool_opt(&mut self) -> Option<Lit> {
         if let TokenKind::Ident(symbol) = self.token.kind {
             // Try to parse true literal
-            if symbol == Kw::True.as_symbol() {
+            if symbol == Kw::True.into() {
                 let span = self.token.span;
                 self.bump();
                 return Some(Lit {
@@ -47,7 +47,7 @@ impl Parser<'_> {
             }
 
             // Try to parse false literal
-            if symbol == Kw::False.as_symbol() {
+            if symbol == Kw::False.into() {
                 let span = self.token.span;
                 self.bump();
                 return Some(Lit {
@@ -89,12 +89,12 @@ impl Parser<'_> {
     }
 
     pub fn parse_expr_without_block(&mut self) -> Expr {
-        if self.consume_keyword(Kw::Break.as_symbol()) {
+        if self.consume_keyword(Kw::Break) {
             let expr = self.parse_expr_opt().map(|e| Box::new(e));
             return Expr::Break { expr };
         }
 
-        if self.consume_keyword(Kw::Continue.as_symbol()) {
+        if self.consume_keyword(Kw::Continue) {
             let expr = self.parse_expr_opt().map(|e| Box::new(e));
             return Expr::Continue { expr };
         }
@@ -112,12 +112,12 @@ impl Parser<'_> {
         }
 
         // Try to parse if expression
-        if self.consume_keyword(Kw::If.as_symbol()) {
+        if self.consume_keyword(Kw::If) {
             return Some(self.parse_if_expr());
         }
 
         // Try to parse loop expression
-        if self.consume_keyword(Kw::Loop.as_symbol()) {
+        if self.consume_keyword(Kw::Loop) {
             return Some(self.parse_loop_expr());
         }
 
@@ -136,7 +136,7 @@ impl Parser<'_> {
         let then = self.parse_block();
 
         // Try to parse if-else
-        if self.consume_keyword(Kw::Else.as_symbol()) {
+        if self.consume_keyword(Kw::Else) {
             // If current token is `{`, block should be parsed.
             if matches!(
                 self.token.kind,
@@ -155,7 +155,7 @@ impl Parser<'_> {
             }
 
             // Otherwise, if expression should be parsed.
-            self.expect(&TokenKind::Ident(Kw::If.as_symbol()));
+            self.expect(&TokenKind::Ident(Kw::If.into()));
             let if_expr = self.parse_if_expr();
             return Expr::If {
                 cond: Box::new(cond),

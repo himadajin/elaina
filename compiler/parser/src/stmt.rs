@@ -7,13 +7,13 @@ use span::symbol::Kw;
 impl Parser<'_> {
     pub fn parse_stmt(&mut self) -> Stmt {
         // Try parse let statement.
-        if self.consume_keyword(Kw::Let.as_symbol()) {
+        if self.consume_keyword(Kw::Let) {
             return self.parse_let_stmt();
         }
 
         // Try parse println statement.
         // This is temporary and will be removed in the future.
-        if self.consume_keyword(Kw::Println.as_symbol()) {
+        if self.consume_keyword(Kw::Println) {
             return self.parse_println_stmt();
         }
 
@@ -110,7 +110,7 @@ mod tests {
             "let a:i32 = 1;",
             stmt_local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
-                Some(Ident::with_dummy_span(Kw::I32.as_symbol())),
+                Some(Ident::with_dummy_span(Kw::I32)),
                 expr_lit_int(1)
             )
         );
@@ -118,7 +118,7 @@ mod tests {
             "let a:i32 = 1 + 2;",
             stmt_local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
-                Some(Ident::with_dummy_span(Kw::I32.as_symbol())),
+                Some(Ident::with_dummy_span(Kw::I32)),
                 expr_binary(expr_lit_int(1), ast::op::BinOp::Add, expr_lit_int(2))
             )
         );
@@ -127,7 +127,7 @@ mod tests {
             "let a:bool = true;",
             stmt_local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
-                Some(Ident::with_dummy_span(Kw::Bool.as_symbol())),
+                Some(Ident::with_dummy_span(Kw::Bool)),
                 expr_lit_bool(true)
             )
         );

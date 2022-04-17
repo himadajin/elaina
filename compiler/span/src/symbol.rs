@@ -4,6 +4,7 @@ use derive_more::{From, Into};
 use typed_index_collections::TiVec;
 
 use std::collections::HashMap;
+use std::ops::Deref;
 
 #[derive(Debug, From, Into, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Symbol(usize);
@@ -28,14 +29,17 @@ pub struct Ident {
 
 impl Ident {
     #[inline]
-    pub const fn new(name: Symbol, span: Span) -> Self {
-        Self { name, span }
+    pub fn new<S: Into<Symbol>>(name: S, span: Span) -> Self {
+        Self {
+            name: name.into(),
+            span,
+        }
     }
 
     #[inline]
-    pub const fn with_dummy_span(name: Symbol) -> Self {
+    pub fn with_dummy_span<S: Into<Symbol>>(name: S) -> Self {
         Self {
-            name,
+            name: name.into(),
             span: DUMMY_SP,
         }
     }
@@ -74,8 +78,8 @@ impl<'a> SymbolMap<'a> {
         name
     }
 
-    pub fn get(&self, symbol: Symbol) -> &'a str {
-        self.strings[symbol]
+    pub fn get<S: Into<Symbol>>(&self, symbol: S) -> &'a str {
+        self.strings[symbol.into()]
     }
 
     pub const fn is_keyword(&self, symbol: Symbol) -> bool {
@@ -103,6 +107,12 @@ macro_rules! keywords {
 
             pub const fn as_symbol(&self) -> Symbol {
                 Symbol::new(*self as usize)
+            }
+        }
+
+        impl From<Kw> for Symbol {
+            fn from(kw: Kw) -> Symbol {
+                kw.as_symbol()
             }
         }
 

@@ -209,42 +209,42 @@ mod tests {
         test_lexer!(
             "let",
             vec![Token::new(
-                TokenKind::Ident(Kw::Let.as_symbol()),
+                TokenKind::Ident(Kw::Let.into()),
                 Span::new(0, 3)
             )]
         );
         test_lexer!(
             "if",
             vec![Token::new(
-                TokenKind::Ident(Kw::If.as_symbol()),
+                TokenKind::Ident(Kw::If.into()),
                 Span::new(0, 2)
             )]
         );
         test_lexer!(
             "else",
             vec![Token::new(
-                TokenKind::Ident(Kw::Else.as_symbol()),
+                TokenKind::Ident(Kw::Else.into()),
                 Span::new(0, 4)
             )]
         );
         test_lexer!(
             "true",
             vec![Token::new(
-                TokenKind::Ident(Kw::True.as_symbol()),
+                TokenKind::Ident(Kw::True.into()),
                 Span::new(0, 4)
             )]
         );
         test_lexer!(
             "false",
             vec![Token::new(
-                TokenKind::Ident(Kw::False.as_symbol()),
+                TokenKind::Ident(Kw::False.into()),
                 Span::new(0, 5)
             )]
         );
         test_lexer!(
             "println",
             vec![Token::new(
-                TokenKind::Ident(Kw::Println.as_symbol()),
+                TokenKind::Ident(Kw::Println.into()),
                 Span::new(0, 7)
             )]
         );

@@ -103,9 +103,9 @@ impl<'a> Parser<'a> {
     /// If the next token is Identifier and that symbol is equal to given keyword,
     /// advance one token and return `true`.
     /// Otherwise, do nothing and return `false`
-    fn consume_keyword(&mut self, kw: Symbol) -> bool {
+    fn consume_keyword<S: Into<Symbol>>(&mut self, kw: S) -> bool {
         if let TokenKind::Ident(s) = self.token.kind {
-            if s == kw {
+            if s == kw.into() {
                 self.bump();
                 return true;
             }

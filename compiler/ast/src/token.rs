@@ -100,13 +100,14 @@ impl Token {
 
 pub fn ident_can_begin_expr(name: &Symbol) -> bool {
     [
-        Kw::Let.as_symbol(),
-        Kw::If.as_symbol(),
-        Kw::True.as_symbol(),
-        Kw::False.as_symbol(),
-        Kw::Break.as_symbol(),
-        Kw::Continue.as_symbol(),
+        Kw::Let,
+        Kw::If,
+        Kw::True,
+        Kw::False,
+        Kw::Break,
+        Kw::Continue,
     ]
+    .map(|k| k.into())
     .contains(name)
 }
 

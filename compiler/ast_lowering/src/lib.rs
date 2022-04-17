@@ -72,11 +72,11 @@ impl LoweringContext {
 
         let ty = {
             let ty_ident = ty.expect("error: type annotation is required").name;
-            if ty_ident == Kw::I32.as_symbol() {
+            if ty_ident == Kw::I32.into() {
                 ty::Ty {
                     kind: ty::TyKind::Int(ty::IntTy::I32),
                 }
-            } else if ty_ident == Kw::Bool.as_symbol() {
+            } else if ty_ident == Kw::Bool.into() {
                 ty::Ty {
                     kind: ty::TyKind::Bool,
                 }
