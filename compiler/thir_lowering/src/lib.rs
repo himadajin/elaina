@@ -1,5 +1,6 @@
 mod builder;
 
+use ast::op::{BinOp, UnOp};
 use builder::MirBuilder;
 use hir::def_id::DefId;
 use mir::{constant::*, stmt::*, terminator::*, *};
@@ -188,26 +189,30 @@ impl<'a> LoweringContext<'a> {
     fn lower_expr_binary(
         &mut self,
         entry_block: BlockId,
-        op: thir::BinOp,
+        op: BinOp,
         lhs: &thir::Expr,
         rhs: &thir::Expr,
         ty: ty::Ty,
     ) -> (BlockId, Operand) {
-        let op = match op {
-            thir::BinOp::Add => BinOp::Add,
-            thir::BinOp::Sub => BinOp::Sub,
-            thir::BinOp::Mul => BinOp::Mul,
-            thir::BinOp::Div => BinOp::Div,
-            thir::BinOp::Eq => BinOp::Eq,
-            thir::BinOp::Lt => BinOp::Lt,
-            thir::BinOp::Le => BinOp::Le,
-            thir::BinOp::Ne => BinOp::Ne,
-            thir::BinOp::Ge => BinOp::Ge,
-            thir::BinOp::Gt => BinOp::Gt,
-        };
+        fn lower_bin_op(op: BinOp) -> mir::stmt::BinOp {
+            match op {
+                BinOp::Mul => mir::stmt::BinOp::Mul,
+                BinOp::Div => mir::stmt::BinOp::Div,
+                BinOp::Add => mir::stmt::BinOp::Add,
+                BinOp::Sub => mir::stmt::BinOp::Sub,
+                BinOp::Eq => mir::stmt::BinOp::Eq,
+                BinOp::Lt => mir::stmt::BinOp::Lt,
+                BinOp::Le => mir::stmt::BinOp::Le,
+                BinOp::Ne => mir::stmt::BinOp::Ne,
+                BinOp::Ge => mir::stmt::BinOp::Ge,
+                BinOp::Gt => mir::stmt::BinOp::Gt,
+            }
+        }
 
         let (tail, lhs) = self.lower_expr(entry_block, lhs);
         let (tail, rhs) = self.lower_expr(tail, rhs);
+
+        let op = lower_bin_op(op);
 
         let rvalue = RValue::BinaryOp(op, Box::new((lhs, rhs)));
         let place = self.push_temp(ty);
@@ -221,15 +226,18 @@ impl<'a> LoweringContext<'a> {
     fn lower_expr_unary(
         &mut self,
         entry_block: BlockId,
-        op: thir::UnOp,
+        op: UnOp,
         expr: &thir::Expr,
         ty: ty::Ty,
     ) -> (BlockId, Operand) {
-        let op = match op {
-            thir::UnOp::Neg => UnOp::Neg,
-        };
+        fn lower_un_op(op: UnOp) -> mir::stmt::UnOp {
+            match op {
+                UnOp::Neg => mir::stmt::UnOp::Neg,
+            }
+        }
 
         let (tail, expr) = self.lower_expr(entry_block, expr);
+        let op = lower_un_op(op);
         let rvalue = RValue::UnaryOp(op, Box::new(expr));
         let place = self.push_temp(ty);
         let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));

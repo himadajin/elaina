@@ -1,3 +1,4 @@
+use ast::op::{BinOp, UnOp};
 use hir::{self, def_id::DefId};
 use thir::*;
 use ty::*;
@@ -44,18 +45,6 @@ impl LoweringContext {
             hir::Expr::Binary { op, lhs, rhs } => {
                 let lhs = Box::new(self.lower_expr(lhs));
                 let rhs = Box::new(self.lower_expr(rhs));
-                let op = match op {
-                    hir::BinOp::Mul => thir::BinOp::Mul,
-                    hir::BinOp::Div => thir::BinOp::Div,
-                    hir::BinOp::Add => thir::BinOp::Add,
-                    hir::BinOp::Sub => thir::BinOp::Sub,
-                    hir::BinOp::Eq => thir::BinOp::Eq,
-                    hir::BinOp::Lt => thir::BinOp::Lt,
-                    hir::BinOp::Le => thir::BinOp::Le,
-                    hir::BinOp::Ne => thir::BinOp::Ne,
-                    hir::BinOp::Ge => thir::BinOp::Ge,
-                    hir::BinOp::Gt => thir::BinOp::Gt,
-                };
 
                 let ty = match op {
                     BinOp::Mul | BinOp::Div | BinOp::Add | BinOp::Sub => Ty {
@@ -66,13 +55,18 @@ impl LoweringContext {
                     }
                 };
 
-                Expr::Binary { op, lhs, rhs, ty }
+                Expr::Binary {
+                    op: *op,
+                    lhs,
+                    rhs,
+                    ty,
+                }
             }
             hir::Expr::Unary { op, expr } => {
                 let expr = Box::new(self.lower_expr(expr));
                 let (op, ty) = match op {
-                    hir::UnOp::Neg => (
-                        thir::UnOp::Neg,
+                    UnOp::Neg => (
+                        UnOp::Neg,
                         Ty {
                             kind: TyKind::Int(IntTy::I32),
                         },

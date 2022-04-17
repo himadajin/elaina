@@ -119,28 +119,13 @@ impl LoweringContext {
     }
 
     fn lower_expr_binary(&mut self, op: BinOp, lhs: &Expr, rhs: &Expr) -> hir::Expr {
-        let hir_op = |op| -> hir::BinOp {
-            match op {
-                BinOp::Add => hir::BinOp::Add,
-                BinOp::Mul => hir::BinOp::Mul,
-                BinOp::Div => hir::BinOp::Div,
-                BinOp::Sub => hir::BinOp::Sub,
-                BinOp::Eq => hir::BinOp::Eq,
-                BinOp::Lt => hir::BinOp::Lt,
-                BinOp::Le => hir::BinOp::Le,
-                BinOp::Ne => hir::BinOp::Ne,
-                BinOp::Ge => hir::BinOp::Ge,
-                BinOp::Gt => hir::BinOp::Gt,
-            }
-        };
-
         match op {
             BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div => {
                 let thir_lhs = self.lower_expr(lhs);
                 let thir_rhs = self.lower_expr(rhs);
 
                 hir::Expr::Binary {
-                    op: hir_op(op),
+                    op,
                     lhs: Box::new(thir_lhs),
                     rhs: Box::new(thir_rhs),
                 }
@@ -150,7 +135,7 @@ impl LoweringContext {
                 let thir_rhs = self.lower_expr(rhs);
 
                 hir::Expr::Binary {
-                    op: hir_op(op),
+                    op,
                     lhs: Box::new(thir_lhs),
                     rhs: Box::new(thir_rhs),
                 }
@@ -159,15 +144,11 @@ impl LoweringContext {
     }
 
     fn lower_expr_unary(&mut self, op: UnOp, expr: &Expr) -> hir::Expr {
-        match op {
-            UnOp::Neg => {
-                let thir_expr = self.lower_expr(expr);
+        let thir_expr = self.lower_expr(expr);
 
-                hir::Expr::Unary {
-                    op: hir::UnOp::Neg,
-                    expr: Box::new(thir_expr),
-                }
-            }
+        hir::Expr::Unary {
+            op,
+            expr: Box::new(thir_expr),
         }
     }
 
@@ -325,7 +306,7 @@ mod tests {
         {
             let src = r"1 + 2";
             let ast = parse_expr_from_source_str(src).0;
-            let hir = hir_bin(hir::BinOp::Add, 1, 2);
+            let hir = hir_bin(BinOp::Add, 1, 2);
 
             let res = {
                 let mut resolver = ASTNameResolver::new();
@@ -339,7 +320,7 @@ mod tests {
         {
             let src = r"1 - 2";
             let ast = parse_expr_from_source_str(src).0;
-            let hir = hir_bin(hir::BinOp::Sub, 1, 2);
+            let hir = hir_bin(BinOp::Sub, 1, 2);
 
             let res = {
                 let mut resolver = ASTNameResolver::new();
@@ -353,7 +334,7 @@ mod tests {
         {
             let src = r"1 * 2";
             let ast = parse_expr_from_source_str(src).0;
-            let hir = hir_bin(hir::BinOp::Mul, 1, 2);
+            let hir = hir_bin(BinOp::Mul, 1, 2);
 
             let res = {
                 let mut resolver = ASTNameResolver::new();
@@ -367,7 +348,7 @@ mod tests {
         {
             let src = r"1 / 2";
             let ast = parse_expr_from_source_str(src).0;
-            let hir = hir_bin(hir::BinOp::Div, 1, 2);
+            let hir = hir_bin(BinOp::Div, 1, 2);
 
             let res = {
                 let mut resolver = ASTNameResolver::new();
@@ -384,7 +365,7 @@ mod tests {
         let src = r"-1";
         let ast = parse_expr_from_source_str(src).0;
         let hir = hir::Expr::Unary {
-            op: hir::UnOp::Neg,
+            op: UnOp::Neg,
             expr: Box::new(hir::Expr::Lit {
                 lit: hir::Lit::Int(hir::LitInt { value: 1 }),
                 ty: I32_TY.clone(),

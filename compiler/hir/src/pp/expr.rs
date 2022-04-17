@@ -1,6 +1,7 @@
 use super::HIRPrinter;
 
 use crate::*;
+use ast::op::{BinOp, UnOp, Fixity};
 use printer::Delim;
 
 impl HIRPrinter<'_> {
