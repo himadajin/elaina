@@ -4,7 +4,6 @@ use derive_more::{From, Into};
 use typed_index_collections::TiVec;
 
 use std::collections::HashMap;
-use std::ops::Deref;
 
 #[derive(Debug, From, Into, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Symbol(usize);
