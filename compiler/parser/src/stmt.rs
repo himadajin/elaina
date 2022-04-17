@@ -28,8 +28,7 @@ impl Parser<'_> {
         let ident = self.expect_ident()?;
 
         let ty = if self.consume(&TokenKind::Colon) {
-            let ty_ident = self.expect_ident()?;
-            Some(ty_ident)
+            Some(self.parse_ty()?)
         } else {
             None
         };
@@ -75,7 +74,7 @@ impl Parser<'_> {
 mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
-    use ast::{expr::*, op::*};
+    use ast::{expr::*, op::*, ty::*};
     use span::symbol::{Ident, Kw, Symbol};
 
     macro_rules! test_stmt {
@@ -114,7 +113,7 @@ mod tests {
             "let a:i32 = 1;",
             Stmt::local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
-                Some(Ident::with_dummy_span(Kw::I32)),
+                Some(Ty::path_with_dummy_span(Kw::I32)),
                 Expr::lit_from_value_dummy(1)
             )
         );
@@ -122,7 +121,7 @@ mod tests {
             "let a:i32 = 1 + 2;",
             Stmt::local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
-                Some(Ident::with_dummy_span(Kw::I32)),
+                Some(Ty::path_with_dummy_span(Kw::I32)),
                 Expr::binary(
                     BinOp::Add,
                     Expr::lit_from_value_dummy(1),
@@ -135,7 +134,7 @@ mod tests {
             "let a:bool = true;",
             Stmt::local(
                 Ident::with_dummy_span(Symbol::ident_nth(0)),
-                Some(Ident::with_dummy_span(Kw::Bool)),
+                Some(Ty::path_with_dummy_span(Kw::Bool)),
                 Expr::lit_from_value_dummy(true)
             )
         );

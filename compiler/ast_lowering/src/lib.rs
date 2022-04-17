@@ -4,6 +4,7 @@ use ast::{
     lit::*,
     op::{BinOp, UnOp},
     stmt::*,
+    ty::*,
     Path,
 };
 use hir::{self, def_id::DefId};
@@ -35,14 +36,22 @@ impl LoweringContext {
     }
 
     pub fn lower_stmts(&mut self, mut ast_stmts: &[Stmt]) -> (Vec<hir::Stmt>, Option<hir::Expr>) {
+        fn ty_to_ident(ty: Ty) -> Ident {
+            match ty.kind {
+                TyKind::Path(path) => path.ident,
+            }
+        }
+
         let mut stmts = Vec::new();
         let mut expr = None;
 
         while let [s, tail @ ..] = ast_stmts {
             match s {
-                Stmt::Local { ident, ty, init } => {
-                    stmts.push(self.lower_stmt_local(ident.clone(), ty.clone(), &init))
-                }
+                Stmt::Local { ident, ty, init } => stmts.push(self.lower_stmt_local(
+                    ident.clone(),
+                    ty.clone().map(|t| ty_to_ident(t)),
+                    &init,
+                )),
                 Stmt::Expr(e) => {
                     let e = self.lower_expr(e);
                     if tail.is_empty() {

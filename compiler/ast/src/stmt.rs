@@ -1,4 +1,4 @@
-use crate::expr::Expr;
+use crate::{expr::Expr, ty::Ty};
 use span::symbol::Ident;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -6,7 +6,7 @@ pub enum Stmt {
     /// Local represents a let statement: `let <ident> = <expr>;`
     Local {
         ident: Ident,
-        ty: Option<Ident>,
+        ty: Option<Ty>,
         init: Expr,
     },
 
@@ -22,7 +22,7 @@ pub enum Stmt {
 }
 
 impl Stmt {
-    pub fn local(ident: Ident, ty: Option<Ident>, init: Expr) -> Stmt {
+    pub fn local(ident: Ident, ty: Option<Ty>, init: Expr) -> Stmt {
         Stmt::Local { ident, ty, init }
     }
 

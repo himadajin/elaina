@@ -22,8 +22,7 @@ impl Parser<'_> {
 mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
-    use ast::Path;
-    use span::symbol::{Ident, Kw};
+    use span::symbol::Kw;
 
     macro_rules! test_ty {
         ($input: expr, $expected: expr) => {
@@ -36,22 +35,7 @@ mod tests {
 
     #[test]
     fn parse_primary_types() {
-        test_ty!(
-            "i32",
-            Ty {
-                kind: TyKind::Path(Path {
-                    ident: Ident::with_dummy_span(Kw::I32)
-                })
-            }
-        );
-
-        test_ty!(
-            "bool",
-            Ty {
-                kind: TyKind::Path(Path {
-                    ident: Ident::with_dummy_span(Kw::Bool)
-                })
-            }
-        );
+        test_ty!("i32", Ty::path_with_dummy_span(Kw::I32));
+        test_ty!("bool", Ty::path_with_dummy_span(Kw::Bool));
     }
 }
