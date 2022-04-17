@@ -4,6 +4,7 @@ pub mod block;
 pub mod error;
 pub mod expr;
 pub mod stmt;
+pub mod ty;
 
 use crate::{error::*, lexer::parse_all_token};
 use ast::{block::Block, expr::Expr, stmt::Stmt, token::*};

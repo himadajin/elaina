@@ -11,13 +11,13 @@ use span::{
     span::Span,
     symbol::{Ident, Kw, Symbol},
 };
-use ty::*;
+use ty;
 
 use std::collections::HashMap;
 
 #[allow(dead_code)]
 pub struct LoweringContext {
-    ty_ctxt: HashMap<Symbol, Ty>,
+    ty_ctxt: HashMap<Symbol, ty::Ty>,
     name_res: HashMap<Span, DefId>,
 }
 
@@ -241,9 +241,10 @@ impl LoweringContext {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use parser::*;
+    use parser::{parse_block_from_source_str, parse_expr_from_source_str};
     use resolve::ASTNameResolver;
     use span::symbol::Symbol;
+    use ty;
 
     const I32_TY: ty::Ty = ty::Ty {
         kind: ty::TyKind::Int(ty::IntTy::I32),

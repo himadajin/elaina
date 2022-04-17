@@ -63,7 +63,7 @@ impl Parser<'_> {
         None
     }
 
-    fn parse_path(&mut self) -> Result<Path> {
+    pub fn parse_path(&mut self) -> Result<Path> {
         if let TokenKind::Ident(name) = self.token.kind {
             let span = self.token.span;
             self.bump();
