@@ -1,4 +1,4 @@
-use crate::Parser;
+use crate::{error::ParseError, Parser};
 
 use ast::{
     expr::*,
@@ -7,6 +7,8 @@ use ast::{
     token::{self, BinOpToken, DelimToken, TokenKind},
 };
 use span::symbol::*;
+
+use anyhow::Result;
 
 impl Parser<'_> {
     pub fn parse_lit_opt(&mut self) -> Option<Lit> {
@@ -60,80 +62,83 @@ impl Parser<'_> {
         None
     }
 
-    fn parse_path(&mut self) -> Path {
+    fn parse_path(&mut self) -> Result<Path> {
         if let TokenKind::Ident(name) = self.token.kind {
             let span = self.token.span;
             self.bump();
-            return Path {
+            return Ok(Path {
                 ident: Ident { name, span },
-            };
+            });
         }
 
-        panic!("expected identifier, but got {:?}", self.token.kind);
+        Err(ParseError::NotFoundIdent {
+            found: self.token.kind.clone(),
+        }
+        .into())
     }
 
-    pub fn parse_expr(&mut self) -> Expr {
-        if let Some(expr) = self.parse_expr_with_block() {
-            return expr;
+    pub fn parse_expr(&mut self) -> Result<Expr> {
+        if let Some(expr) = self.parse_expr_with_block()? {
+            return Ok(expr);
         }
 
         self.parse_expr_without_block()
     }
 
-    fn parse_expr_opt(&mut self) -> Option<Expr> {
+    fn parse_expr_opt(&mut self) -> Result<Option<Expr>> {
         if self.token.can_begin_expr() {
-            return Some(self.parse_expr());
+            return Ok(Some(self.parse_expr()?));
         }
 
-        None
+        Ok(None)
     }
 
-    pub fn parse_expr_without_block(&mut self) -> Expr {
+    pub fn parse_expr_without_block(&mut self) -> Result<Expr> {
         if self.consume_keyword(Kw::Break) {
-            let expr = self.parse_expr_opt().map(|e| Box::new(e));
-            return Expr::Break { expr };
+            let expr = self.parse_expr_opt()?.map(|e| Box::new(e));
+            return Ok(Expr::Break { expr });
         }
 
         if self.consume_keyword(Kw::Continue) {
-            let expr = self.parse_expr_opt().map(|e| Box::new(e));
-            return Expr::Continue { expr };
+            let expr = self.parse_expr_opt()?.map(|e| Box::new(e));
+            return Ok(Expr::Continue { expr });
         }
 
         self.parse_operator_expr()
     }
 
-    pub fn parse_expr_with_block(&mut self) -> Option<Expr> {
+    pub fn parse_expr_with_block(&mut self) -> Result<Option<Expr>> {
         // Try to parse block expression
         if matches!(
             self.token.kind,
             TokenKind::OpenDelim(token::DelimToken::Brace)
         ) {
-            return Some(self.parse_block_expr());
+            return Ok(Some(self.parse_block_expr()?));
         }
 
         // Try to parse if expression
         if self.consume_keyword(Kw::If) {
-            return Some(self.parse_if_expr());
+            return Ok(Some(self.parse_if_expr()?));
         }
 
         // Try to parse loop expression
         if self.consume_keyword(Kw::Loop) {
-            return Some(self.parse_loop_expr());
+            return Ok(Some(self.parse_loop_expr()?));
         }
 
-        None
+        Ok(None)
     }
 
-    fn parse_block_expr(&mut self) -> Expr {
-        let block = self.parse_block();
-        Expr::Block {
+    fn parse_block_expr(&mut self) -> Result<Expr> {
+        let block = self.parse_block()?;
+        Ok(Expr::Block {
             block: Box::new(block),
-        }
+        })
     }
 
-    fn parse_if_expr(&mut self) -> Expr {
-        let cond = self.parse_expr();
-        let then = self.parse_block();
+    fn parse_if_expr(&mut self) -> Result<Expr> {
+        let cond = self.parse_expr()?;
+        let then = self.parse_block()?;
 
         // Try to parse if-else
         if self.consume_keyword(Kw::Else) {
@@ -142,228 +147,200 @@ impl Parser<'_> {
                 self.token.kind,
                 TokenKind::OpenDelim(token::DelimToken::Brace)
             ) {
-                let block = self.parse_block();
+                let block = self.parse_block()?;
                 let expr_block = Expr::Block {
                     block: Box::new(block),
                 };
 
-                return Expr::If {
+                return Ok(Expr::If {
                     cond: Box::new(cond),
                     then: Box::new(then),
                     else_opt: Some(Box::new(expr_block)),
-                };
+                });
             }
 
             // Otherwise, if expression should be parsed.
-            self.expect(&TokenKind::Ident(Kw::If.into()));
-            let if_expr = self.parse_if_expr();
-            return Expr::If {
+            self.expect(&TokenKind::Ident(Kw::If.into()))?;
+            let if_expr = self.parse_if_expr()?;
+            return Ok(Expr::If {
                 cond: Box::new(cond),
                 then: Box::new(then),
                 else_opt: Some(Box::new(if_expr)),
-            };
+            });
         }
 
-        Expr::If {
+        Ok(Expr::If {
             cond: Box::new(cond),
             then: Box::new(then),
             else_opt: None,
-        }
+        })
     }
 
-    fn parse_loop_expr(&mut self) -> Expr {
-        let block = self.parse_block();
+    fn parse_loop_expr(&mut self) -> Result<Expr> {
+        let block = self.parse_block()?;
 
-        Expr::Loop {
+        Ok(Expr::Loop {
             block: Box::new(block),
-        }
+        })
     }
 
-    fn parse_operator_expr(&mut self) -> Expr {
-        let lhs = self.parse_expr_equality();
+    fn parse_operator_expr(&mut self) -> Result<Expr> {
+        let lhs = self.parse_expr_equality()?;
 
         if self.consume(&TokenKind::Eq) {
-            let rhs = self.parse_expr();
-            return Expr::Assign {
+            let rhs = self.parse_expr()?;
+            return Ok(Expr::Assign {
                 lhs: Box::new(lhs),
                 rhs: Box::new(rhs),
-            };
+            });
         }
 
-        lhs
+        Ok(lhs)
     }
 
-    fn parse_expr_equality(&mut self) -> Expr {
-        let lhs = self.parse_expr_relational();
+    fn parse_expr_equality(&mut self) -> Result<Expr> {
+        let lhs = self.parse_expr_relational()?;
 
         if self.consume(&TokenKind::EqEq) {
-            let rhs = self.parse_expr_relational();
-            let binary = Expr::Binary {
+            let rhs = self.parse_expr_relational()?;
+            return Ok(Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Eq,
                 rhs: Box::new(rhs),
-            };
-
-            return binary;
+            });
         }
 
         if self.consume(&TokenKind::Ne) {
-            let rhs = self.parse_expr_relational();
-            let binary = Expr::Binary {
+            let rhs = self.parse_expr_relational()?;
+            return Ok(Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Ne,
                 rhs: Box::new(rhs),
-            };
-
-            return binary;
+            });
         }
 
-        lhs
+        Ok(lhs)
     }
 
-    fn parse_expr_relational(&mut self) -> Expr {
-        let lhs = self.parse_expr_add();
+    fn parse_expr_relational(&mut self) -> Result<Expr> {
+        let lhs = self.parse_expr_add()?;
 
         if self.consume(&TokenKind::Lt) {
-            let rhs = self.parse_expr_add();
-            let binary = Expr::Binary {
+            let rhs = self.parse_expr_add()?;
+            return Ok(Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Lt,
                 rhs: Box::new(rhs),
-            };
-
-            return binary;
+            });
         }
 
         if self.consume(&TokenKind::Le) {
-            let rhs = self.parse_expr_add();
-            let binary = Expr::Binary {
+            let rhs = self.parse_expr_add()?;
+            return Ok(Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Le,
                 rhs: Box::new(rhs),
-            };
-
-            return binary;
+            });
         }
 
         if self.consume(&TokenKind::Ge) {
-            let rhs = self.parse_expr_add();
-            let binary = Expr::Binary {
+            let rhs = self.parse_expr_add()?;
+            return Ok(Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Ge,
                 rhs: Box::new(rhs),
-            };
-
-            return binary;
+            });
         }
 
         if self.consume(&TokenKind::Gt) {
-            let rhs = self.parse_expr_add();
-            let binary = Expr::Binary {
+            let rhs = self.parse_expr_add()?;
+            return Ok(Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Gt,
                 rhs: Box::new(rhs),
-            };
-
-            return binary;
+            });
         }
 
-        lhs
+        Ok(lhs)
     }
 
-    fn parse_expr_add(&mut self) -> Expr {
-        let lhs = self.parse_expr_mul();
+    fn parse_expr_add(&mut self) -> Result<Expr> {
+        let lhs = self.parse_expr_mul()?;
 
         if self.consume(&TokenKind::BinOp(BinOpToken::Plus)) {
-            let rhs = self.parse_expr_add();
-            let res = Expr::Binary {
+            let rhs = self.parse_expr_add()?;
+            return Ok(Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Add,
                 rhs: Box::new(rhs),
-            };
-
-            return res;
+            });
         }
 
         if self.consume(&TokenKind::BinOp(BinOpToken::Minus)) {
-            let rhs = self.parse_expr_add();
-            let res = Expr::Binary {
+            let rhs = self.parse_expr_add()?;
+            return Ok(Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Sub,
                 rhs: Box::new(rhs),
-            };
-
-            return res;
+            });
         }
 
-        lhs
+        Ok(lhs)
     }
 
-    fn parse_expr_mul(&mut self) -> Expr {
-        let lhs = self.parse_expr_unary();
+    fn parse_expr_mul(&mut self) -> Result<Expr> {
+        let lhs = self.parse_expr_unary()?;
 
         if self.consume(&TokenKind::BinOp(BinOpToken::Star)) {
-            let rhs = self.parse_expr_mul();
-            let res = Expr::Binary {
+            let rhs = self.parse_expr_mul()?;
+            return Ok(Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Mul,
                 rhs: Box::new(rhs),
-            };
-
-            return res;
+            });
         }
 
         if self.consume(&TokenKind::BinOp(BinOpToken::Slash)) {
-            let rhs = self.parse_expr_mul();
-            let res = Expr::Binary {
+            let rhs = self.parse_expr_mul()?;
+            return Ok(Expr::Binary {
                 lhs: Box::new(lhs),
                 op: BinOp::Div,
                 rhs: Box::new(rhs),
-            };
-
-            return res;
+            });
         }
 
-        lhs
+        Ok(lhs)
     }
 
-    fn parse_expr_unary(&mut self) -> Expr {
+    fn parse_expr_unary(&mut self) -> Result<Expr> {
         if self.consume(&TokenKind::BinOp(BinOpToken::Minus)) {
-            let expr = self.parse_expr_primary();
-            let res = Expr::Unary {
+            let expr = self.parse_expr_primary()?;
+            return Ok(Expr::Unary {
                 op: UnOp::Neg,
                 expr: Box::new(expr),
-            };
-
-            return res;
+            });
         }
 
         self.parse_expr_primary()
     }
 
-    fn parse_expr_primary(&mut self) -> Expr {
+    fn parse_expr_primary(&mut self) -> Result<Expr> {
         // Try to parse parensized expression
         if self.consume(&TokenKind::OpenDelim(DelimToken::Paren)) {
-            let expr = self.parse_expr();
-            self.expect(&TokenKind::CloseDelim(DelimToken::Paren));
+            let expr = self.parse_expr()?;
+            self.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
 
-            return expr;
+            return Ok(expr);
         }
 
         // Try to parse literal
         if let Some(lit) = self.parse_lit_opt() {
-            return Expr::Lit { lit: lit };
+            return Ok(Expr::Lit { lit: lit });
         }
 
         // Parse path;
-        let path = self.parse_path();
-        Expr::Path(path)
-        // if matches!(self.token.kind, TokenKind::Ident(_)) {
-        //     let symbol = self.expect_ident();
-        //     return Expr::Ident { ident: symbol };
-        // }
-
-        // panic!("Error: unexpected token while parsing primary expression.");
+        let path = self.parse_path()?;
+        Ok(Expr::Path(path))
     }
 }
 
@@ -386,7 +363,7 @@ mod tests {
     macro_rules! test_expr {
         ($input: expr, $expected: expr) => {
             let tokens = parse_all_token($input);
-            let result = Parser::new(&tokens).parse_expr();
+            let result = Parser::new(&tokens).parse_expr().unwrap();
 
             assert_eq!(result, $expected);
         };

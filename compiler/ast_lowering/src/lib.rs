@@ -255,7 +255,7 @@ mod tests {
     let x: i32 = 0;
     x
 }";
-        let (ast, _) = parse_block_from_source_str(src);
+        let (ast, _) = parse_block_from_source_str(src).unwrap();
         let hir = hir::Block {
             stmts: vec![hir::Stmt::Local {
                 pat: hir::Pat {
@@ -305,7 +305,7 @@ mod tests {
 
         {
             let src = r"1 + 2";
-            let ast = parse_expr_from_source_str(src).0;
+            let ast = parse_expr_from_source_str(src).unwrap().0;
             let hir = hir_bin(BinOp::Add, 1, 2);
 
             let res = {
@@ -319,7 +319,7 @@ mod tests {
 
         {
             let src = r"1 - 2";
-            let ast = parse_expr_from_source_str(src).0;
+            let ast = parse_expr_from_source_str(src).unwrap().0;
             let hir = hir_bin(BinOp::Sub, 1, 2);
 
             let res = {
@@ -333,7 +333,7 @@ mod tests {
 
         {
             let src = r"1 * 2";
-            let ast = parse_expr_from_source_str(src).0;
+            let ast = parse_expr_from_source_str(src).unwrap().0;
             let hir = hir_bin(BinOp::Mul, 1, 2);
 
             let res = {
@@ -347,7 +347,7 @@ mod tests {
 
         {
             let src = r"1 / 2";
-            let ast = parse_expr_from_source_str(src).0;
+            let ast = parse_expr_from_source_str(src).unwrap().0;
             let hir = hir_bin(BinOp::Div, 1, 2);
 
             let res = {
@@ -363,7 +363,7 @@ mod tests {
     #[test]
     fn lower_expr_unary() {
         let src = r"-1";
-        let ast = parse_expr_from_source_str(src).0;
+        let ast = parse_expr_from_source_str(src).unwrap().0;
         let hir = hir::Expr::Unary {
             op: UnOp::Neg,
             expr: Box::new(hir::Expr::Lit {

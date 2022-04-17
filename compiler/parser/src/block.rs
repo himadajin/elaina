@@ -1,17 +1,19 @@
 use crate::Parser;
 use ast::{block::*, token::*};
 
+use anyhow::Result;
+
 impl Parser<'_> {
-    pub fn parse_block(&mut self) -> Block {
-        self.expect(&TokenKind::OpenDelim(DelimToken::Brace));
+    pub fn parse_block(&mut self) -> Result<Block> {
+        self.expect(&TokenKind::OpenDelim(DelimToken::Brace))?;
 
         let mut stmts = Vec::new();
         while !self.consume(&TokenKind::CloseDelim(DelimToken::Brace)) {
-            let stmt = self.parse_stmt();
+            let stmt = self.parse_stmt()?;
             stmts.push(stmt);
         }
 
-        Block { stmts: stmts }
+        Ok(Block { stmts: stmts })
     }
 }
 
@@ -25,7 +27,7 @@ mod tests {
     macro_rules! test_block {
         ($input: expr, $expected: expr) => {
             let tokens = parse_all_token($input);
-            let result = Parser::new(&tokens).parse_block();
+            let result = Parser::new(&tokens).parse_block().unwrap();
 
             assert_eq!(result, $expected);
         };

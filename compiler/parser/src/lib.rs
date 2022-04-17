@@ -1,12 +1,15 @@
 pub mod lexer;
 
 pub mod block;
+pub mod error;
 pub mod expr;
 pub mod stmt;
 
-use crate::lexer::parse_all_token;
+use crate::{error::*, lexer::parse_all_token};
 use ast::{block::Block, expr::Expr, stmt::Stmt, token::*};
 use span::symbol::*;
+
+use anyhow::Result;
 
 struct TokenCursor<'a> {
     tokens: &'a Vec<Token>,
@@ -65,27 +68,31 @@ impl<'a> Parser<'a> {
 
     /// Expect the next token to be the given argument, and advance one token.
     /// If it is not, panic.
-    fn expect(&mut self, expected: &TokenKind) {
+    fn expect(&mut self, expected: &TokenKind) -> Result<()> {
         if &self.token.kind != expected {
-            panic!(
-                "expected {:?} but current token is {:?}",
-                expected, self.token.kind
-            );
+            let err = ParseError::UnexpectedToken {
+                expected: expected.clone(),
+                found: self.token.kind.clone(),
+            };
+
+            return Err(err.into());
         }
 
         self.bump();
+
+        Ok(())
     }
 
-    fn expect_ident(&mut self) -> Ident {
+    fn expect_ident(&mut self) -> Result<Ident> {
         let name = match &self.token.kind {
-            TokenKind::Ident(s) => *s,
-            k => panic!("expected identifier, but got {:?}", &k),
-        };
+            TokenKind::Ident(s) => Ok(*s),
+            k => Err(ParseError::NotFoundIdent { found: k.clone() }),
+        }?;
         let span = self.token.span;
 
         self.bump();
 
-        Ident { name, span }
+        Ok(Ident { name, span })
     }
 
     /// If the next token is equal to the given argument, advance one token and return `true`.
@@ -115,22 +122,24 @@ impl<'a> Parser<'a> {
     }
 }
 
-pub fn parse_block_from_source_str(src: &str) -> (Block, SymbolMap) {
+pub fn parse_block_from_source_str(src: &str) -> Result<(Block, SymbolMap)> {
     let tokens = parse_all_token(src);
+    let block = Parser::new(&tokens).parse_block()?;
 
-    (Parser::new(&tokens).parse_block(), tokens.map)
+    Ok((block, tokens.map))
 }
 
-pub fn parse_stmt_from_source_str(src: &str) -> (Stmt, SymbolMap) {
+pub fn parse_stmt_from_source_str(src: &str) -> Result<(Stmt, SymbolMap)> {
     let tokens = parse_all_token(src);
-
-    (Parser::new(&tokens).parse_stmt(), tokens.map)
+    let stmt = Parser::new(&tokens).parse_stmt()?;
+    Ok((stmt, tokens.map))
 }
 
-pub fn parse_expr_from_source_str(src: &str) -> (Expr, SymbolMap) {
+pub fn parse_expr_from_source_str(src: &str) -> Result<(Expr, SymbolMap)> {
     let tokens = parse_all_token(src);
+    let expr = Parser::new(&tokens).parse_expr()?;
 
-    (Parser::new(&tokens).parse_expr(), tokens.map)
+    Ok((expr, tokens.map))
 }
 
 #[cfg(test)]

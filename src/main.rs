@@ -1,3 +1,4 @@
+use anyhow::Result;
 use clap::{ArgEnum, Parser, Subcommand};
 
 use ast_lowering;
@@ -13,10 +14,10 @@ use resolve::ASTNameResolver;
 use thir_lowering;
 
 use std::{
-    error::Error,
     fs::File,
-    io::{self, BufReader, Read},
+    io::{BufReader, Read},
 };
+
 #[derive(Parser)]
 struct Args {
     #[clap(subcommand)]
@@ -45,7 +46,7 @@ enum PrintMode {
     LLVM,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     let args = Args::parse();
 
     match args.command {
@@ -57,12 +58,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::Print { mode, filename } => {
             let input = read_file(&filename)?;
             match mode {
-                PrintMode::Token => print_token(&input),
-                PrintMode::AST => print_ast(&input),
-                PrintMode::HIR => print_hir(&input),
-                PrintMode::THIR => print_thir(&input),
-                PrintMode::MIR => print_mir(&input),
-                PrintMode::LLVM => print_llvm(&input),
+                PrintMode::Token => print_token(&input)?,
+                PrintMode::AST => print_ast(&input)?,
+                PrintMode::HIR => print_hir(&input)?,
+                PrintMode::THIR => print_thir(&input)?,
+                PrintMode::MIR => print_mir(&input)?,
+                PrintMode::LLVM => print_llvm(&input)?,
             }
         }
     }
@@ -70,7 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn read_file(filename: &str) -> io::Result<String> {
+fn read_file(filename: &str) -> Result<String> {
     let file = File::open(filename)?;
     let mut buf_reader = BufReader::new(file);
     let mut input = String::new();
@@ -80,8 +81,8 @@ fn read_file(filename: &str) -> io::Result<String> {
     Ok(input)
 }
 
-fn run_input(input: &str) -> Result<(), Box<dyn Error>> {
-    let (ast, map) = parse_block_from_source_str(input);
+fn run_input(input: &str) -> Result<()> {
+    let (ast, map) = parse_block_from_source_str(input)?;
     let res = {
         let mut resolver = ASTNameResolver::new();
         resolver.resolve_block(&ast);
@@ -98,21 +99,23 @@ fn run_input(input: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn print_token(input: &str) {
+fn print_token(input: &str) -> Result<()> {
     let tokens = parse_all_token(input).tokens;
     for token in tokens {
         println!("{:?}", token);
     }
+    Ok(())
 }
 
-fn print_ast(input: &str) {
-    let (ast, _) = parse_block_from_source_str(input);
+fn print_ast(input: &str) -> Result<()> {
+    let (ast, _) = parse_block_from_source_str(input)?;
 
     println!("{:#?}", ast);
+    Ok(())
 }
 
-fn print_hir(input: &str) {
-    let (ast, map) = parse_block_from_source_str(input);
+fn print_hir(input: &str) -> Result<()> {
+    let (ast, map) = parse_block_from_source_str(input)?;
     let res = {
         let mut resolver = ASTNameResolver::new();
         resolver.resolve_block(&ast);
@@ -122,10 +125,11 @@ fn print_hir(input: &str) {
 
     let hir_print = hir::pp::print_block(&map, &hir);
     println!("{}", hir_print);
+    Ok(())
 }
 
-fn print_thir(input: &str) {
-    let (ast, _) = parse_block_from_source_str(input);
+fn print_thir(input: &str) -> Result<()> {
+    let (ast, _) = parse_block_from_source_str(input)?;
     let res = {
         let mut resolver = ASTNameResolver::new();
         resolver.resolve_block(&ast);
@@ -134,10 +138,11 @@ fn print_thir(input: &str) {
     let hir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
     let thir = hir_lowering::LoweringContext::new().lower_block(&hir);
     println!("{:#?}", thir);
+    Ok(())
 }
 
-fn print_mir(input: &str) {
-    let (ast, map) = parse_block_from_source_str(input);
+fn print_mir(input: &str) -> Result<()> {
+    let (ast, map) = parse_block_from_source_str(input)?;
     let res = {
         let mut resolver = ASTNameResolver::new();
         resolver.resolve_block(&ast);
@@ -153,10 +158,11 @@ fn print_mir(input: &str) {
 
     let mir_string = pretty::ir_to_string(&mir);
     println!("{}", mir_string);
+    Ok(())
 }
 
-fn print_llvm(input: &str) {
-    let (ast, map) = parse_block_from_source_str(input);
+fn print_llvm(input: &str) -> Result<()> {
+    let (ast, map) = parse_block_from_source_str(input)?;
     let res = {
         let mut resolver = ASTNameResolver::new();
         resolver.resolve_block(&ast);
@@ -170,6 +176,7 @@ fn print_llvm(input: &str) {
         ctx.build()
     };
     print!("{}", codegen_string(mir));
+    Ok(())
 }
 
 // fn print_llvm(input: &str) {

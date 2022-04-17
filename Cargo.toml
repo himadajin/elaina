@@ -39,4 +39,5 @@ thir = {path = "compiler/thir" }
 thir_lowering = { path = "compiler/thir_lowering" }
 ty = { path = "compiler/ty" }
 
+anyhow = "1.0.56"
 clap = { version = "3.0.14", features = ["derive"] }

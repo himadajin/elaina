@@ -4,17 +4,19 @@ use ast::stmt::*;
 use ast::token::*;
 use span::symbol::Kw;
 
+use anyhow::Result;
+
 impl Parser<'_> {
-    pub fn parse_stmt(&mut self) -> Stmt {
+    pub fn parse_stmt(&mut self) -> Result<Stmt> {
         // Try parse let statement.
         if self.consume_keyword(Kw::Let) {
-            return self.parse_let_stmt();
+            return Ok(self.parse_let_stmt()?);
         }
 
         // Try parse println statement.
         // This is temporary and will be removed in the future.
         if self.consume_keyword(Kw::Println) {
-            return self.parse_println_stmt();
+            return Ok(self.parse_println_stmt()?);
         }
 
         self.parse_expr_stmt()
@@ -22,19 +24,19 @@ impl Parser<'_> {
 
     /// Parse let statement
     /// Expect `let` token is already parsed
-    fn parse_let_stmt(&mut self) -> Stmt {
-        let ident = self.expect_ident();
+    fn parse_let_stmt(&mut self) -> Result<Stmt> {
+        let ident = self.expect_ident()?;
 
         let ty = if self.consume(&TokenKind::Colon) {
-            let ty_ident = self.expect_ident();
+            let ty_ident = self.expect_ident()?;
             Some(ty_ident)
         } else {
             None
         };
 
-        self.expect(&TokenKind::Eq);
-        let init = self.parse_expr();
-        self.expect(&TokenKind::Semi);
+        self.expect(&TokenKind::Eq)?;
+        let init = self.parse_expr()?;
+        self.expect(&TokenKind::Semi)?;
 
         let local = Stmt::Local {
             ident: ident,
@@ -42,32 +44,30 @@ impl Parser<'_> {
             init: init,
         };
 
-        local
+        Ok(local)
     }
 
     /// This function is temporary and will be removed in the future.
-    fn parse_println_stmt(&mut self) -> Stmt {
-        self.expect(&TokenKind::OpenDelim(DelimToken::Paren));
-        let expr = self.parse_expr();
-        self.expect(&TokenKind::CloseDelim(DelimToken::Paren));
-        self.expect(&TokenKind::Semi);
+    fn parse_println_stmt(&mut self) -> Result<Stmt> {
+        self.expect(&TokenKind::OpenDelim(DelimToken::Paren))?;
+        let expr = self.parse_expr()?;
+        self.expect(&TokenKind::CloseDelim(DelimToken::Paren))?;
+        self.expect(&TokenKind::Semi)?;
 
-        let stmt = Stmt::Println(expr);
-
-        stmt
+        Ok(Stmt::Println(expr))
     }
 
-    fn parse_expr_stmt(&mut self) -> Stmt {
-        if let Some(expr) = self.parse_expr_with_block() {
-            return Stmt::Expr(expr);
+    fn parse_expr_stmt(&mut self) -> Result<Stmt> {
+        if let Some(expr) = self.parse_expr_with_block()? {
+            return Ok(Stmt::Expr(expr));
         }
 
-        let expr = self.parse_expr();
+        let expr = self.parse_expr()?;
         if self.consume(&TokenKind::Semi) {
-            return Stmt::Semi(expr);
+            return Ok(Stmt::Semi(expr));
         }
 
-        Stmt::Expr(expr)
+        Ok(Stmt::Expr(expr))
     }
 }
 
@@ -81,7 +81,7 @@ mod tests {
     macro_rules! test_stmt {
         ($input: expr, $expected: expr) => {
             let tokens = parse_all_token($input);
-            let result = Parser::new(&tokens).parse_stmt();
+            let result = Parser::new(&tokens).parse_stmt().unwrap();
 
             assert_eq!(result, $expected);
         };

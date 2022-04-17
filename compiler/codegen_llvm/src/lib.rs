@@ -1,6 +1,7 @@
 use mir::{constant::*, stmt::*, *};
 use ty::*;
 
+use anyhow;
 use inkwell::{
     basic_block::BasicBlock, builder::Builder, context::Context, module::Module, values::*,
     AddressSpace, IntPredicate,
@@ -8,7 +9,6 @@ use inkwell::{
 use typed_index_collections::TiVec;
 
 use std::collections::HashMap;
-use std::error::Error;
 
 pub struct CodegenContext<'ctx> {
     context: &'ctx Context,
@@ -296,10 +296,13 @@ pub fn codegen_string(body: Body) -> String {
     module.print_to_string().to_string()
 }
 
-pub fn codegen_and_execute(body: Body) -> Result<i32, Box<dyn Error>> {
+pub fn codegen_and_execute(body: Body) -> anyhow::Result<i32> {
     let context = Context::create();
     let module = CodegenContext::new(&context).codegen(body);
-    let engine = module.create_jit_execution_engine(inkwell::OptimizationLevel::None)?;
+    let engine = module
+        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
+        .map_err(|err| anyhow::anyhow!("{}", err))?;
+
     let main_fn = unsafe { engine.get_function::<unsafe extern "C" fn() -> i32>("main") }?;
     let result = unsafe { main_fn.call() };
 

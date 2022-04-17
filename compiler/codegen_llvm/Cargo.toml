@@ -9,5 +9,6 @@ edition = "2021"
 mir = { path = "../mir" }
 ty = { path = "../ty" }
 
+anyhow = "1.0.56"
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm13-0"] }
 typed-index-collections = "3.0"
