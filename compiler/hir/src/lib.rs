@@ -10,6 +10,30 @@ use ast::{
 use span::symbol::Symbol;
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct Item {
+    pub res: DefId,
+    pub kind: ItemKind,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ItemKind {
+    Fn(Box<Fn>),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Fn {
+    pub inputs: Vec<Param>,
+    pub output: Option<ast::ty::Ty>,
+    pub body: Block,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Param {
+    pub ty: ast::ty::Ty,
+    pub res: DefId,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct Path {
     pub res: DefId,
 }
