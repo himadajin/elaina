@@ -144,7 +144,14 @@ impl Cursor<'_> {
                 }
                 _ => TokenKind::Gt,
             },
-            '-' => TokenKind::Minus,
+            '-' => match self.first() {
+                '>' => {
+                    self.bump();
+                    TokenKind::Arrow
+                }
+                _ => TokenKind::Minus,
+            },
+
             '+' => TokenKind::Plus,
             '*' => TokenKind::Star,
             '/' => TokenKind::Slash,

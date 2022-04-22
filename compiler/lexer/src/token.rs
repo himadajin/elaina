@@ -40,6 +40,9 @@ pub enum TokenKind {
     /// `}`
     CloseBrace,
 
+    /// `->`
+    Arrow,
+
     /// `=`
     Eq,
 

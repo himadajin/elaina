@@ -60,6 +60,9 @@ pub enum TokenKind {
     /// `:`
     Colon,
 
+    /// `->`
+    Arrow,
+
     /// Open delimiter: `(`, `{`
     OpenDelim(DelimToken),
 

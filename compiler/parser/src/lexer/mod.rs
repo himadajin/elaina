@@ -85,6 +85,7 @@ impl<'a> Lexer<'a> {
             token::TokenKind::CloseParen => TokenKind::CloseDelim(DelimToken::Paren),
             token::TokenKind::OpenBrace => TokenKind::OpenDelim(DelimToken::Brace),
             token::TokenKind::CloseBrace => TokenKind::CloseDelim(DelimToken::Brace),
+            token::TokenKind::Arrow => TokenKind::Arrow,
             token::TokenKind::Eq => TokenKind::Eq,
             token::TokenKind::Bang => todo!(),
 
@@ -215,10 +216,7 @@ mod tests {
         );
         test_lexer!(
             "if",
-            vec![Token::new(
-                TokenKind::Ident(Kw::If.into()),
-                Span::new(0, 2)
-            )]
+            vec![Token::new(TokenKind::Ident(Kw::If.into()), Span::new(0, 2))]
         );
         test_lexer!(
             "else",
