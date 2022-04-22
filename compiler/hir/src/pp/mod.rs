@@ -1,11 +1,20 @@
 mod block;
 mod expr;
+mod item;
 mod stmt;
 
 use crate::*;
 
 use printer::*;
 use span::symbol::*;
+
+pub fn print_items(map: &SymbolMap, items: &[Item]) -> String {
+    let mut p = HIRPrinter::new(map);
+
+    p.print_items(items);
+
+    p.finish()
+}
 
 pub fn print_block(map: &SymbolMap, block: &Block) -> String {
     let mut p = HIRPrinter::new(map);

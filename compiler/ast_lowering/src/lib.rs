@@ -1,6 +1,7 @@
 use ast::{
     block::*,
     expr::*,
+    item::*,
     lit::*,
     op::{BinOp, UnOp},
     stmt::*,
@@ -20,6 +21,35 @@ pub struct LoweringContext {
 impl LoweringContext {
     pub fn new(name_res: HashMap<Span, DefId>) -> Self {
         LoweringContext { name_res }
+    }
+
+    pub fn lower_items(&mut self, items: &[Item]) -> Vec<hir::Item> {
+        items.iter().map(|item| self.lower_item(item)).collect()
+    }
+
+    pub fn lower_item(&mut self, item: &Item) -> hir::Item {
+        let res = self.name_res[&item.ident.span];
+        let kind = match &item.kind {
+            ItemKind::Fn(fun) => {
+                let inputs = fun.inputs.iter().map(|p| self.lower_param(p)).collect();
+                let body = self.lower_block(&fun.body);
+                hir::ItemKind::Fn(Box::new(hir::Fn {
+                    inputs,
+                    output: fun.output.clone(),
+                    body,
+                }))
+            }
+        };
+
+        hir::Item { res, kind }
+    }
+
+    pub fn lower_param(&mut self, param: &Param) -> hir::Param {
+        let res = self.name_res[&param.ident.span];
+        hir::Param {
+            ty: param.ty.clone(),
+            res,
+        }
     }
 
     pub fn lower_block(&mut self, body: &Block) -> hir::Block {

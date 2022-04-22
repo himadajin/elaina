@@ -8,8 +8,8 @@ use hir_lowering;
 #[allow(unused_imports)]
 use mir::pretty;
 use parser::lexer::parse_all_token;
-use parser::{self, parse_block_from_source_str};
-use resolve::ASTNameResolver;
+use parser::{self, parse_block_from_source_str, parse_items};
+use resolve::{resolve_items, ASTNameResolver};
 #[allow(unused_imports)]
 use thir_lowering;
 
@@ -115,15 +115,11 @@ fn print_ast(input: &str) -> Result<()> {
 }
 
 fn print_hir(input: &str) -> Result<()> {
-    let (ast, map) = parse_block_from_source_str(input)?;
-    let res = {
-        let mut resolver = ASTNameResolver::new();
-        resolver.resolve_block(&ast);
-        resolver.finish()
-    };
-    let hir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
+    let (ast, map) = parse_items(input)?;
+    let res = resolve_items(ast.as_slice());
+    let hir = ast_lowering::LoweringContext::new(res).lower_items(ast.as_slice());
 
-    let hir_print = hir::pp::print_block(&map, &hir);
+    let hir_print = hir::pp::print_items(&map, hir.as_slice());
     println!("{}", hir_print);
     Ok(())
 }
@@ -178,19 +174,3 @@ fn print_llvm(input: &str) -> Result<()> {
     print!("{}", codegen_string(mir));
     Ok(())
 }
-
-// fn print_llvm(input: &str) {
-//     let (ast, map) = parse_block_from_source_str(input);
-//     let res = {
-//         let mut resolver = ASTNameResolver::new();
-//         resolver.resolve_block(&ast);
-//         resolver.finish()
-//     };
-//     let thir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-//     let ir = {
-//         let mut ctx = thir_lowering::LoweringContext::new(&map);
-//         ctx.lower_main_block(&thir);
-//         ctx.build()
-//     };
-//     print!("{}", codegen_string(ir));
-// }

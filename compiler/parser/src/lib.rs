@@ -8,7 +8,7 @@ pub mod stmt;
 pub mod ty;
 
 use crate::{error::*, lexer::parse_all_token};
-use ast::{block::Block, expr::Expr, stmt::Stmt, token::*};
+use ast::{block::Block, expr::Expr, item::Item, stmt::Stmt, token::*};
 use span::symbol::*;
 
 use anyhow::Result;
@@ -122,6 +122,13 @@ impl<'a> Parser<'a> {
 
         false
     }
+}
+
+pub fn parse_items(src: &str) -> Result<(Vec<Item>, SymbolMap)> {
+    let tokens = parse_all_token(src);
+    let items = Parser::new(&tokens).parse_items()?;
+
+    Ok((items, tokens.map))
 }
 
 pub fn parse_block_from_source_str(src: &str) -> Result<(Block, SymbolMap)> {
