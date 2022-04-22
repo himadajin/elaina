@@ -2,6 +2,7 @@ use crate::{block::Block, stmt::*, ty::Ty};
 
 use span::symbol::{Ident, Symbol};
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct Item {
     pub ident: Ident,
     pub kind: ItemKind,
@@ -25,16 +26,19 @@ impl Item {
     }
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub enum ItemKind {
     Fn(Box<Fn>),
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct Fn {
     pub inputs: Vec<Param>,
     pub output: Option<Ty>,
     pub body: Block,
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct Param {
     pub ty: Ty,
     pub ident: Ident,
