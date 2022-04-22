@@ -60,6 +60,12 @@ pub enum TokenKind {
     /// `:`
     Colon,
 
+    // `.`
+    Dot,
+
+    // `,`
+    Comma,
+
     /// `->`
     Arrow,
 

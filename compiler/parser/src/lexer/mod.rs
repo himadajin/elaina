@@ -81,6 +81,8 @@ impl<'a> Lexer<'a> {
             }
             token::TokenKind::Semi => TokenKind::Semi,
             token::TokenKind::Colon => TokenKind::Colon,
+            token::TokenKind::Dot => TokenKind::Dot,
+            token::TokenKind::Comma => TokenKind::Comma,
             token::TokenKind::OpenParen => TokenKind::OpenDelim(DelimToken::Paren),
             token::TokenKind::CloseParen => TokenKind::CloseDelim(DelimToken::Paren),
             token::TokenKind::OpenBrace => TokenKind::OpenDelim(DelimToken::Brace),
@@ -171,6 +173,10 @@ mod tests {
         test_lexer!(">=", vec![Token::new(TokenKind::Ge, Span::new(0, 2))]);
         test_lexer!(">", vec![Token::new(TokenKind::Gt, Span::new(0, 1))]);
         test_lexer!(";", vec![Token::new(TokenKind::Semi, Span::new(0, 1))]);
+        test_lexer!(":", vec![Token::new(TokenKind::Colon, Span::new(0, 1))]);
+        test_lexer!(".", vec![Token::new(TokenKind::Dot, Span::new(0, 1))]);
+        test_lexer!(",", vec![Token::new(TokenKind::Comma, Span::new(0, 1))]);
+
     }
 
     #[test]

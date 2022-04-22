@@ -21,6 +21,8 @@ fn paren() {
 fn symbol() {
     test_lexer!(";", vec![Token::new(TokenKind::Semi, 1)]);
     test_lexer!(":", vec![Token::new(TokenKind::Colon, 1)]);
+    test_lexer!(".", vec![Token::new(TokenKind::Dot, 1)]);
+    test_lexer!(",", vec![Token::new(TokenKind::Comma, 1)]);
 
     test_lexer!("->", vec![Token::new(TokenKind::Arrow, 2)]);
     test_lexer!("=", vec![Token::new(TokenKind::Eq, 1)]);

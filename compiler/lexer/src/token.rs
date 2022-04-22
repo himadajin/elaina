@@ -20,13 +20,21 @@ pub enum TokenKind {
     Ident,
 
     /// Literal.
-    Literal { kind: LiteralKind },
+    Literal {
+        kind: LiteralKind,
+    },
 
     /// `;`
     Semi,
 
     /// `:`
     Colon,
+
+    // `.`
+    Dot,
+
+    // `,`
+    Comma,
 
     /// `(`
     OpenParen,

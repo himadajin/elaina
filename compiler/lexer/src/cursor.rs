@@ -110,6 +110,8 @@ impl Cursor<'_> {
 
             ';' => TokenKind::Semi,
             ':' => TokenKind::Colon,
+            '.' => TokenKind::Dot,
+            ',' => TokenKind::Comma,
             '(' => TokenKind::OpenParen,
             ')' => TokenKind::CloseParen,
             '{' => TokenKind::OpenBrace,
