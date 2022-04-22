@@ -2,8 +2,6 @@ use super::HIRPrinter;
 use crate::*;
 
 use printer::Delim;
-use ty;
-
 impl HIRPrinter<'_> {
     pub fn print_stmt(&mut self, stmt: &Stmt) {
         match &stmt {

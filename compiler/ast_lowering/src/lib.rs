@@ -8,26 +8,18 @@ use ast::{
     Path,
 };
 use hir::{self, def_id::DefId};
-use span::{
-    span::Span,
-    symbol::{Ident, Kw, Symbol},
-};
-use ty;
+use span::{span::Span, symbol::Ident};
 
 use std::collections::HashMap;
 
 #[allow(dead_code)]
 pub struct LoweringContext {
-    ty_ctxt: HashMap<Symbol, ty::Ty>,
     name_res: HashMap<Span, DefId>,
 }
 
 impl LoweringContext {
     pub fn new(name_res: HashMap<Span, DefId>) -> Self {
-        LoweringContext {
-            ty_ctxt: HashMap::new(),
-            name_res,
-        }
+        LoweringContext { name_res }
     }
 
     pub fn lower_block(&mut self, body: &Block) -> hir::Block {
@@ -36,22 +28,14 @@ impl LoweringContext {
     }
 
     pub fn lower_stmts(&mut self, mut ast_stmts: &[Stmt]) -> (Vec<hir::Stmt>, Option<hir::Expr>) {
-        fn ty_to_ident(ty: Ty) -> Ident {
-            match ty.kind {
-                TyKind::Path(path) => path.ident,
-            }
-        }
-
         let mut stmts = Vec::new();
         let mut expr = None;
 
         while let [s, tail @ ..] = ast_stmts {
             match s {
-                Stmt::Local { ident, ty, init } => stmts.push(self.lower_stmt_local(
-                    ident.clone(),
-                    ty.clone().map(|t| ty_to_ident(t)),
-                    &init,
-                )),
+                Stmt::Local { ident, ty, init } => {
+                    stmts.push(self.lower_stmt_local(ident.clone(), ty.clone(), &init))
+                }
                 Stmt::Expr(e) => {
                     let e = self.lower_expr(e);
                     if tail.is_empty() {
@@ -69,7 +53,7 @@ impl LoweringContext {
         (stmts, expr)
     }
 
-    fn lower_stmt_local(&mut self, ident: Ident, ty: Option<Ident>, init: &Expr) -> hir::Stmt {
+    fn lower_stmt_local(&mut self, ident: Ident, ty: Option<Ty>, init: &Expr) -> hir::Stmt {
         let pat = {
             let res = self.name_res[&ident.span];
             hir::Pat {
@@ -79,31 +63,9 @@ impl LoweringContext {
                 },
             }
         };
-
-        let ty = {
-            let ty_ident = ty.expect("error: type annotation is required").name;
-            if ty_ident == Kw::I32.into() {
-                ty::Ty {
-                    kind: ty::TyKind::Int(ty::IntTy::I32),
-                }
-            } else if ty_ident == Kw::Bool.into() {
-                ty::Ty {
-                    kind: ty::TyKind::Bool,
-                }
-            } else {
-                panic!("Error: unrecognized type")
-            }
-        };
-
-        self.ty_ctxt.insert(ident.name.clone(), ty.clone());
-
         let init = self.lower_expr(init);
 
-        hir::Stmt::Local {
-            pat,
-            ty: Some(ty),
-            init,
-        }
+        hir::Stmt::Local { pat, ty, init }
     }
 
     pub fn lower_expr(&mut self, expr: &Expr) -> hir::Expr {
@@ -221,19 +183,12 @@ impl LoweringContext {
                     hir::Lit::Int(lit_int)
                 };
 
-                let ty = ty::Ty {
-                    kind: ty::TyKind::Int(ty::IntTy::I32),
-                };
-
-                hir::Expr::Lit { lit, ty }
+                hir::Expr::Lit { lit }
             }
             LitKind::Bool(value) => {
                 let lit = hir::Lit::Bool { value: value };
-                let ty = ty::Ty {
-                    kind: ty::TyKind::Bool,
-                };
 
-                hir::Expr::Lit { lit, ty }
+                hir::Expr::Lit { lit }
             }
         }
     }
@@ -250,13 +205,21 @@ impl LoweringContext {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ast::ty;
     use parser::{parse_block_from_source_str, parse_expr_from_source_str};
     use resolve::ASTNameResolver;
-    use span::symbol::Symbol;
-    use ty;
+    use span::{
+        span::DUMMY_SP,
+        symbol::{Kw, Symbol},
+    };
 
     const I32_TY: ty::Ty = ty::Ty {
-        kind: ty::TyKind::Int(ty::IntTy::I32),
+        kind: ty::TyKind::Path(Path {
+            ident: Ident {
+                name: Kw::I32.as_symbol(),
+                span: DUMMY_SP,
+            },
+        }),
     };
 
     #[test]
@@ -278,7 +241,6 @@ mod tests {
                 ty: Some(I32_TY.clone()),
                 init: hir::Expr::Lit {
                     lit: hir::Lit::Int(hir::LitInt { value: 0 }),
-                    ty: I32_TY.clone(),
                 },
             }],
             expr: Some(hir::Expr::Path {
@@ -301,7 +263,7 @@ mod tests {
     fn lower_expr_binary() {
         let hir_lit_int = |value| {
             let lit = hir::Lit::Int(hir::LitInt { value });
-            hir::Expr::Lit { lit, ty: I32_TY }
+            hir::Expr::Lit { lit }
         };
 
         let hir_bin = |op, lhs, rhs| {
@@ -379,7 +341,6 @@ mod tests {
             op: UnOp::Neg,
             expr: Box::new(hir::Expr::Lit {
                 lit: hir::Lit::Int(hir::LitInt { value: 1 }),
-                ty: I32_TY.clone(),
             }),
         };
         let res = {

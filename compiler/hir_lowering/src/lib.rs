@@ -1,12 +1,14 @@
 use ast::op::{BinOp, UnOp};
 use hir::{self, def_id::DefId};
+use span::symbol::Kw;
 use thir::*;
 use ty::*;
 
+use core::panic;
 use std::collections::HashMap;
 
 pub struct LoweringContext {
-    ty_ctxt: HashMap<DefId, Ty>,
+    ty_ctxt: HashMap<DefId, ty::Ty>,
 }
 
 impl LoweringContext {
@@ -16,14 +18,23 @@ impl LoweringContext {
         }
     }
 
-    pub fn lower_lit(&self, lit: &hir::Lit) -> Lit {
-        match lit {
-            hir::Lit::Bool { value } => Lit::Bool { value: *value },
-            hir::Lit::Int(value) => {
-                let value = LitInt { value: value.value };
-                Lit::Int(value)
-            }
-        }
+    pub fn lower_lit(&self, lit: &hir::Lit) -> Expr {
+        let (lit, ty) = match lit {
+            hir::Lit::Bool { value } => (
+                Lit::Bool { value: *value },
+                ty::Ty {
+                    kind: ty::TyKind::Bool,
+                },
+            ),
+            hir::Lit::Int(value) => (
+                Lit::Int(LitInt { value: value.value }),
+                ty::Ty {
+                    kind: ty::TyKind::Int(ty::IntTy::I32),
+                },
+            ),
+        };
+
+        Expr::Lit { lit, ty }
     }
 
     pub fn lower_pat(&self, pat: &hir::Pat, ty: ty::Ty) -> Pat {
@@ -126,10 +137,7 @@ impl LoweringContext {
 
                 Expr::Assign { lhs, rhs, ty }
             }
-            hir::Expr::Lit { lit, ty } => Expr::Lit {
-                lit: self.lower_lit(lit),
-                ty: ty.clone(),
-            },
+            hir::Expr::Lit { lit } => self.lower_lit(lit),
             hir::Expr::Path { path } => {
                 let def = path.res;
                 let ty = self.ty_ctxt[&def].clone();
@@ -147,7 +155,10 @@ impl LoweringContext {
                 let def = match pat.kind {
                     hir::PatKind::Binding { res, .. } => res,
                 };
-                let ty = ty.clone().expect("Type annotation is required");
+                let ty = ty
+                    .as_ref()
+                    .map(|ty| lower_ty(ty))
+                    .expect("Type annotation is required.");
                 self.ty_ctxt.insert(def, ty.clone());
 
                 let pat = self.lower_pat(pat, ty.clone());
@@ -170,5 +181,22 @@ impl LoweringContext {
         );
 
         Block { stmts, expr, ty }
+    }
+}
+
+pub fn lower_ty(ty: &ast::ty::Ty) -> ty::Ty {
+    match &ty.kind {
+        ast::ty::TyKind::Path(path) => {
+            let name = path.ident.name;
+            if name == Kw::I32.as_symbol() {
+                return ty::Ty {
+                    kind: TyKind::Int(ty::IntTy::I32),
+                };
+            } else if name == Kw::Bool.as_symbol() {
+                return ty::Ty { kind: TyKind::Bool };
+            }
+
+            panic!("Undefined type given.");
+        }
     }
 }

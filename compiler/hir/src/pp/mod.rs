@@ -6,7 +6,6 @@ use crate::*;
 
 use printer::*;
 use span::symbol::*;
-use ty;
 
 pub fn print_block(map: &SymbolMap, block: &Block) -> String {
     let mut p = HIRPrinter::new(map);
@@ -49,7 +48,11 @@ impl<'a> HIRPrinter<'a> {
     }
 
     fn print_ty(&mut self, ty: &ty::Ty) {
-        let s = format!("{:?}", ty);
-        self.p.word(s);
+        match &ty.kind {
+            ty::TyKind::Path(path) => {
+                let name = self.map.get(path.ident.name).to_string();
+                self.p.word(name);
+            }
+        }
     }
 }

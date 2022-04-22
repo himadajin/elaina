@@ -3,9 +3,11 @@ pub mod pp;
 
 use crate::def_id::DefId;
 
-use ast::op::{BinOp, UnOp};
+use ast::{
+    op::{BinOp, UnOp},
+    ty,
+};
 use span::symbol::Symbol;
-use ty;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Path {
@@ -33,7 +35,7 @@ pub enum Stmt {
     /// Local represents a let statement: `let <ident> = <expr>;`
     Local {
         pat: Pat,
-        ty: Option<ty::Ty>,
+        ty: Option<ast::ty::Ty>,
         init: Expr,
     },
 
@@ -83,7 +85,7 @@ pub enum Expr {
     Assign { lhs: Box<Expr>, rhs: Box<Expr> },
 
     /// A literal in place of an expression: `1`
-    Lit { lit: Lit, ty: ty::Ty },
+    Lit { lit: Lit },
 
     /// A path such as variables, functions, etx: `foo`, `bar`
     Path { path: Path },
