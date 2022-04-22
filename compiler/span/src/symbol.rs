@@ -131,6 +131,8 @@ keywords![
     False: "false",
     Println:"println",
 
+    Fn: "fn",
+
     Loop: "loop",
     Break: "break",
     Continue: "continue",
@@ -153,6 +155,8 @@ mod tests {
         assert_eq!(Kw::True.as_symbol(), m.insert("true"));
         assert_eq!(Kw::False.as_symbol(), m.insert("false"));
         assert_eq!(Kw::Println.as_symbol(), m.insert("println"));
+
+        assert_eq!(Kw::Println.as_symbol(), m.insert("fn"));
 
         assert_eq!(Kw::Loop.as_symbol(), m.insert("loop"));
         assert_eq!(Kw::Break.as_symbol(), m.insert("break"));
