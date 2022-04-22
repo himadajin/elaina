@@ -1,11 +1,19 @@
 use std::collections::HashMap;
 
-use ast::{block::Block, expr::*, stmt::Stmt};
+use ast::{block::Block, expr::*, item::*, stmt::Stmt};
 use hir::def_id::{DefId, DefIdGen};
 use span::{
     span::Span,
     symbol::{Ident, Symbol},
 };
+
+pub fn resolve_items(items: &[Item]) -> HashMap<Span, DefId> {
+    let mut resolver = ASTNameResolver::new();
+    resolver.resolve_items_decl(items);
+    resolver.resolve_items(items);
+
+    resolver.finish()
+}
 
 pub struct ASTNameResolver {
     def_gen: DefIdGen,
@@ -113,5 +121,35 @@ impl ASTNameResolver {
             }
             Stmt::Expr(expr) | Stmt::Semi(expr) | Stmt::Println(expr) => self.resolve_expr(expr),
         }
+    }
+
+    pub fn resolve_items_decl(&mut self, items: &[Item]) {
+        self.with_new_scope(|this| {
+            for item in items {
+                let ident = &item.ident;
+                this.new_decl(ident.name, ident.span);
+            }
+        })
+    }
+
+    pub fn resolve_items(&mut self, items: &[Item]) {
+        self.with_new_scope(|this| {
+            for item in items {
+                match &item.kind {
+                    ItemKind::Fn(fun) => this.resolve_item_fn(fun.as_ref()),
+                }
+            }
+        })
+    }
+
+    pub fn resolve_item_fn(&mut self, fun: &Fn) {
+        self.with_new_scope(|this| {
+            for param in &fun.inputs {
+                let ident = &param.ident;
+                this.new_decl(ident.name, ident.span);
+            }
+
+            this.resolve_block(&fun.body);
+        })
     }
 }
