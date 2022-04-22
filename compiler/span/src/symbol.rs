@@ -156,7 +156,7 @@ mod tests {
         assert_eq!(Kw::False.as_symbol(), m.insert("false"));
         assert_eq!(Kw::Println.as_symbol(), m.insert("println"));
 
-        assert_eq!(Kw::Println.as_symbol(), m.insert("fn"));
+        assert_eq!(Kw::Fn.as_symbol(), m.insert("fn"));
 
         assert_eq!(Kw::Loop.as_symbol(), m.insert("loop"));
         assert_eq!(Kw::Break.as_symbol(), m.insert("break"));
