@@ -9,6 +9,17 @@ use span::symbol::*;
 use anyhow::{Context, Result};
 
 impl Parser<'_> {
+    pub fn parse_items(&mut self) -> Result<Vec<Item>> {
+        let mut items = Vec::new();
+
+        while !(self.token.kind == TokenKind::Eof) {
+            let item = self.parse_item()?;
+            items.push(item);
+        }
+
+        Ok(items)
+    }
+
     pub fn parse_item(&mut self) -> Result<Item> {
         if self.consume_keyword(Kw::Fn) {
             let ident = self
@@ -82,6 +93,16 @@ mod tests {
             let result = Parser::new(&tokens).parse_item().unwrap();
 
             assert_eq!(result, $expected);
+        };
+    }
+
+    macro_rules! test_items {
+        ($input: expr, $expected: expr) => {
+            let expected: Vec<Item> = $expected.into();
+            let tokens = parse_all_token($input);
+            let result = Parser::new(&tokens).parse_items().unwrap();
+
+            assert_eq!(result, expected);
         };
     }
 
@@ -160,6 +181,19 @@ mod tests {
                 Some(Ty::path_with_dummy_span(Kw::I32)),
                 []
             )
+        );
+    }
+
+    #[test]
+    fn items() {
+        test_items!(
+            r"
+fn f() {} 
+fn g() {}",
+            [
+                Item::fn_dummy(Symbol::ident_nth(0), [], None, []),
+                Item::fn_dummy(Symbol::ident_nth(1), [], None, [])
+            ]
         );
     }
 }
