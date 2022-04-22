@@ -3,6 +3,7 @@ pub mod lexer;
 pub mod block;
 pub mod error;
 pub mod expr;
+pub mod item;
 pub mod stmt;
 pub mod ty;
 
@@ -72,7 +73,7 @@ impl<'a> Parser<'a> {
     fn expect(&mut self, expected: &TokenKind) -> Result<()> {
         if &self.token.kind != expected {
             let err = ParseError::UnexpectedToken {
-                expected: expected.clone(),
+                expected: vec![expected.clone()],
                 found: self.token.kind.clone(),
             };
 

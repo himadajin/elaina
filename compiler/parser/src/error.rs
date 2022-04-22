@@ -6,7 +6,7 @@ use thiserror::Error;
 pub enum ParseError {
     #[error("SyntaxError: expected {expected:?}, found {found:?}")]
     UnexpectedToken {
-        expected: TokenKind,
+        expected: Vec<TokenKind>,
         found: TokenKind,
     },
 
