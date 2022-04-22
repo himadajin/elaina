@@ -38,10 +38,6 @@ pub enum Expr {
     /// A literal in place of an expression: `1`
     Lit { lit: Lit },
 
-    /// A identifier such as variables, functions, etx: `foo`, `bar`
-    /// This will be deleted in the near future.
-    Ident { ident: Symbol },
-
     /// A path such as variables, functions, etx: `foo`, `bar`
     Path(Path),
 }

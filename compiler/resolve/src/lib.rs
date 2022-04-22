@@ -93,7 +93,6 @@ impl ASTNameResolver {
                 self.resolve_expr(lhs);
             }
             Expr::Lit { .. } => {}
-            Expr::Ident { .. } => todo!(),
             Expr::Path(path) => self.resolve_ident(&path.ident),
         }
     }
@@ -116,4 +115,3 @@ impl ASTNameResolver {
         }
     }
 }
-
