@@ -37,11 +37,8 @@ impl HIRPrinter<'_> {
         self.p.word("fn");
         self.p.space();
 
-        let name = self.map.get(name).to_string();
-        self.p.word(name);
-        self.p.popen(Delim::Paren);
-        self.print_def(&res);
-        self.p.pclose(Delim::Paren);
+        self.print_ident(res, name);
+
         self.p.space();
         self.print_fn_params(inputs.as_slice());
 

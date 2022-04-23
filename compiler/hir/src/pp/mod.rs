@@ -42,13 +42,17 @@ impl<'a> HIRPrinter<'a> {
     fn print_pat(&mut self, pat: &Pat) {
         match pat.kind {
             PatKind::Binding { res, name } => {
-                let name = self.map.get(name).to_string();
-                self.p.word(name);
-                self.p.popen(Delim::Paren);
-                self.print_def(&res);
-                self.p.pclose(Delim::Paren);
+                self.print_ident(res, name);
             }
         }
+    }
+
+    fn print_ident(&mut self, res: DefId, name: Symbol) {
+        let name = self.map.get(name).to_string();
+        self.p.word(name);
+        self.p.popen(Delim::Paren);
+        self.print_def(&res);
+        self.p.pclose(Delim::Paren);
     }
 
     fn print_def(&mut self, def: &DefId) {
