@@ -1,16 +1,16 @@
 use ast::*;
-use hir::{self, res::DefId};
+use hir::{self, res::*};
 use span::*;
 
 use std::collections::HashMap;
 
 #[allow(dead_code)]
 pub struct LoweringCtx {
-    name_res: HashMap<Span, DefId>,
+    name_res: HashMap<Span, Res>,
 }
 
 impl LoweringCtx {
-    pub fn new(name_res: HashMap<Span, DefId>) -> Self {
+    pub fn new(name_res: HashMap<Span, Res>) -> Self {
         LoweringCtx { name_res }
     }
 
@@ -253,7 +253,10 @@ mod tests {
             stmts: vec![hir::Stmt::Local {
                 pat: hir::Pat {
                     kind: hir::PatKind::Binding {
-                        res: DefId::from_usize(0),
+                        res: Res {
+                            def: DefId::from_usize(0),
+                            kind: ResKind::Local,
+                        },
                         name: Symbol::ident_nth(0),
                     },
                 },
@@ -264,7 +267,10 @@ mod tests {
             }],
             expr: Some(hir::Expr::Path {
                 path: hir::Path {
-                    res: DefId::from_usize(0),
+                    res: Res {
+                        def: DefId::from_usize(0),
+                        kind: ResKind::Local,
+                    },
                 },
             }),
         };

@@ -121,7 +121,7 @@ impl<'a> LoweringCtx<'a> {
             thir::Stmt::Local { pat, init } => {
                 let place = match pat.kind.as_ref() {
                     thir::PatKind::Binding { res, name, ty } => {
-                        self.push_local(*res, Some(*name), ty.clone())
+                        self.push_local(res.def, Some(*name), ty.clone())
                     }
                 };
                 let (tail, operand) = self.lower_expr(entry_block, init);
@@ -180,8 +180,8 @@ impl<'a> LoweringCtx<'a> {
                 self.lower_expr_assign(entry_block, lhs.as_ref(), rhs.as_ref(), ty.clone())
             }
             thir::Expr::Lit { lit, ty } => (entry_block, self.lower_expr_lit(lit, ty.clone())),
-            thir::Expr::VarRef { def, ty } => {
-                (entry_block, self.lower_expr_var_ref(*def, ty.clone()))
+            thir::Expr::VarRef { res, ty } => {
+                (entry_block, self.lower_expr_var_ref(res.def, ty.clone()))
             }
         }
     }
@@ -417,10 +417,10 @@ impl<'a> LoweringCtx<'a> {
         let (block, rhs) = self.lower_expr(entry_block, rhs);
 
         match lhs {
-            thir::Expr::VarRef { def, ty: _ } => {
+            thir::Expr::VarRef { res, ty: _ } => {
                 let place = self
                     .local_def
-                    .get(def)
+                    .get(&res.def)
                     .expect("error: cannot found place of given def")
                     .clone();
                 let rvalue = RValue::Use(rhs);

@@ -50,7 +50,7 @@ impl HIRPrinter<'_> {
             }
             Expr::Lit { lit, .. } => self.print_lit(lit),
             Expr::Path { path } => {
-                self.print_def(&path.res);
+                self.print_def(&path.res.def);
             }
         }
     }

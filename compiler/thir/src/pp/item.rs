@@ -23,7 +23,7 @@ impl THIRPrinter<'_> {
         let (res, name) = (item.res, item.name);
         match &item.kind {
             ItemKind::Fn(fun) => self.print_fun(
-                res,
+                res.def,
                 name,
                 &fun.ty.kind.to_fn_ty().unwrap(),
                 &fun.inputs,
@@ -34,14 +34,14 @@ impl THIRPrinter<'_> {
 
     fn print_fun(
         &mut self,
-        res: DefId,
+        def: DefId,
         name: Symbol,
         ty: &ty::FnTy,
         inputs: &Vec<Param>,
         body: &Block,
     ) {
         self.p.word("fn ");
-        self.print_ident(res, name);
+        self.print_ident(def, name);
 
         let inputs = ty.inputs.iter().zip(inputs).collect();
         self.print_fun_inputs(&inputs);
@@ -60,7 +60,7 @@ impl THIRPrinter<'_> {
         self.p.popen(Delim::Paren);
 
         while let [(ty, param), tail @ ..] = inputs {
-            self.print_ident(param.res, param.name);
+            self.print_ident(param.res.def, param.name);
             self.p.word(":");
             self.print_ty(ty);
 

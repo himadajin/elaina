@@ -47,11 +47,11 @@ impl<'a> HIRPrinter<'a> {
         }
     }
 
-    fn print_ident(&mut self, res: DefId, name: Symbol) {
+    fn print_ident(&mut self, res: Res, name: Symbol) {
         let name = self.map.get(name);
         self.p.word(name);
         self.p.popen(Delim::Paren);
-        self.print_def(&res);
+        self.print_def(&res.def);
         self.p.pclose(Delim::Paren);
     }
 

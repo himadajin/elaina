@@ -1,7 +1,7 @@
-pub mod res;
 pub mod pp;
+pub mod res;
 
-use crate::res::DefId;
+use crate::res::{Res, DefId};
 
 use ast::{
     op::{BinOp, UnOp},
@@ -11,7 +11,7 @@ use span::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Item {
-    pub res: DefId,
+    pub res: Res,
     pub name: Symbol,
     pub kind: ItemKind,
 }
@@ -30,14 +30,14 @@ pub struct Fn {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Param {
-    pub res: DefId,
+    pub res: Res,
     pub name: Symbol,
     pub ty: ast::ty::Ty,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Path {
-    pub res: DefId,
+    pub res: Res,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -53,7 +53,7 @@ pub struct Pat {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum PatKind {
-    Binding { res: DefId, name: Symbol },
+    Binding { res: Res, name: Symbol },
 }
 
 #[derive(Debug, PartialEq, Clone)]

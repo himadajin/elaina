@@ -1,5 +1,8 @@
 use ast::op::{BinOp, UnOp};
-use hir::{self, res::DefId};
+use hir::{
+    self,
+    res::{DefId, Res},
+};
 use span::*;
 use thir::*;
 use ty::*;
@@ -40,7 +43,7 @@ impl TyCtx {
 
     pub fn lower_fun_ty(
         &mut self,
-        fn_res: DefId,
+        fn_def: DefId,
         hir_inputs: &Vec<hir::Param>,
         hir_output: &Option<ast::ty::Ty>,
     ) -> Ty {
@@ -48,7 +51,7 @@ impl TyCtx {
         for param in hir_inputs {
             let res = param.res;
             let ty = self.lower_ty(&param.ty);
-            self.insert_ty(res, ty.clone());
+            self.insert_ty(res.def, ty.clone());
             inputs.push(ty);
         }
 
@@ -60,7 +63,7 @@ impl TyCtx {
             }),
         };
 
-        self.insert_ty(fn_res, ty.clone());
+        self.insert_ty(fn_def, ty.clone());
 
         ty
     }
@@ -171,9 +174,9 @@ impl TyCtx {
             }
             hir::Expr::Lit { lit } => self.lower_lit(lit),
             hir::Expr::Path { path } => {
-                let def = path.res;
+                let def = path.res.def;
                 let ty = self.get_ty(def).clone();
-                Expr::VarRef { def, ty }
+                Expr::VarRef { res: path.res, ty }
             }
         }
     }
@@ -183,14 +186,14 @@ impl TyCtx {
             hir::Stmt::Local { pat, ty, init } => {
                 let init = self.lower_expr(init);
 
-                let def = match pat.kind {
+                let res = match pat.kind {
                     hir::PatKind::Binding { res, .. } => res,
                 };
                 let ty = ty
                     .as_ref()
                     .map(|ty| self.lower_ty(ty))
                     .expect("Type annotation is requred.");
-                self.insert_ty(def, ty.clone());
+                self.insert_ty(res.def, ty.clone());
 
                 let pat = self.lower_pat(pat, ty.clone());
 
@@ -229,12 +232,12 @@ impl TyCtx {
 
     fn lower_fun(
         &mut self,
-        res: DefId,
+        res: Res,
         inputs: &Vec<hir::Param>,
         output: &Option<ast::ty::Ty>,
         body: &hir::Block,
     ) -> ItemKind {
-        let ty = self.lower_fun_ty(res, inputs, output);
+        let ty = self.lower_fun_ty(res.def, inputs, output);
 
         let inputs = inputs
             .iter()

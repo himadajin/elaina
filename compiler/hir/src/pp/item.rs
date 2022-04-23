@@ -29,7 +29,7 @@ impl HIRPrinter<'_> {
 
     pub fn print_item_fn(
         &mut self,
-        res: DefId,
+        res: Res,
         name: Symbol,
         inputs: &Vec<Param>,
         output: &Option<Ty>,

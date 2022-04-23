@@ -1,13 +1,13 @@
 pub mod pp;
 
 use ast::op::{BinOp, UnOp};
-use hir::res::DefId;
+use hir::res::{DefId, Res};
 use span::*;
 use ty;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Item {
-    pub res: DefId,
+    pub res: Res,
     pub name: Symbol,
     pub kind: ItemKind,
 }
@@ -26,7 +26,7 @@ pub struct Fn {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Param {
-    pub res: DefId,
+    pub res: Res,
     pub name: Symbol,
 }
 
@@ -39,7 +39,7 @@ pub struct Pat {
 #[derive(Clone, Debug, PartialEq)]
 pub enum PatKind {
     Binding {
-        res: DefId,
+        res: Res,
         name: Symbol,
         ty: ty::Ty,
     },
@@ -113,7 +113,7 @@ pub enum Expr {
     Lit { lit: Lit, ty: ty::Ty },
 
     /// Local variable.
-    VarRef { def: DefId, ty: ty::Ty },
+    VarRef { res: Res, ty: ty::Ty },
 }
 
 impl Expr {

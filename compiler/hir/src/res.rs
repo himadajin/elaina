@@ -1,6 +1,18 @@
 use std::fmt;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct Res {
+    pub def: DefId,
+    pub kind: ResKind,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum ResKind {
+    Local,
+    Fn,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct DefId(usize);
 
 impl DefId {

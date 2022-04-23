@@ -46,7 +46,7 @@ impl<'a> THIRPrinter<'a> {
     fn print_pat(&mut self, pat: &Pat) {
         match pat.kind.as_ref() {
             PatKind::Binding { res, name, ty } => {
-                self.print_ident(*res, *name);
+                self.print_ident(res.def, *name);
                 self.p.word(":");
                 self.print_ty(ty);
             }

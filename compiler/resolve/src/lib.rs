@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use ast::*;
-use hir::res::{DefId, DefIdGen};
+use hir::res::*;
 use span::*;
 
-pub fn resolve_items(items: &[Item]) -> HashMap<Span, DefId> {
+pub fn resolve_items(items: &[Item]) -> HashMap<Span, Res> {
     let mut resolver = ASTNameResolver::new();
     resolver.resolve_items_decl(items);
     resolver.resolve_items(items);
@@ -14,8 +14,8 @@ pub fn resolve_items(items: &[Item]) -> HashMap<Span, DefId> {
 
 pub struct ASTNameResolver {
     def_gen: DefIdGen,
-    resolution: HashMap<Span, DefId>,
-    scopes: Vec<HashMap<Symbol, DefId>>,
+    resolution: HashMap<Span, Res>,
+    scopes: Vec<HashMap<Symbol, Res>>,
 }
 
 impl ASTNameResolver {
@@ -27,22 +27,23 @@ impl ASTNameResolver {
         }
     }
 
-    pub fn finish(self) -> HashMap<Span, DefId> {
+    pub fn finish(self) -> HashMap<Span, Res> {
         self.resolution
     }
 
-    pub fn new_decl(&mut self, name: Symbol, span: Span) {
-        let id = self.def_gen.new_id();
-        self.scopes.last_mut().unwrap().insert(name, id);
-        self.resolution.insert(span, id);
+    pub fn new_decl(&mut self, name: Symbol, span: Span, kind: ResKind) {
+        let def = self.def_gen.new_id();
+        let res = Res { def, kind };
+        self.scopes.last_mut().unwrap().insert(name, res);
+        self.resolution.insert(span, res);
     }
 
     pub fn new_use(&mut self, name: Symbol, span: Span) {
-        let id = self.lookup(&name).expect("Undefined ident given.");
-        self.resolution.insert(span, id);
+        let res = self.lookup(&name).expect("Undefined ident given.");
+        self.resolution.insert(span, res);
     }
 
-    fn lookup(&self, name: &Symbol) -> Option<DefId> {
+    fn lookup(&self, name: &Symbol) -> Option<Res> {
         for scope in self.scopes.iter().rev() {
             if let Some(def) = scope.get(name) {
                 return Some(*def);
@@ -114,7 +115,7 @@ impl ASTNameResolver {
         match stmt {
             Stmt::Local { ident, init, .. } => {
                 self.resolve_expr(init);
-                self.new_decl(ident.name, ident.span);
+                self.new_decl(ident.name, ident.span, ResKind::Local);
             }
             Stmt::Expr(expr) | Stmt::Semi(expr) | Stmt::Println(expr) => self.resolve_expr(expr),
         }
@@ -124,7 +125,12 @@ impl ASTNameResolver {
         self.with_new_scope(|this| {
             for item in items {
                 let ident = &item.ident;
-                this.new_decl(ident.name, ident.span);
+
+                let kind = match item.kind {
+                    ItemKind::Fn(_) => ResKind::Fn,
+                };
+
+                this.new_decl(ident.name, ident.span, kind);
             }
         })
     }
@@ -143,7 +149,7 @@ impl ASTNameResolver {
         self.with_new_scope(|this| {
             for param in &fun.inputs {
                 let ident = &param.ident;
-                this.new_decl(ident.name, ident.span);
+                this.new_decl(ident.name, ident.span, ResKind::Local);
             }
 
             this.resolve_block(&fun.body);

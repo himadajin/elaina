@@ -57,9 +57,9 @@ impl THIRPrinter<'_> {
                 });
             }
             Expr::Lit { lit, ty } => self.print_lit(lit, ty),
-            Expr::VarRef { def, ty } => {
+            Expr::VarRef { res, ty } => {
                 self.print_with_ty(ty, |this| {
-                    this.print_def(*def);
+                    this.print_def(res.def);
                 });
             }
         }
