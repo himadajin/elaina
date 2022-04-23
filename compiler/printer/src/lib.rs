@@ -179,7 +179,7 @@ impl Printer {
     ///
     /// assert_eq!("foo123", p.finish());
     /// ```
-    pub fn word<S: Into<Cow<'static, str>>>(&mut self, w: S) {
+    pub fn word<'a, S: Into<Cow<'a, str>>>(&mut self, w: S) {
         let s = w.into();
         self.out.push_str(&s);
     }

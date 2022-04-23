@@ -48,7 +48,7 @@ impl<'a> HIRPrinter<'a> {
     }
 
     fn print_ident(&mut self, res: DefId, name: Symbol) {
-        let name = self.map.get(name).to_string();
+        let name = self.map.get(name);
         self.p.word(name);
         self.p.popen(Delim::Paren);
         self.print_def(&res);
@@ -63,7 +63,7 @@ impl<'a> HIRPrinter<'a> {
     fn print_ty(&mut self, ty: &ty::Ty) {
         match &ty.kind {
             ty::TyKind::Path(path) => {
-                let name = self.map.get(path.ident.name).to_string();
+                let name = self.map.get(path.ident.name);
                 self.p.word(name);
             }
         }
