@@ -20,7 +20,7 @@ pub enum TyKind {
 
     Tuple(Vec<Ty>),
 
-    Fn(Vec<Ty>, Box<Option<Ty>>),
+    Fn(FnTy),
 
     Never,
 }
@@ -28,4 +28,10 @@ pub enum TyKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IntTy {
     I32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FnTy {
+    inputs: Vec<Ty>,
+    output: Box<Option<Ty>>,
 }
