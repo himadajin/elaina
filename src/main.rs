@@ -88,10 +88,10 @@ fn run_input(input: &str) -> Result<()> {
         resolver.resolve_block(&ast);
         resolver.finish()
     };
-    let hir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-    let thir = hir_lowering::LoweringContext::new().lower_block(&hir);
+    let hir = ast_lowering::LoweringCtx::new(res).lower_block(&ast);
+    let thir = hir_lowering::LoweringCtx::new().lower_block(&hir);
     let mir = {
-        let mut ctx = thir_lowering::LoweringContext::new(&map);
+        let mut ctx = thir_lowering::LoweringCtx::new(&map);
         ctx.lower_main_block(&thir);
         ctx.build()
     };
@@ -117,7 +117,7 @@ fn print_ast(input: &str) -> Result<()> {
 fn print_hir(input: &str) -> Result<()> {
     let (ast, map) = parse_items(input)?;
     let res = resolve_items(ast.as_slice());
-    let hir = ast_lowering::LoweringContext::new(res).lower_items(ast.as_slice());
+    let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
 
     let hir_print = hir::pp::print_items(&map, hir.as_slice());
     println!("{}", hir_print);
@@ -131,8 +131,8 @@ fn print_thir(input: &str) -> Result<()> {
         resolver.resolve_block(&ast);
         resolver.finish()
     };
-    let hir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-    let thir = hir_lowering::LoweringContext::new().lower_block(&hir);
+    let hir = ast_lowering::LoweringCtx::new(res).lower_block(&ast);
+    let thir = hir_lowering::LoweringCtx::new().lower_block(&hir);
     println!("{:#?}", thir);
     Ok(())
 }
@@ -144,10 +144,10 @@ fn print_mir(input: &str) -> Result<()> {
         resolver.resolve_block(&ast);
         resolver.finish()
     };
-    let hir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-    let thir = hir_lowering::LoweringContext::new().lower_block(&hir);
+    let hir = ast_lowering::LoweringCtx::new(res).lower_block(&ast);
+    let thir = hir_lowering::LoweringCtx::new().lower_block(&hir);
     let mir = {
-        let mut ctx = thir_lowering::LoweringContext::new(&map);
+        let mut ctx = thir_lowering::LoweringCtx::new(&map);
         ctx.lower_main_block(&thir);
         ctx.build()
     };
@@ -164,10 +164,10 @@ fn print_llvm(input: &str) -> Result<()> {
         resolver.resolve_block(&ast);
         resolver.finish()
     };
-    let hir = ast_lowering::LoweringContext::new(res).lower_block(&ast);
-    let thir = hir_lowering::LoweringContext::new().lower_block(&hir);
+    let hir = ast_lowering::LoweringCtx::new(res).lower_block(&ast);
+    let thir = hir_lowering::LoweringCtx::new().lower_block(&hir);
     let mir = {
-        let mut ctx = thir_lowering::LoweringContext::new(&map);
+        let mut ctx = thir_lowering::LoweringCtx::new(&map);
         ctx.lower_main_block(&thir);
         ctx.build()
     };

@@ -7,13 +7,13 @@ use ty::*;
 use core::panic;
 use std::collections::HashMap;
 
-pub struct LoweringContext {
+pub struct LoweringCtx {
     ty_ctxt: HashMap<DefId, ty::Ty>,
 }
 
-impl LoweringContext {
-    pub fn new() -> LoweringContext {
-        LoweringContext {
+impl LoweringCtx {
+    pub fn new() -> LoweringCtx {
+        LoweringCtx {
             ty_ctxt: HashMap::new(),
         }
     }

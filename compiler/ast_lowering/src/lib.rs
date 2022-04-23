@@ -5,13 +5,13 @@ use span::*;
 use std::collections::HashMap;
 
 #[allow(dead_code)]
-pub struct LoweringContext {
+pub struct LoweringCtx {
     name_res: HashMap<Span, DefId>,
 }
 
-impl LoweringContext {
+impl LoweringCtx {
     pub fn new(name_res: HashMap<Span, DefId>) -> Self {
-        LoweringContext { name_res }
+        LoweringCtx { name_res }
     }
 
     pub fn lower_items(&mut self, items: &[Item]) -> Vec<hir::Item> {
@@ -274,7 +274,7 @@ mod tests {
             resolver.resolve_block(&ast);
             resolver.finish()
         };
-        let mut ctx = LoweringContext::new(res);
+        let mut ctx = LoweringCtx::new(res);
         assert_eq!(hir, ctx.lower_block(&ast));
     }
 
@@ -305,7 +305,7 @@ mod tests {
                 resolver.resolve_expr(&ast);
                 resolver.finish()
             };
-            let mut ctx = LoweringContext::new(res);
+            let mut ctx = LoweringCtx::new(res);
             assert_eq!(hir, ctx.lower_expr(&ast));
         }
 
@@ -319,7 +319,7 @@ mod tests {
                 resolver.resolve_expr(&ast);
                 resolver.finish()
             };
-            let mut ctx = LoweringContext::new(res);
+            let mut ctx = LoweringCtx::new(res);
             assert_eq!(hir, ctx.lower_expr(&ast));
         }
 
@@ -333,7 +333,7 @@ mod tests {
                 resolver.resolve_expr(&ast);
                 resolver.finish()
             };
-            let mut ctx = LoweringContext::new(res);
+            let mut ctx = LoweringCtx::new(res);
             assert_eq!(hir, ctx.lower_expr(&ast));
         }
 
@@ -347,7 +347,7 @@ mod tests {
                 resolver.resolve_expr(&ast);
                 resolver.finish()
             };
-            let mut ctx = LoweringContext::new(res);
+            let mut ctx = LoweringCtx::new(res);
             assert_eq!(hir, ctx.lower_expr(&ast));
         }
     }
@@ -367,7 +367,7 @@ mod tests {
             resolver.resolve_expr(&ast);
             resolver.finish()
         };
-        let mut ctx = LoweringContext::new(res);
+        let mut ctx = LoweringCtx::new(res);
         assert_eq!(hir, ctx.lower_expr(&ast));
     }
 }

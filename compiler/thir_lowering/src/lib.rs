@@ -58,7 +58,7 @@ impl ControlFlowResolver {
 }
 
 #[allow(dead_code)]
-pub struct LoweringContext<'a> {
+pub struct LoweringCtx<'a> {
     builder: MirBuilder,
 
     loop_resolver: ControlFlowResolver,
@@ -68,9 +68,9 @@ pub struct LoweringContext<'a> {
     symbol_map: &'a SymbolMap<'a>,
 }
 
-impl<'a> LoweringContext<'a> {
+impl<'a> LoweringCtx<'a> {
     pub fn new(symbol_map: &'a SymbolMap<'a>) -> Self {
-        LoweringContext {
+        LoweringCtx {
             builder: MirBuilder::new(),
 
             loop_resolver: ControlFlowResolver::new(),
