@@ -1,9 +1,6 @@
 use crate::{error::ParseError, Parser};
 
 use ast::{
-    expr::*,
-    lit::*,
-    op::*,
     token::{self, BinOpToken, DelimToken, TokenKind},
     *,
 };
@@ -350,7 +347,6 @@ mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
 
-    use ast::{expr::Expr, stmt::Stmt};
     use span::symbol::Symbol;
 
     macro_rules! test_lit {

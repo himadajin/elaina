@@ -7,6 +7,14 @@ pub mod stmt;
 pub mod token;
 pub mod ty;
 
+pub use block::*;
+pub use expr::*;
+pub use item::*;
+pub use lit::*;
+pub use op::*;
+pub use stmt::*;
+pub use ty::*;
+
 use span::symbol::Ident;
 
 #[derive(Debug, PartialEq, Clone)]

@@ -1,13 +1,4 @@
-use ast::{
-    block::*,
-    expr::*,
-    item::*,
-    lit::*,
-    op::{BinOp, UnOp},
-    stmt::*,
-    ty::*,
-    Path,
-};
+use ast::*;
 use hir::{self, def_id::DefId};
 use span::{span::Span, symbol::Ident};
 

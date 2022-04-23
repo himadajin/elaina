@@ -1,5 +1,5 @@
 use crate::Parser;
-use ast::{block::*, token::*};
+use ast::{token::*, *};
 
 use anyhow::Result;
 
@@ -21,9 +21,6 @@ impl Parser<'_> {
 mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
-    // use ast::builder::{block::*, expr::*, stmt::*};
-    use ast::op::*;
-    use ast::{expr::Expr, stmt::Stmt};
 
     macro_rules! test_block {
         ($input: expr, $expected: expr) => {

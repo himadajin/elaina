@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use ast::{block::Block, expr::*, item::*, stmt::Stmt};
+use ast::*;
 use hir::def_id::{DefId, DefIdGen};
 use span::{
     span::Span,

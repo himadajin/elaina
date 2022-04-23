@@ -1,7 +1,6 @@
 use crate::Parser;
 
-use ast::stmt::*;
-use ast::token::*;
+use ast::{token::*, *};
 use span::symbol::Kw;
 
 use anyhow::Result;
@@ -74,7 +73,6 @@ impl Parser<'_> {
 mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
-    use ast::{expr::*, op::*, ty::*};
     use span::symbol::{Ident, Kw, Symbol};
 
     macro_rules! test_stmt {

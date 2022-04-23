@@ -1,8 +1,8 @@
 use crate::{error::ParseError, Parser};
 
 use ast::{
-    item::*,
     token::{DelimToken, TokenKind},
+    *,
 };
 use span::symbol::*;
 
@@ -84,7 +84,6 @@ mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
 
-    use ast::ty::*;
     use span::symbol::Kw;
 
     macro_rules! test_item {

@@ -1,6 +1,6 @@
 use crate::Parser;
 
-use ast::ty::*;
+use ast::*;
 
 use anyhow::Result;
 
