@@ -14,6 +14,7 @@ impl HIRPrinter<'_> {
             }
 
             self.p.new_line();
+            self.p.new_line();
             items = &items[1..];
         }
     }
