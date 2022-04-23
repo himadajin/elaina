@@ -1,3 +1,5 @@
+pub mod pp;
+
 use ast::op::{BinOp, UnOp};
 use hir::def_id::DefId;
 use span::*;
@@ -129,7 +131,28 @@ impl Expr {
             Expr::VarRef { ty, .. } => ty.clone(),
         }
     }
+
+    pub fn precedence(&self) -> i8 {
+        use Expr::*;
+        match self {
+            Break { .. } | Continue { .. } => PREC_JUMP,
+            Binary { op, .. } => op.precedence() as i8,
+            Assign { .. } => PREC_ASSIGN,
+            Unary { .. } => PREC_PREFIX,
+            Lit { .. } | VarRef { .. } | If { .. } | Loop { .. } | Block { .. } => PREC_PAREN,
+        }
+    }
 }
+
+pub const PREC_JUMP: i8 = -30;
+
+// The range 2..=14 is reserved for AssocOp binary operator precedences.
+pub const PREC_ASSIGN: i8 = 2;
+
+pub const PREC_PREFIX: i8 = 50;
+pub const PREC_POSTFIX: i8 = 60;
+pub const PREC_PAREN: i8 = 99;
+pub const PREC_FORCE_PAREN: i8 = 100;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Lit {

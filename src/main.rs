@@ -125,11 +125,13 @@ fn print_hir(input: &str) -> Result<()> {
 }
 
 fn print_thir(input: &str) -> Result<()> {
-    let (ast, _) = parse_items(input)?;
+    let (ast, map) = parse_items(input)?;
     let res = resolve_items(ast.as_slice());
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
     let thir = hir_lowering::LoweringCtx::new().lower_items(&hir);
-    println!("{:#?}", thir);
+    
+    let thir_print = thir::pp::print_items(&map, thir.as_slice());
+    println!("{}", thir_print);
     Ok(())
 }
 
