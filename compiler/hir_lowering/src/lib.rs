@@ -4,34 +4,69 @@ use span::*;
 use thir::*;
 use ty::*;
 
-use core::panic;
 use std::collections::HashMap;
 
 pub struct LoweringCtx {
-    ty_ctxt: HashMap<DefId, ty::Ty>,
+    map: HashMap<DefId, Ty>,
+    types: CommonTypes,
 }
 
 impl LoweringCtx {
     pub fn new() -> LoweringCtx {
         LoweringCtx {
-            ty_ctxt: HashMap::new(),
+            map: HashMap::new(),
+            types: CommonTypes::new(),
         }
     }
 
+    fn insert_ty(&mut self, def: DefId, ty: Ty) {
+        self.map.insert(def, ty);
+    }
+
+    fn get_ty(&self, def: DefId) -> Ty {
+        self.map.get(&def).unwrap().clone()
+    }
+}
+
+impl LoweringCtx {
+    pub fn lower_ty(&self, ty: &ast::Ty) -> Ty {
+        match &ty.kind {
+            ast::TyKind::Path(path) => self
+                .types
+                .from_name(path.ident.name)
+                .expect("The type with the given name does not exist"),
+        }
+    }
+
+    pub fn lower_fun_ty(
+        &mut self,
+        hir_inputs: &Vec<hir::Param>,
+        hir_output: &Option<ast::ty::Ty>,
+    ) -> FnTy {
+        let mut inputs = Vec::new();
+        for param in hir_inputs {
+            let res = param.res;
+            let ty = self.lower_ty(&param.ty);
+            self.insert_ty(res, ty.clone());
+            inputs.push(ty);
+        }
+
+        let output = hir_output.as_ref().map(|ty| self.lower_ty(ty));
+
+        FnTy {
+            inputs,
+            output: Box::new(output),
+        }
+    }
+}
+
+impl LoweringCtx {
     pub fn lower_lit(&self, lit: &hir::Lit) -> Expr {
-        let (lit, ty) = match lit {
-            hir::Lit::Bool { value } => (
-                Lit::Bool { value: *value },
-                ty::Ty {
-                    kind: ty::TyKind::Bool,
-                },
-            ),
-            hir::Lit::Int(value) => (
-                Lit::Int(LitInt { value: value.value }),
-                ty::Ty {
-                    kind: ty::TyKind::Int(ty::IntTy::I32),
-                },
-            ),
+        let ty = self.types.from_lit(lit);
+
+        let lit = match lit {
+            hir::Lit::Bool { value } => Lit::Bool { value: *value },
+            hir::Lit::Int(lit) => Lit::Int(LitInt { value: lit.value }),
         };
 
         Expr::Lit { lit, ty }
@@ -58,11 +93,9 @@ impl LoweringCtx {
                 let rhs = Box::new(self.lower_expr(rhs));
 
                 let ty = match op {
-                    BinOp::Mul | BinOp::Div | BinOp::Add | BinOp::Sub => Ty {
-                        kind: TyKind::Int(IntTy::I32),
-                    },
+                    BinOp::Mul | BinOp::Div | BinOp::Add | BinOp::Sub => self.types.i32.clone(),
                     BinOp::Eq | BinOp::Lt | BinOp::Le | BinOp::Ne | BinOp::Ge | BinOp::Gt => {
-                        Ty { kind: TyKind::Bool }
+                        self.types.bool.clone()
                     }
                 };
 
@@ -75,15 +108,10 @@ impl LoweringCtx {
             }
             hir::Expr::Unary { op, expr } => {
                 let expr = Box::new(self.lower_expr(expr));
-                let (op, ty) = match op {
-                    UnOp::Neg => (
-                        UnOp::Neg,
-                        Ty {
-                            kind: TyKind::Int(IntTy::I32),
-                        },
-                    ),
+                let ty = match op {
+                    UnOp::Neg => self.types.i32.clone(),
                 };
-                Expr::Unary { op, expr, ty }
+                Expr::Unary { op: *op, expr, ty }
             }
             hir::Expr::If {
                 cond,
@@ -131,17 +159,14 @@ impl LoweringCtx {
             hir::Expr::Assign { lhs, rhs } => {
                 let rhs = Box::new(self.lower_expr(rhs));
                 let lhs = Box::new(self.lower_expr(lhs));
-                let ty = Ty {
-                    kind: TyKind::Tuple(Vec::new()),
-                };
+                let ty = self.types.unit.clone();
 
                 Expr::Assign { lhs, rhs, ty }
             }
             hir::Expr::Lit { lit } => self.lower_lit(lit),
             hir::Expr::Path { path } => {
                 let def = path.res;
-                let ty = self.ty_ctxt[&def].clone();
-
+                let ty = self.get_ty(def).clone();
                 Expr::VarRef { def, ty }
             }
         }
@@ -157,9 +182,9 @@ impl LoweringCtx {
                 };
                 let ty = ty
                     .as_ref()
-                    .map(|ty| lower_ty(ty))
-                    .expect("Type annotation is required.");
-                self.ty_ctxt.insert(def, ty.clone());
+                    .map(|ty| self.lower_ty(ty))
+                    .expect("Type annotation is requred.");
+                self.insert_ty(def, ty.clone());
 
                 let pat = self.lower_pat(pat, ty.clone());
 
@@ -173,12 +198,9 @@ impl LoweringCtx {
     pub fn lower_block(&mut self, block: &hir::Block) -> Block {
         let stmts = block.stmts.iter().map(|s| self.lower_stmt(s)).collect();
         let expr = block.expr.as_ref().map(|e| self.lower_expr(e));
-        let ty = expr.as_ref().map_or(
-            Ty {
-                kind: TyKind::Tuple(Vec::new()),
-            },
-            |e| e.ty(),
-        );
+        let ty = expr
+            .as_ref()
+            .map_or_else(|| self.types.unit.clone(), |e| e.ty());
 
         Block { stmts, expr, ty }
     }
@@ -205,19 +227,7 @@ impl LoweringCtx {
         output: &Option<ast::ty::Ty>,
         body: &hir::Block,
     ) -> ItemKind {
-        let ty = {
-            let inputs = inputs.iter().map(|param| lower_ty(&param.ty)).collect();
-            let output = output.as_ref().map(|ty| lower_ty(ty));
-            FnTy {
-                inputs,
-                output: Box::new(output),
-            }
-        };
-
-        // insert parameters to ty_ctxt
-        for (ty, param) in ty.inputs.iter().zip(inputs) {
-            self.ty_ctxt.insert(param.res, ty.clone());
-        }
+        let ty = self.lower_fun_ty(inputs, output);
 
         let inputs = inputs
             .iter()
@@ -232,19 +242,41 @@ impl LoweringCtx {
     }
 }
 
-pub fn lower_ty(ty: &ast::ty::Ty) -> ty::Ty {
-    match &ty.kind {
-        ast::ty::TyKind::Path(path) => {
-            let name = path.ident.name;
-            if name == Kw::I32.as_symbol() {
-                return ty::Ty {
-                    kind: TyKind::Int(ty::IntTy::I32),
-                };
-            } else if name == Kw::Bool.as_symbol() {
-                return ty::Ty { kind: TyKind::Bool };
-            }
+pub struct CommonTypes {
+    pub unit: Ty,
+    pub bool: Ty,
+    pub i32: Ty,
+    pub never: Ty,
+}
 
-            panic!("Undefined type given.");
+impl CommonTypes {
+    fn new() -> CommonTypes {
+        use ty::TyKind::*;
+        CommonTypes {
+            unit: Ty {
+                kind: Tuple(Vec::new()),
+            },
+            bool: Ty { kind: Bool },
+            i32: Ty {
+                kind: Int(IntTy::I32),
+            },
+            never: Ty { kind: Never },
+        }
+    }
+
+    fn from_name(&self, name: Symbol) -> Option<Ty> {
+        if name == Kw::Bool.into() {
+            return Some(self.bool.clone());
+        } else if name == Kw::I32.into() {
+            return Some(self.i32.clone());
+        }
+        None
+    }
+
+    fn from_lit(&self, lit: &hir::Lit) -> Ty {
+        match lit {
+            hir::Lit::Bool { .. } => self.bool.clone(),
+            hir::Lit::Int(_) => self.i32.clone(),
         }
     }
 }
