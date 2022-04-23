@@ -1,7 +1,7 @@
 pub mod pp;
 
 use ast::op::{BinOp, UnOp};
-use hir::def_id::DefId;
+use hir::res::DefId;
 use span::*;
 use ty;
 

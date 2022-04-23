@@ -2,7 +2,7 @@ mod builder;
 
 use ast::op::{BinOp, UnOp};
 use builder::MirBuilder;
-use hir::def_id::DefId;
+use hir::res::DefId;
 use mir::{constant::*, stmt::*, terminator::*, *};
 use span::*;
 use thir::{self};

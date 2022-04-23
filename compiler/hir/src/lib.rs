@@ -1,7 +1,7 @@
-pub mod def_id;
+pub mod res;
 pub mod pp;
 
-use crate::def_id::DefId;
+use crate::res::DefId;
 
 use ast::{
     op::{BinOp, UnOp},

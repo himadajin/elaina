@@ -1,5 +1,5 @@
 use ast::*;
-use hir::{self, def_id::DefId};
+use hir::{self, res::DefId};
 use span::*;
 
 use std::collections::HashMap;

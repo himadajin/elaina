@@ -1,5 +1,5 @@
 use ast::op::{BinOp, UnOp};
-use hir::{self, def_id::DefId};
+use hir::{self, res::DefId};
 use span::*;
 use thir::*;
 use ty::*;
