@@ -25,6 +25,15 @@ pub enum TyKind {
     Never,
 }
 
+impl TyKind {
+    pub fn to_fn_ty(&self) -> Option<&FnTy> {
+        match &self {
+            TyKind::Fn(ty) => Some(ty),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IntTy {
     I32,

@@ -19,7 +19,7 @@ pub enum ItemKind {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Fn {
-    pub ty: ty::FnTy,
+    pub ty: ty::Ty,
     pub inputs: Vec<Param>,
     pub body: Block,
 }

@@ -40,9 +40,10 @@ impl TyCtx {
 
     pub fn lower_fun_ty(
         &mut self,
+        fn_res: DefId,
         hir_inputs: &Vec<hir::Param>,
         hir_output: &Option<ast::ty::Ty>,
-    ) -> FnTy {
+    ) -> Ty {
         let mut inputs = Vec::new();
         for param in hir_inputs {
             let res = param.res;
@@ -52,11 +53,16 @@ impl TyCtx {
         }
 
         let output = hir_output.as_ref().map(|ty| self.lower_ty(ty));
+        let ty = Ty {
+            kind: TyKind::Fn(FnTy {
+                inputs,
+                output: Box::new(output),
+            }),
+        };
 
-        FnTy {
-            inputs,
-            output: Box::new(output),
-        }
+        self.insert_ty(fn_res, ty.clone());
+
+        ty
     }
 }
 
@@ -211,7 +217,7 @@ impl TyCtx {
 
     pub fn lower_item(&mut self, item: &hir::Item) -> Item {
         let kind = match &item.kind {
-            hir::ItemKind::Fn(fun) => self.lower_fun(&fun.inputs, &fun.output, &fun.body),
+            hir::ItemKind::Fn(fun) => self.lower_fun(item.res, &fun.inputs, &fun.output, &fun.body),
         };
 
         Item {
@@ -223,11 +229,12 @@ impl TyCtx {
 
     fn lower_fun(
         &mut self,
+        res: DefId,
         inputs: &Vec<hir::Param>,
         output: &Option<ast::ty::Ty>,
         body: &hir::Block,
     ) -> ItemKind {
-        let ty = self.lower_fun_ty(inputs, output);
+        let ty = self.lower_fun_ty(res, inputs, output);
 
         let inputs = inputs
             .iter()

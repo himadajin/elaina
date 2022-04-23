@@ -22,7 +22,13 @@ impl THIRPrinter<'_> {
     pub fn print_item(&mut self, item: &Item) {
         let (res, name) = (item.res, item.name);
         match &item.kind {
-            ItemKind::Fn(fun) => self.print_fun(res, name, &fun.ty, &fun.inputs, &fun.body),
+            ItemKind::Fn(fun) => self.print_fun(
+                res,
+                name,
+                &fun.ty.kind.to_fn_ty().unwrap(),
+                &fun.inputs,
+                &fun.body,
+            ),
         }
     }
 
