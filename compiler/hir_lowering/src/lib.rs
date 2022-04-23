@@ -182,6 +182,54 @@ impl LoweringCtx {
 
         Block { stmts, expr, ty }
     }
+
+    pub fn lower_items(&mut self, items: &[hir::Item]) -> Vec<Item> {
+        items.iter().map(|item| self.lower_item(item)).collect()
+    }
+
+    pub fn lower_item(&mut self, item: &hir::Item) -> Item {
+        let kind = match &item.kind {
+            hir::ItemKind::Fn(fun) => self.lower_fun(&fun.inputs, &fun.output, &fun.body),
+        };
+
+        Item {
+            res: item.res,
+            name: item.name,
+            kind,
+        }
+    }
+
+    fn lower_fun(
+        &mut self,
+        inputs: &Vec<hir::Param>,
+        output: &Option<ast::ty::Ty>,
+        body: &hir::Block,
+    ) -> ItemKind {
+        let ty = {
+            let inputs = inputs.iter().map(|param| lower_ty(&param.ty)).collect();
+            let output = output.as_ref().map(|ty| lower_ty(ty));
+            FnTy {
+                inputs,
+                output: Box::new(output),
+            }
+        };
+
+        // insert parameters to ty_ctxt
+        for (ty, param) in ty.inputs.iter().zip(inputs) {
+            self.ty_ctxt.insert(param.res, ty.clone());
+        }
+
+        let inputs = inputs
+            .iter()
+            .map(|param| Param {
+                res: param.res,
+                name: param.name,
+            })
+            .collect();
+        let body = self.lower_block(body);
+
+        ItemKind::Fn(Box::new(Fn { ty, inputs, body }))
+    }
 }
 
 pub fn lower_ty(ty: &ast::ty::Ty) -> ty::Ty {

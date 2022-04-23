@@ -125,14 +125,10 @@ fn print_hir(input: &str) -> Result<()> {
 }
 
 fn print_thir(input: &str) -> Result<()> {
-    let (ast, _) = parse_block_from_source_str(input)?;
-    let res = {
-        let mut resolver = ASTNameResolver::new();
-        resolver.resolve_block(&ast);
-        resolver.finish()
-    };
-    let hir = ast_lowering::LoweringCtx::new(res).lower_block(&ast);
-    let thir = hir_lowering::LoweringCtx::new().lower_block(&hir);
+    let (ast, _) = parse_items(input)?;
+    let res = resolve_items(ast.as_slice());
+    let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
+    let thir = hir_lowering::LoweringCtx::new().lower_items(&hir);
     println!("{:#?}", thir);
     Ok(())
 }

@@ -3,6 +3,7 @@ use hir::def_id::DefId;
 use span::*;
 use ty;
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct Item {
     pub res: DefId,
     pub name: Symbol,

@@ -32,6 +32,6 @@ pub enum IntTy {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FnTy {
-    inputs: Vec<Ty>,
-    output: Box<Option<Ty>>,
+    pub inputs: Vec<Ty>,
+    pub output: Box<Option<Ty>>,
 }
