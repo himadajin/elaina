@@ -12,6 +12,7 @@ use span::symbol::Symbol;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Item {
     pub res: DefId,
+    pub name: Symbol,
     pub kind: ItemKind,
 }
 

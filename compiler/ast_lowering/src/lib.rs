@@ -28,6 +28,7 @@ impl LoweringContext {
     }
 
     pub fn lower_item(&mut self, item: &Item) -> hir::Item {
+        let name = item.ident.name;
         let res = self.name_res[&item.ident.span];
         let kind = match &item.kind {
             ItemKind::Fn(fun) => {
@@ -41,7 +42,7 @@ impl LoweringContext {
             }
         };
 
-        hir::Item { res, kind }
+        hir::Item { res, name, kind }
     }
 
     pub fn lower_param(&mut self, param: &Param) -> hir::Param {

@@ -20,13 +20,16 @@ impl HIRPrinter<'_> {
 
     pub fn print_item(&mut self, item: &Item) {
         match &item.kind {
-            ItemKind::Fn(fun) => self.print_item_fn(item.res, &fun.inputs, &fun.output, &fun.body),
+            ItemKind::Fn(fun) => {
+                self.print_item_fn(item.res, item.name, &fun.inputs, &fun.output, &fun.body)
+            }
         }
     }
 
     pub fn print_item_fn(
         &mut self,
-        name: DefId,
+        res: DefId,
+        name: Symbol,
         inputs: &Vec<Param>,
         output: &Option<Ty>,
         body: &Block,
@@ -34,14 +37,19 @@ impl HIRPrinter<'_> {
         self.p.word("fn");
         self.p.space();
 
-        self.print_def(&name);
+        let name = self.map.get(name).to_string();
+        self.p.word(name);
+        self.p.popen(Delim::Paren);
+        self.print_def(&res);
+        self.p.pclose(Delim::Paren);
+        self.p.space();
         self.print_fn_params(inputs.as_slice());
 
         if let Some(output) = &output {
             self.p.word(" -> ");
             self.print_ty(output);
         }
-        
+
         self.p.space();
         self.print_block(body);
     }
