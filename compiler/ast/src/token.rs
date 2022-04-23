@@ -1,7 +1,4 @@
-use span::{
-    span::Span,
-    symbol::{Kw, Symbol, SymbolMap},
-};
+use span::*;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum BinOpToken {

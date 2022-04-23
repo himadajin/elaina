@@ -2,10 +2,7 @@ use std::collections::HashMap;
 
 use ast::*;
 use hir::def_id::{DefId, DefIdGen};
-use span::{
-    span::Span,
-    symbol::{Ident, Symbol},
-};
+use span::*;
 
 pub fn resolve_items(items: &[Item]) -> HashMap<Span, DefId> {
     let mut resolver = ASTNameResolver::new();

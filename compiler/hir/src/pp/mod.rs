@@ -6,7 +6,7 @@ mod stmt;
 use crate::*;
 
 use printer::*;
-use span::symbol::*;
+use span::*;
 
 pub fn print_items(map: &SymbolMap, items: &[Item]) -> String {
     let mut p = HIRPrinter::new(map);

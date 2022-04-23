@@ -4,7 +4,7 @@ use ast::op::{BinOp, UnOp};
 use builder::MirBuilder;
 use hir::def_id::DefId;
 use mir::{constant::*, stmt::*, terminator::*, *};
-use span::symbol::{Symbol, SymbolMap};
+use span::*;
 use thir::{self};
 
 use std::collections::HashMap;

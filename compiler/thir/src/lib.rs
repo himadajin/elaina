@@ -1,6 +1,6 @@
 use ast::op::{BinOp, UnOp};
 use hir::def_id::DefId;
-use span::symbol::Symbol;
+use span::*;
 use ty;
 
 #[derive(Clone, Debug, PartialEq)]

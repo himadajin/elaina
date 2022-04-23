@@ -1,6 +1,6 @@
 use ast::*;
 use hir::{self, def_id::DefId};
-use span::{span::Span, symbol::Ident};
+use span::*;
 
 use std::collections::HashMap;
 
@@ -231,10 +231,6 @@ mod tests {
     use ast::ty;
     use parser::{parse_block_from_source_str, parse_expr_from_source_str};
     use resolve::ASTNameResolver;
-    use span::{
-        span::DUMMY_SP,
-        symbol::{Kw, Symbol},
-    };
 
     const I32_TY: ty::Ty = ty::Ty {
         kind: ty::TyKind::Path(Path {

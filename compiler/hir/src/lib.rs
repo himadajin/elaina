@@ -7,7 +7,7 @@ use ast::{
     op::{BinOp, UnOp},
     ty,
 };
-use span::symbol::Symbol;
+use span::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Item {

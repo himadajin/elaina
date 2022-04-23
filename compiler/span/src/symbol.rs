@@ -1,4 +1,4 @@
-use crate::span::{Span, DUMMY_SP};
+use crate::*;
 
 use derive_more::{From, Into};
 use typed_index_collections::TiVec;

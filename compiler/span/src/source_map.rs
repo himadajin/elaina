@@ -1,4 +1,4 @@
-use crate::span::*;
+use crate::*;
 
 pub struct SourceMap {
     file: SourceFile,

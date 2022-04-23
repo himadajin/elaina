@@ -4,7 +4,7 @@ use ast::{
     token::{DelimToken, TokenKind},
     *,
 };
-use span::symbol::*;
+use span::*;
 
 use anyhow::{Context, Result};
 
@@ -83,8 +83,6 @@ impl Parser<'_> {
 mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
-
-    use span::symbol::Kw;
 
     macro_rules! test_item {
         ($input: expr, $expected: expr) => {

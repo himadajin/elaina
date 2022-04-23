@@ -1,6 +1,6 @@
 use crate::Path;
 
-use span::symbol::{Ident, Symbol};
+use span::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Ty {

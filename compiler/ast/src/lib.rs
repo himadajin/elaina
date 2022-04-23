@@ -15,7 +15,7 @@ pub use op::*;
 pub use stmt::*;
 pub use ty::*;
 
-use span::symbol::Ident;
+use span::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Path {

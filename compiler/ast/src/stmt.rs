@@ -1,5 +1,5 @@
 use crate::{expr::Expr, ty::Ty};
-use span::symbol::Ident;
+use span::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {

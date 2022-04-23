@@ -9,7 +9,7 @@ pub mod ty;
 
 use crate::{error::*, lexer::parse_all_token};
 use ast::{token::*, *};
-use span::symbol::*;
+use span::*;
 
 use anyhow::Result;
 
@@ -64,7 +64,7 @@ impl<'a> Parser<'a> {
         let next_token = self
             .cursor
             .next()
-            .unwrap_or(Token::new(TokenKind::Eof, span::span::DUMMY_SP));
+            .unwrap_or(Token::new(TokenKind::Eof, DUMMY_SP));
         self.token = next_token;
     }
 
@@ -157,8 +157,6 @@ mod tests {
 
     use super::*;
     use ast::token::Token;
-    // use cra::lexer::token;
-    use span::span::*;
 
     #[test]
     fn test_cursor() {

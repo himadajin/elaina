@@ -1,5 +1,5 @@
 use crate::{block::*, lit::*, op::*, stmt::Stmt, *};
-use span::{span::Span, symbol::Symbol};
+use span::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {

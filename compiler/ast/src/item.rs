@@ -1,6 +1,6 @@
 use crate::{block::Block, stmt::*, ty::Ty};
 
-use span::symbol::{Ident, Symbol};
+use span::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Item {

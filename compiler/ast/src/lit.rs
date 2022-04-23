@@ -1,4 +1,4 @@
-use span::span::{Span, DUMMY_SP};
+use span::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Lit {

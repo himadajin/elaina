@@ -1,6 +1,6 @@
 use ast::op::{BinOp, UnOp};
 use hir::{self, def_id::DefId};
-use span::symbol::Kw;
+use span::*;
 use thir::*;
 use ty::*;
 

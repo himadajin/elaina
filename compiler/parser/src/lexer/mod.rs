@@ -1,6 +1,6 @@
 use ast::token::*;
 use lexer::{first_token, token};
-use span::{span::Span, symbol::*};
+use span::*;
 
 pub fn parse_all_token(src: &str) -> Tokens {
     let mut lexer = Lexer::new(src);

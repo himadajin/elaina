@@ -22,7 +22,7 @@ impl Parser<'_> {
 mod tests {
     use super::*;
     use crate::lexer::parse_all_token;
-    use span::symbol::Kw;
+    use span::*;
 
     macro_rules! test_ty {
         ($input: expr, $expected: expr) => {
