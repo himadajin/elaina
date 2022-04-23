@@ -3,6 +3,30 @@ use hir::def_id::DefId;
 use span::*;
 use ty;
 
+pub struct Item {
+    pub res: DefId,
+    pub name: Symbol,
+    pub kind: ItemKind,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ItemKind {
+    Fn(Box<Fn>),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Fn {
+    pub ty: ty::FnTy,
+    pub inputs: Vec<Param>,
+    pub body: Block,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Param {
+    pub res: DefId,
+    pub name: Symbol,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pat {
     pub ty: ty::Ty,
