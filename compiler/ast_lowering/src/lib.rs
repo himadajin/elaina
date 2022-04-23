@@ -46,10 +46,12 @@ impl LoweringContext {
     }
 
     pub fn lower_param(&mut self, param: &Param) -> hir::Param {
+        let name = param.ident.name;
         let res = self.name_res[&param.ident.span];
         hir::Param {
-            ty: param.ty.clone(),
             res,
+            name,
+            ty: param.ty.clone(),
         }
     }
 

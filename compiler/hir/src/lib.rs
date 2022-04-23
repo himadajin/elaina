@@ -30,8 +30,9 @@ pub struct Fn {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Param {
-    pub ty: ast::ty::Ty,
     pub res: DefId,
+    pub name: Symbol,
+    pub ty: ast::ty::Ty,
 }
 
 #[derive(Debug, PartialEq, Clone)]

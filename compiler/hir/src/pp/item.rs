@@ -54,7 +54,7 @@ impl HIRPrinter<'_> {
     pub fn print_fn_params(&mut self, mut params: &[Param]) {
         self.p.popen(Delim::Paren);
         while let [param, tail @ ..] = params {
-            self.print_def(&param.res);
+            self.print_ident(param.res, param.name);
             self.p.word(": ");
             self.print_ty(&param.ty);
 
