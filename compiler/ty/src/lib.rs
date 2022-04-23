@@ -20,6 +20,8 @@ pub enum TyKind {
 
     Tuple(Vec<Ty>),
 
+    Fn(Vec<Ty>, Box<Option<Ty>>),
+
     Never,
 }
 
