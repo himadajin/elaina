@@ -38,20 +38,11 @@ impl HIRPrinter<'_> {
         self.print_ident(res, name);
         self.space();
 
-        self.with_delim(Delim::Paren, false, |this| {
-            this.separated(
-                inputs.iter(),
-                |this| {
-                    this.comma();
-                    this.space();
-                },
-                |this, param| {
-                    this.print_ident(param.res, param.name);
-                    this.colon();
-                    this.space();
-                    this.print_ty(&param.ty);
-                },
-            )
+        // print fn args: (arg1:ty1, arg2:ty2, ..)
+        self.list(inputs.iter(), Delim::Paren, |this, param| {
+            this.print_ident(param.res, param.name);
+            this.colon();
+            this.print_ty(&param.ty);
         });
 
         if let Some(output) = &output {

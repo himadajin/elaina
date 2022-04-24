@@ -43,20 +43,15 @@ impl THIRPrinter<'_> {
         self.print_ident(def, name);
 
         // print fn args: (arg1:ty1, arg2:ty2, ..)
-        self.with_delim(Delim::Paren, false, |this| {
-            this.separated(
-                ty.inputs.iter().zip(inputs),
-                |this| {
-                    this.comma();
-                    this.space();
-                },
-                |this, (ty, param)| {
-                    this.print_ident(param.res.def, param.name);
-                    this.colon();
-                    this.print_ty(ty);
-                },
-            )
-        });
+        self.list(
+            ty.inputs.iter().zip(inputs),
+            Delim::Paren,
+            |this, (ty, param)| {
+                this.print_ident(param.res.def, param.name);
+                this.colon();
+                this.print_ty(ty);
+            },
+        );
 
         // print return type: -> ty
         if let Some(output) = ty.output.as_ref() {

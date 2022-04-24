@@ -89,32 +89,14 @@ impl<'a> THIRPrinter<'a> {
                 ty::IntTy::I32 => self.print("i32"),
             },
             ty::TyKind::Tuple(tys) => {
-                self.with_delim(Delim::Paren, false, |this| {
-                    this.separated(
-                        tys.iter(),
-                        |this| {
-                            this.comma();
-                            this.space();
-                        },
-                        |this, ty| {
-                            this.print_ty(ty);
-                        },
-                    );
+                self.list(tys.iter(), Delim::Paren, |this, ty| {
+                    this.print_ty(ty);
                 });
             }
             ty::TyKind::Fn(ty) => {
                 self.print("Fn");
-                self.with_delim(Delim::Paren, false, |this| {
-                    this.separated(
-                        ty.inputs.iter(),
-                        |this| {
-                            this.comma();
-                            this.space();
-                        },
-                        |this, ty| {
-                            this.print_ty(ty);
-                        },
-                    );
+                self.list(ty.inputs.iter(), Delim::Paren, |this, ty| {
+                    this.print_ty(ty);
                 });
 
                 if let Some(output) = ty.output.as_ref() {

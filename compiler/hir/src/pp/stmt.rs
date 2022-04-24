@@ -39,5 +39,6 @@ impl HIRPrinter<'_> {
         self.space();
 
         self.print_expr(init);
+        self.semi();
     }
 }
