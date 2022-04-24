@@ -1,8 +1,8 @@
 use super::HIRPrinter;
 
 use crate::*;
-use ast::op::{BinOp, UnOp, Fixity};
-use printer::Delim;
+use ast::op::{BinOp, Fixity, UnOp};
+use printer::{Delim, Printer};
 
 impl HIRPrinter<'_> {
     pub fn print_expr(&mut self, expr: &Expr) {
@@ -21,20 +21,21 @@ impl HIRPrinter<'_> {
                 self.print_expr_if(cond, then, else_opt.as_deref());
             }
             Expr::Loop { block } => {
-                self.p.word("loop ");
+                self.print_space("loop");
+
                 self.print_block(block);
             }
             Expr::Break { expr } => {
-                self.p.word("break");
+                self.print("break");
                 if let Some(expr) = expr {
-                    self.p.space();
+                    self.space();
                     self.print_expr(expr);
                 }
             }
             Expr::Continue { expr } => {
-                self.p.word("continue");
+                self.print("continue");
                 if let Some(expr) = expr {
-                    self.p.space();
+                    self.space();
                     self.print_expr(expr);
                 }
             }
@@ -44,8 +45,8 @@ impl HIRPrinter<'_> {
             Expr::Assign { lhs, rhs } => {
                 let prec = crate::PREC_ASSIGN;
                 self.print_expr_maybe_paren(lhs, prec + 1);
-                self.p.space();
-                self.p.word("= ");
+                self.space();
+                self.eq();
                 self.print_expr_maybe_paren(rhs, prec);
             }
             Expr::Lit { lit, .. } => self.print_lit(lit),
@@ -57,8 +58,8 @@ impl HIRPrinter<'_> {
 
     fn print_lit(&mut self, lit: &Lit) {
         match lit {
-            Lit::Bool { value } => self.p.word(value.to_string()),
-            Lit::Int(l) => self.p.word(l.value.to_string()),
+            Lit::Bool { value } => self.print(value.to_string()),
+            Lit::Int(l) => self.print(l.value.to_string()),
         }
     }
 
@@ -68,11 +69,11 @@ impl HIRPrinter<'_> {
 
     fn print_expr_cond_paren(&mut self, expr: &Expr, needs_par: bool) {
         if needs_par {
-            self.p.popen(Delim::Paren);
-        }
-        self.print_expr(expr);
-        if needs_par {
-            self.p.pclose(Delim::Paren);
+            self.with_delim(Delim::Paren, false, |this| {
+                this.print_expr(expr);
+            });
+        } else {
+            self.print_expr(expr);
         }
     }
 
@@ -87,21 +88,19 @@ impl HIRPrinter<'_> {
         };
 
         self.print_expr_maybe_paren(lhs, left_prec);
-        self.p.space();
-        self.p.word(op.to_string());
-        self.p.space();
+        self.space_print_space(op.to_string());
         self.print_expr_maybe_paren(rhs, right_prec);
     }
 
     fn print_expr_unary(&mut self, op: &UnOp, expr: &Expr) {
-        self.p.word(op.to_string());
+        self.print(op.to_string());
         self.print_expr_maybe_paren(expr, crate::PREC_PREFIX);
     }
 
     fn print_expr_if(&mut self, cond: &Expr, then: &Block, else_opt: Option<&Expr>) {
-        self.p.word("if ");
+        self.print_space("if");
         self.print_expr_cond_paren(cond, false);
-        self.p.space();
+        self.space();
         self.print_block(then);
         self.print_else(else_opt);
     }
@@ -114,14 +113,14 @@ impl HIRPrinter<'_> {
                     then,
                     else_opt,
                 } => {
-                    self.p.word(" else if ");
+                    self.space_print_space("else if");
                     self.print_expr_cond_paren(cond, false);
-                    self.p.space();
+                    self.space();
                     self.print_block(then);
                     self.print_else(else_opt.as_deref());
                 }
                 Expr::Block { block } => {
-                    self.p.word(" else ");
+                    self.space_print_space("else");
                     self.print_block(block);
                 }
                 _ => {

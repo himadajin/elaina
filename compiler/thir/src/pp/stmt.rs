@@ -2,7 +2,7 @@ use crate::*;
 
 use super::THIRPrinter;
 
-use printer::Delim;
+use printer::{Delim, Printer};
 
 impl THIRPrinter<'_> {
     pub fn print_stmt(&mut self, stmt: &Stmt) {
@@ -14,20 +14,22 @@ impl THIRPrinter<'_> {
                 self.print_expr(e);
             }
             Stmt::Println(e) => {
-                self.p.word("println");
-                self.p.popen(Delim::Paren);
-                self.print_expr(e);
-                self.p.pclose(Delim::Paren);
-                self.p.word(";");
+                self.print("println");
+                self.with_delim(Delim::Paren, false, |this| {
+                    this.print_expr(e);
+                });
+                self.semi();
             }
         }
     }
 
     fn print_local(&mut self, pat: &Pat, init: &Expr) {
-        self.p.word("let ");
+        self.print_space("let");
         self.print_pat(pat);
-        self.p.word(" = ");
+        self.space();
+        self.eq();
+        self.space();
         self.print_expr(init);
-        self.p.word(";");
+        self.semi();
     }
 }

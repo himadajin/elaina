@@ -3,7 +3,7 @@ use crate::*;
 use super::THIRPrinter;
 
 use ast::op::{BinOp, Fixity, UnOp};
-use printer::Delim;
+use printer::{Delim, Printer};
 
 impl THIRPrinter<'_> {
     pub fn print_expr(&mut self, expr: &Expr) {
@@ -24,20 +24,20 @@ impl THIRPrinter<'_> {
                 this.print_expr_if(cond, then, else_opt.as_deref());
             }
             Expr::Loop { block } => {
-                this.p.word("loop ");
+                this.print_space("loop");
                 this.print_block(block);
             }
             Expr::Break { expr, .. } => {
-                this.p.word("break");
+                this.print("break");
                 if let Some(expr) = expr {
-                    this.p.space();
+                    this.space();
                     this.print_expr(expr);
                 }
             }
             Expr::Continue { expr, .. } => {
-                this.p.word("continue");
+                this.print("continue");
                 if let Some(expr) = expr {
-                    this.p.space();
+                    this.space();
                     this.print_expr(expr);
                 }
             }
@@ -47,8 +47,9 @@ impl THIRPrinter<'_> {
             Expr::Assign { lhs, rhs, .. } => {
                 let prec = crate::PREC_ASSIGN;
                 this.print_expr_maybe_paren(lhs, prec + 1);
-                this.p.space();
-                this.p.word("= ");
+                this.space();
+                this.eq();
+                this.space();
                 this.print_expr_maybe_paren(rhs, prec);
             }
             Expr::Lit { lit, .. } => this.print_lit(lit),
@@ -60,8 +61,8 @@ impl THIRPrinter<'_> {
 
     fn print_lit(&mut self, lit: &Lit) {
         match lit {
-            Lit::Bool { value } => self.p.word(value.to_string()),
-            Lit::Int(lit) => self.p.word(lit.value.to_string()),
+            Lit::Bool { value } => self.print(value),
+            Lit::Int(lit) => self.print(lit.value),
         }
     }
 
@@ -71,11 +72,11 @@ impl THIRPrinter<'_> {
 
     fn print_expr_cond_paren(&mut self, expr: &Expr, needs_par: bool) {
         if needs_par {
-            self.p.popen(Delim::Paren);
-        }
-        self.print_expr(expr);
-        if needs_par {
-            self.p.pclose(Delim::Paren);
+            self.with_delim(Delim::Paren, false, |this| {
+                this.print_expr(expr);
+            });
+        } else {
+            self.print_expr(expr);
         }
     }
 
@@ -90,21 +91,19 @@ impl THIRPrinter<'_> {
         };
 
         self.print_expr_maybe_paren(lhs, left_prec);
-        self.p.space();
-        self.p.word(op.to_string());
-        self.p.space();
+        self.space_print_space(op);
         self.print_expr_maybe_paren(rhs, right_prec);
     }
 
     fn print_expr_unary(&mut self, op: &UnOp, expr: &Expr) {
-        self.p.word(op.to_string());
+        self.print(op);
         self.print_expr_maybe_paren(expr, crate::PREC_PREFIX);
     }
 
     fn print_expr_if(&mut self, cond: &Expr, then: &Block, else_opt: Option<&Expr>) {
-        self.p.word("if ");
+        self.print_space("if");
         self.print_expr_cond_paren(cond, false);
-        self.p.space();
+        self.space();
         self.print_block(then);
         self.print_else(else_opt);
     }
@@ -118,14 +117,14 @@ impl THIRPrinter<'_> {
                     else_opt,
                     ty: _,
                 } => {
-                    self.p.word(" else if ");
+                    self.space_print_space("else if");
                     self.print_expr_cond_paren(cond, false);
-                    self.p.space();
+                    self.space();
                     self.print_block(then);
                     self.print_else(else_opt.as_deref());
                 }
                 Expr::Block { block } => {
-                    self.p.word(" else ");
+                    self.space_print_space("else");
                     self.print_block(block);
                 }
                 _ => {

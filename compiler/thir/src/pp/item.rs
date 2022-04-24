@@ -2,27 +2,26 @@ use crate::*;
 
 use super::THIRPrinter;
 
-use printer::Delim;
+use printer::{Delim, Printer};
 
 impl THIRPrinter<'_> {
-    pub fn print_items(&mut self, mut items: &[Item]) {
-        while let [item, tail @ ..] = items {
-            self.print_item(item);
-
-            if tail.is_empty() {
-                break;
-            }
-
-            self.p.new_line();
-            self.p.new_line();
-            items = &items[1..];
-        }
+    pub fn print_items(&mut self, items: &[Item]) {
+        self.separated(
+            items.iter(),
+            |this| {
+                this.newline();
+                this.newline();
+            },
+            |this, item| {
+                this.print_item(item);
+            },
+        );
     }
 
     pub fn print_item(&mut self, item: &Item) {
         let (res, name) = (item.res, item.name);
         match &item.kind {
-            ItemKind::Fn(fun) => self.print_fun(
+            ItemKind::Fn(fun) => self.print_fn(
                 res.def,
                 name,
                 &fun.ty.kind.to_fn_ty().unwrap(),
@@ -32,7 +31,7 @@ impl THIRPrinter<'_> {
         }
     }
 
-    fn print_fun(
+    fn print_fn(
         &mut self,
         def: DefId,
         name: Symbol,
@@ -40,37 +39,31 @@ impl THIRPrinter<'_> {
         inputs: &Vec<Param>,
         body: &Block,
     ) {
-        self.p.word("fn ");
+        self.print_space("fn");
         self.print_ident(def, name);
 
-        let inputs = ty.inputs.iter().zip(inputs).collect();
-        self.print_fun_inputs(&inputs);
+        // print fn args: (arg1:ty1, arg2:ty2, ..)
+        self.with_delim(Delim::Paren, false, |this| {
+            this.separated(
+                ty.inputs.iter().zip(inputs),
+                |this| {
+                    this.comma();
+                    this.space();
+                },
+                |this, (ty, param)| {
+                    this.print_ident(param.res.def, param.name);
+                    this.colon();
+                    this.print_ty(ty);
+                },
+            )
+        });
 
+        // print return type: -> ty
         if let Some(output) = ty.output.as_ref() {
-            self.p.word(" -> ");
+            self.print(" -> ");
             self.print_ty(output);
         }
-        self.p.space();
+        self.space();
         self.print_block(body);
-    }
-
-    fn print_fun_inputs(&mut self, inputs: &Vec<(&ty::Ty, &Param)>) {
-        let mut inputs = inputs.as_slice();
-
-        self.p.popen(Delim::Paren);
-
-        while let [(ty, param), tail @ ..] = inputs {
-            self.print_ident(param.res.def, param.name);
-            self.p.word(":");
-            self.print_ty(ty);
-
-            if !tail.is_empty() {
-                self.p.word(", ");
-            }
-
-            inputs = &inputs[1..];
-        }
-
-        self.p.pclose(Delim::Paren);
     }
 }

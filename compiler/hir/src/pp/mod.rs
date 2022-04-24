@@ -24,19 +24,35 @@ pub fn print_block(map: &SymbolMap, block: &Block) -> String {
 
 struct HIRPrinter<'a> {
     pub map: &'a SymbolMap<'a>,
-    pub p: Printer,
+    pub output: String,
+    pub indent: usize,
+}
+
+impl Printer for HIRPrinter<'_> {
+    const INDENT_SIZE: usize = 4;
+
+    type Output = String;
+
+    fn finish(self) -> Self::Output {
+        self.output
+    }
+
+    fn get_output_mut(&mut self) -> &mut Self::Output {
+        &mut self.output
+    }
+
+    fn get_indent_mut(&mut self) -> &mut usize {
+        &mut self.indent
+    }
 }
 
 impl<'a> HIRPrinter<'a> {
     fn new(map: &'a SymbolMap<'a>) -> Self {
         HIRPrinter {
             map,
-            p: Printer::new(),
+            output: String::new(),
+            indent: 0,
         }
-    }
-
-    fn finish(self) -> String {
-        self.p.finish()
     }
 
     fn print_pat(&mut self, pat: &Pat) {
@@ -49,22 +65,22 @@ impl<'a> HIRPrinter<'a> {
 
     fn print_ident(&mut self, res: Res, name: Symbol) {
         let name = self.map.get(name);
-        self.p.word(name);
-        self.p.popen(Delim::Paren);
-        self.print_def(&res.def);
-        self.p.pclose(Delim::Paren);
+        self.print(name);
+        self.with_delim(Delim::Paren, false, |this| {
+            this.print_def(&res.def);
+        });
     }
 
     fn print_def(&mut self, def: &DefId) {
-        self.p.word("%");
-        self.p.word(def.to_string())
+        self.print("%");
+        self.print(def.to_string());
     }
 
     fn print_ty(&mut self, ty: &ty::Ty) {
         match &ty.kind {
             ty::TyKind::Path(path) => {
                 let name = self.map.get(path.ident.name);
-                self.p.word(name);
+                self.print(name);
             }
         }
     }
