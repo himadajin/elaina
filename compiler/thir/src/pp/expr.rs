@@ -7,75 +7,62 @@ use printer::Delim;
 
 impl THIRPrinter<'_> {
     pub fn print_expr(&mut self, expr: &Expr) {
-        match expr {
-            Expr::Binary { op, lhs, rhs, ty } => {
-                self.print_with_ty(ty, |this| {
-                    this.print_expr_binary(op, lhs, rhs);
-                });
+        let ty = expr.ty();
+        self.print_with_ty(&ty, |this| match expr {
+            Expr::Binary { op, lhs, rhs, .. } => {
+                this.print_expr_binary(op, lhs, rhs);
             }
-            Expr::Unary { op, expr, ty } => {
-                self.print_with_ty(ty, |this| {
-                    this.print_expr_unary(op, expr);
-                });
+            Expr::Unary { op, expr, .. } => {
+                this.print_expr_unary(op, expr);
             }
             Expr::If {
                 cond,
                 then,
                 else_opt,
-                ty: _,
+                ..
             } => {
-                self.print_expr_if(cond, then, else_opt.as_deref());
+                this.print_expr_if(cond, then, else_opt.as_deref());
             }
             Expr::Loop { block } => {
-                self.p.word("loop ");
-                self.print_block(block);
+                this.p.word("loop ");
+                this.print_block(block);
             }
-            Expr::Break { expr, ty: _ } => {
-                self.p.word("break");
+            Expr::Break { expr, .. } => {
+                this.p.word("break");
                 if let Some(expr) = expr {
-                    self.p.space();
-                    self.print_expr(expr);
+                    this.p.space();
+                    this.print_expr(expr);
                 }
             }
-            Expr::Continue { expr, ty: _ } => {
-                self.p.word("continue");
+            Expr::Continue { expr, .. } => {
+                this.p.word("continue");
                 if let Some(expr) = expr {
-                    self.p.space();
-                    self.print_expr(expr);
+                    this.p.space();
+                    this.print_expr(expr);
                 }
             }
             Expr::Block { block } => {
-                self.print_block(block);
+                this.print_block(block);
             }
-            Expr::Assign { lhs, rhs, ty } => {
-                self.print_with_ty(ty, |this| {
-                    let prec = crate::PREC_ASSIGN;
-                    this.print_expr_maybe_paren(lhs, prec + 1);
-                    this.p.space();
-                    this.p.word("= ");
-                    this.print_expr_maybe_paren(rhs, prec);
-                });
+            Expr::Assign { lhs, rhs, .. } => {
+                let prec = crate::PREC_ASSIGN;
+                this.print_expr_maybe_paren(lhs, prec + 1);
+                this.p.space();
+                this.p.word("= ");
+                this.print_expr_maybe_paren(rhs, prec);
             }
-            Expr::Lit { lit, ty } => self.print_lit(lit, ty),
-            Expr::VarRef { res, ty } => {
-                self.print_with_ty(ty, |this| {
-                    this.print_def(res.def);
-                });
+            Expr::Lit { lit, .. } => this.print_lit(lit),
+            Expr::VarRef { res, .. } => {
+                this.print_def(res.def);
             }
-        }
+        });
     }
 
-    fn print_lit(&mut self, lit: &Lit, ty: &ty::Ty) {
-        self.print_with_ty(ty, |this| {
-            this.p.popen(Delim::Paren);
-            match lit {
-                Lit::Bool { value } => this.p.word(value.to_string()),
-                Lit::Int(lit) => this.p.word(lit.value.to_string()),
-            }
-            this.p.word(":");
-            this.print_ty(ty);
-            this.p.pclose(Delim::Paren);
-        })
+    fn print_lit(&mut self, lit: &Lit) {
+        match lit {
+            Lit::Bool { value } => self.p.word(value.to_string()),
+            Lit::Int(lit) => self.p.word(lit.value.to_string()),
+        }
     }
 
     fn print_expr_maybe_paren(&mut self, expr: &Expr, prec: i8) {
