@@ -12,7 +12,9 @@ impl HIRPrinter<'_> {
             });
 
             if let Some(e) = &block.expr {
-                this.newline();
+                if !block.stmts.is_empty() {
+                    this.newline();
+                }
                 this.print_expr(e);
             }
         });
