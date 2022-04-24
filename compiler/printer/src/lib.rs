@@ -38,7 +38,7 @@ pub trait Printer {
     /// Print given value to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.print("123");
@@ -52,7 +52,7 @@ pub trait Printer {
     /// Print space and given value to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.space_print("abc");
@@ -66,7 +66,7 @@ pub trait Printer {
     /// Print space, given value and space to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.space_print_space("abc");
@@ -81,7 +81,7 @@ pub trait Printer {
     /// Print given value and space to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.print_space("abc");
@@ -95,7 +95,7 @@ pub trait Printer {
     /// Print space to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.space();
@@ -108,7 +108,7 @@ pub trait Printer {
     /// Print multiple spaces to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.spaces(3);
@@ -123,7 +123,7 @@ pub trait Printer {
     /// Print `;` to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.semi();
@@ -136,7 +136,7 @@ pub trait Printer {
     /// Print `:` to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.colon();
@@ -149,7 +149,7 @@ pub trait Printer {
     /// Print `.` to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.dot();
@@ -162,7 +162,7 @@ pub trait Printer {
     /// Print `,` to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.comma();
@@ -175,11 +175,11 @@ pub trait Printer {
     /// Print `=` to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.eq();
-    /// assert_eq!("", p.finish());
+    /// assert_eq!("=", p.finish());
     /// ```
     fn eq(&mut self) {
         self.print("=");
@@ -188,7 +188,7 @@ pub trait Printer {
     /// Print `+` to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.plus();
@@ -201,7 +201,7 @@ pub trait Printer {
     /// Print `-` to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.minus();
@@ -214,7 +214,7 @@ pub trait Printer {
     /// Print `*` to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.star();
@@ -227,7 +227,7 @@ pub trait Printer {
     /// Print `/` to output.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.slash();
@@ -237,10 +237,39 @@ pub trait Printer {
         self.print("/");
     }
 
+    /// Print multiple items separated by `, ` and parensized.
+    /// # Example
+    /// ```
+    /// use printer::*;
+    /// 
+    /// let v = vec![1, 2, 3, 4];
+    /// let mut p = PrinterAnd::new(());
+    /// p.list(v.iter(), Delim::Paren, |this, item| {
+    ///     this.print(item);
+    /// });
+    /// assert_eq!("(1, 2, 3, 4)", p.finish());
+    /// ```
+    fn list<T, I, F>(&mut self, items: T, delim: Delim, f: F)
+    where
+        T: Iterator<Item = I>,
+        F: Fn(&mut Self, I),
+    {
+        self.with_delim(delim, false, |this| {
+            this.separated(
+                items,
+                |this| {
+                    this.comma();
+                    this.space();
+                },
+                f,
+            );
+        });
+    }
+
     /// Add newline.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let mut p = PrinterAnd::new(());
     /// p.print(1234);
@@ -264,7 +293,7 @@ pub trait Printer {
     /// No line breaks at the end.
     /// # Example
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let v = vec![1, 2, 3, 4];
     /// let mut p = PrinterAnd::new(());
@@ -292,7 +321,7 @@ pub trait Printer {
     /// No separator inserted at the end.
     /// # Examples
     /// ```
-    /// use pprint::printer::*;
+    /// use printer::*;
     ///
     /// let v = vec![1, 2, 3, 4];
     /// let mut p = PrinterAnd::new(());
@@ -326,8 +355,8 @@ pub trait Printer {
     /// Print item with delimiter.
     /// # Examples
     /// ```
-    /// use pprint::printer::*;
-    /// 
+    /// use printer::*;
+    ///
     /// {
     ///     let mut p = PrinterAnd::new(());
     ///     p.with_delim(Delim::Paren, false, |this| {
@@ -336,7 +365,7 @@ pub trait Printer {
     ///     });
     ///     assert_eq!("(123abc)", p.finish());
     /// }
-    /// 
+    ///
     /// {
     ///     let mut p = PrinterAnd::new(());
     ///     p.with_delim(Delim::Brace, true, |this| {
@@ -346,7 +375,7 @@ pub trait Printer {
     ///             this.semi();
     ///         });
     ///     });
-    ///     let out = 
+    ///     let out =
     ///r"{
     ///     1;
     ///     2;
