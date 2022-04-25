@@ -6,3 +6,5 @@ Cargo.lock
 tmp
 .devcontainer
 .vscode
+
+.DS_Store
