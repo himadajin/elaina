@@ -94,6 +94,7 @@ impl LoweringCtx {
 
     pub fn lower_expr(&mut self, expr: &Expr) -> hir::Expr {
         match expr {
+            Expr::Call { .. } => todo!(),
             Expr::Binary { op, lhs, rhs } => self.lower_expr_binary(*op, &lhs, &rhs),
             Expr::Unary { op, expr } => self.lower_expr_unary(*op, &expr),
             Expr::If {

@@ -3,6 +3,9 @@ use span::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
+    /// A function call: `foo(a, b)`
+    Call { fun: Box<Expr>, args: Vec<Expr> },
+
     /// A binary operation: `a + b`, "a * b"
     Binary {
         op: BinOp,
@@ -43,6 +46,13 @@ pub enum Expr {
 }
 
 impl Expr {
+    pub fn call<T: Into<Vec<Expr>>>(fun: Expr, args: T) -> Expr {
+        Expr::Call {
+            fun: Box::new(fun),
+            args: args.into(),
+        }
+    }
+
     pub fn binary(op: BinOp, lhs: Expr, rhs: Expr) -> Expr {
         Expr::Binary {
             op,
