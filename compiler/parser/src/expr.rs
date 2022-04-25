@@ -312,14 +312,39 @@ impl Parser<'_> {
 
     fn parse_expr_unary(&mut self) -> Result<Expr> {
         if self.consume(&TokenKind::BinOp(BinOpToken::Minus)) {
-            let expr = self.parse_expr_primary()?;
+            let expr = self.parse_expr_call()?;
             return Ok(Expr::Unary {
                 op: UnOp::Neg,
                 expr: Box::new(expr),
             });
         }
 
-        self.parse_expr_primary()
+        self.parse_expr_call()
+    }
+
+    fn parse_expr_call(&mut self) -> Result<Expr> {
+        let lhs = self.parse_expr_primary()?;
+
+        if !self.consume(&TokenKind::OpenDelim(DelimToken::Paren)) {
+            return Ok(lhs);
+        }
+
+        let mut args = Vec::new();
+        while !self.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
+            let arg = self.parse_expr()?;
+            args.push(arg);
+
+            if self.consume(&TokenKind::CloseDelim(DelimToken::Paren)) {
+                break;
+            }
+
+            self.expect(&TokenKind::Comma)?;
+        }
+
+        Ok(Expr::Call {
+            fun: Box::new(lhs),
+            args,
+        })
     }
 
     fn parse_expr_primary(&mut self) -> Result<Expr> {
@@ -782,6 +807,75 @@ mod tests {
                 BinOp::Add,
                 Expr::path_dummy(Symbol::ident_nth(0)),
                 Expr::lit_from_value_dummy(1)
+            )
+        );
+    }
+
+    #[test]
+    fn call() {
+        test_expr!(
+            "x()",
+            Expr::call(Expr::path_dummy(Symbol::ident_nth(0)), [])
+        );
+
+        test_expr!(
+            "x(1)",
+            Expr::call(
+                Expr::path_dummy(Symbol::ident_nth(0)),
+                [Expr::lit_from_value_dummy(1)]
+            )
+        );
+
+        test_expr!(
+            "x(1,)",
+            Expr::call(
+                Expr::path_dummy(Symbol::ident_nth(0)),
+                [Expr::lit_from_value_dummy(1)]
+            )
+        );
+
+        test_expr!(
+            "add(1, 2)",
+            Expr::call(
+                Expr::path_dummy(Symbol::ident_nth(0)),
+                [Expr::lit_from_value_dummy(1), Expr::lit_from_value_dummy(2)]
+            )
+        );
+
+        test_expr!(
+            "-add(1, 2)",
+            Expr::unary(
+                UnOp::Neg,
+                Expr::call(
+                    Expr::path_dummy(Symbol::ident_nth(0)),
+                    [Expr::lit_from_value_dummy(1), Expr::lit_from_value_dummy(2)]
+                )
+            )
+        );
+
+        test_expr!(
+            "add(1, 2) + 1",
+            Expr::binary(
+                BinOp::Add,
+                Expr::call(
+                    Expr::path_dummy(Symbol::ident_nth(0)),
+                    [Expr::lit_from_value_dummy(1), Expr::lit_from_value_dummy(2)]
+                ),
+                Expr::lit_from_value_dummy(1)
+            )
+        );
+
+        test_expr!(
+            "add(add(1, 2), 3)",
+            Expr::call(
+                Expr::path_dummy(Symbol::ident_nth(0)),
+                [
+                    Expr::call(
+                        Expr::path_dummy(Symbol::ident_nth(0)),
+                        [Expr::lit_from_value_dummy(1), Expr::lit_from_value_dummy(2)]
+                    ),
+                    Expr::lit_from_value_dummy(3)
+                ]
             )
         );
     }
