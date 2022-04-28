@@ -7,6 +7,9 @@ use printer::{Delim, Printer};
 impl HIRPrinter<'_> {
     pub fn print_expr(&mut self, expr: &Expr) {
         match expr {
+            Expr::Call { fun, args } => {
+                self.print_expr_call(fun, args.as_slice());
+            }
             Expr::Binary { op, lhs, rhs } => {
                 self.print_expr_binary(op, lhs, rhs);
             }
@@ -128,5 +131,12 @@ impl HIRPrinter<'_> {
                 }
             }
         }
+    }
+
+    fn print_expr_call(&mut self, fun: &Expr, args: &[Expr]) {
+        self.print_expr(fun);
+        self.list(args.iter(), Delim::Paren, |this, arg| {
+            this.print_expr(arg);
+        });
     }
 }

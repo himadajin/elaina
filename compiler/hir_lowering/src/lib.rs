@@ -97,6 +97,7 @@ impl TyCtx {
 
     pub fn lower_expr(&mut self, expr: &hir::Expr) -> Expr {
         match expr {
+            hir::Expr::Call { .. } => todo!(),
             hir::Expr::Binary { op, lhs, rhs } => {
                 let lhs = Box::new(self.lower_expr(lhs));
                 let rhs = Box::new(self.lower_expr(rhs));

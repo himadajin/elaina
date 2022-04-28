@@ -1,7 +1,7 @@
 pub mod pp;
 pub mod res;
 
-use crate::res::{Res, DefId};
+use crate::res::{DefId, Res};
 
 use ast::{
     op::{BinOp, UnOp},
@@ -78,6 +78,9 @@ pub enum Stmt {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
+    /// A function call: `foo(a, b)`
+    Call { fun: Box<Expr>, args: Vec<Expr> },
+
     /// A binary operation: `a + b`, "a * b"
     Binary {
         op: BinOp,
@@ -135,6 +138,7 @@ impl Expr {
             Binary { op, .. } => op.precedence() as i8,
             Assign { .. } => PREC_ASSIGN,
             Unary { .. } => PREC_PREFIX,
+            Call { .. } => PREC_POSTFIX,
             Lit { .. } | Path { .. } | If { .. } | Loop { .. } | Block { .. } => PREC_PAREN,
         }
     }
