@@ -6,7 +6,6 @@ use span::*;
 
 pub fn resolve_items(items: &[Item]) -> HashMap<Span, Res> {
     let mut resolver = ASTNameResolver::new();
-    resolver.resolve_items_decl(items);
     resolver.resolve_items(items);
 
     resolver.finish()
@@ -128,8 +127,9 @@ impl ASTNameResolver {
         }
     }
 
-    pub fn resolve_items_decl(&mut self, items: &[Item]) {
+    pub fn resolve_items(&mut self, items: &[Item]) {
         self.with_new_scope(|this| {
+            // resolve item declaration.
             for item in items {
                 let ident = &item.ident;
 
@@ -139,16 +139,14 @@ impl ASTNameResolver {
 
                 this.new_decl(ident.name, ident.span, kind);
             }
-        })
-    }
 
-    pub fn resolve_items(&mut self, items: &[Item]) {
-        self.with_new_scope(|this| {
-            for item in items {
-                match &item.kind {
-                    ItemKind::Fn(fun) => this.resolve_item_fn(fun.as_ref()),
+            this.with_new_scope(|this| {
+                for item in items {
+                    match &item.kind {
+                        ItemKind::Fn(fun) => this.resolve_item_fn(fun.as_ref()),
+                    }
                 }
-            }
+            });
         })
     }
 

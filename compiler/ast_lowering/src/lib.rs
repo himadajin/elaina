@@ -94,7 +94,7 @@ impl LoweringCtx {
 
     pub fn lower_expr(&mut self, expr: &Expr) -> hir::Expr {
         match expr {
-            Expr::Call { .. } => todo!(),
+            Expr::Call { fun, args } => self.lower_expr_call(fun, args),
             Expr::Binary { op, lhs, rhs } => self.lower_expr_binary(*op, &lhs, &rhs),
             Expr::Unary { op, expr } => self.lower_expr_unary(*op, &expr),
             Expr::If {
@@ -111,6 +111,16 @@ impl LoweringCtx {
             Expr::Assign { lhs, rhs } => self.lower_expr_assign(lhs.as_ref(), rhs.as_ref()),
             Expr::Lit { lit } => self.lower_expr_lit(&lit),
             Expr::Path(path) => self.lower_expr_path(path),
+        }
+    }
+
+    fn lower_expr_call(&mut self, fun: &Expr, args: &[Expr]) -> hir::Expr {
+        let fun = self.lower_expr(fun);
+        let args = args.iter().map(|arg| self.lower_expr(arg)).collect();
+
+        hir::Expr::Call {
+            fun: Box::new(fun),
+            args,
         }
     }
 
