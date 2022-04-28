@@ -70,7 +70,13 @@ impl ASTNameResolver {
 
     pub fn resolve_expr(&mut self, expr: &Expr) {
         match expr {
-            Expr::Call { .. } => todo!(),
+            Expr::Call { fun, args } => {
+                self.resolve_expr(fun);
+
+                for arg in args {
+                    self.resolve_expr(arg);
+                }
+            }
             Expr::Binary { lhs, rhs, .. } => {
                 self.resolve_expr(lhs);
                 self.resolve_expr(rhs);
