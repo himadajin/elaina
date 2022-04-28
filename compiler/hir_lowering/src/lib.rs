@@ -27,7 +27,15 @@ impl TyCtx {
     }
 
     fn get_ty(&self, def: DefId) -> Ty {
-        self.map.get(&def).unwrap().clone()
+        self.map
+            .get(&def)
+            .unwrap_or_else(|| {
+                panic!(
+                    "cannot found type of {:?}.\n defined types are:\n{:?}",
+                    def, self.map
+                )
+            })
+            .clone()
     }
 }
 
@@ -97,7 +105,42 @@ impl TyCtx {
 
     pub fn lower_expr(&mut self, expr: &hir::Expr) -> Expr {
         match expr {
-            hir::Expr::Call { .. } => todo!(),
+            hir::Expr::Call { fun, args } => {
+                let fun = self.lower_expr(fun);
+                let args: Vec<Expr> = args.iter().map(|arg| self.lower_expr(arg)).collect();
+                let fun_ty = match &fun.ty().kind {
+                    TyKind::Fn(t) => t.clone(),
+                    _ => panic!("Type of expression tried to call is not a function type."),
+                };
+
+                if args.len() != fun_ty.inputs.len() {
+                    panic!(
+                        "this function takes {} arguments but {} argument was supplied.",
+                        fun_ty.inputs.len(),
+                        args.len()
+                    );
+                }
+
+                for (supplied, taked) in args.iter().map(|arg| arg.ty()).zip(fun_ty.inputs) {
+                    if supplied != taked {
+                        panic!(
+                            "mismatched types. expected {:?} found {:?}",
+                            taked.kind, supplied.kind
+                        );
+                    }
+                }
+
+                let ty = match fun_ty.output.as_ref() {
+                    Some(output) => output.clone(),
+                    None => self.types.unit.clone(),
+                };
+
+                Expr::Call {
+                    fun: Box::new(fun),
+                    args,
+                    ty,
+                }
+            }
             hir::Expr::Binary { op, lhs, rhs } => {
                 let lhs = Box::new(self.lower_expr(lhs));
                 let rhs = Box::new(self.lower_expr(rhs));
@@ -216,7 +259,20 @@ impl TyCtx {
     }
 
     pub fn lower_items(&mut self, items: &[hir::Item]) -> Vec<Item> {
+        // lower item decl
+        for item in items {
+            self.lower_item_decl(item);
+        }
+
         items.iter().map(|item| self.lower_item(item)).collect()
+    }
+
+    pub fn lower_item_decl(&mut self, item: &hir::Item) {
+        match &item.kind {
+            hir::ItemKind::Fn(fun) => {
+                self.lower_fun_ty(item.res.def, &fun.inputs, &fun.output);
+            }
+        }
     }
 
     pub fn lower_item(&mut self, item: &hir::Item) -> Item {
@@ -235,10 +291,10 @@ impl TyCtx {
         &mut self,
         res: Res,
         inputs: &Vec<hir::Param>,
-        output: &Option<ast::ty::Ty>,
+        _output: &Option<ast::ty::Ty>,
         body: &hir::Block,
     ) -> ItemKind {
-        let ty = self.lower_fun_ty(res.def, inputs, output);
+        let ty = self.get_ty(res.def);
 
         let inputs = inputs
             .iter()
