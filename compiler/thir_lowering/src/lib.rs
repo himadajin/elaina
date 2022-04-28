@@ -146,6 +146,7 @@ impl<'a> LoweringCtx<'a> {
 
     fn lower_expr(&mut self, entry_block: BlockId, expr: &thir::Expr) -> (BlockId, Operand) {
         match expr {
+            thir::Expr::Call { .. } => todo!(),
             thir::Expr::Binary { op, lhs, rhs, ty } => {
                 self.lower_expr_binary(entry_block, *op, lhs, rhs, ty.clone())
             }

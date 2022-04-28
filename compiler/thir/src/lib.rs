@@ -38,11 +38,7 @@ pub struct Pat {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum PatKind {
-    Binding {
-        res: Res,
-        name: Symbol,
-        ty: ty::Ty,
-    },
+    Binding { res: Res, name: Symbol, ty: ty::Ty },
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -67,6 +63,13 @@ pub enum Stmt {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
+    /// A function call: `foo(a, b)`
+    Call {
+        fun: Box<Expr>,
+        args: Vec<Expr>,
+        ty: ty::Ty,
+    },
+
     /// A binary operation: `a + b`, "a * b"
     Binary {
         op: BinOp,
@@ -119,6 +122,7 @@ pub enum Expr {
 impl Expr {
     pub fn ty(&self) -> ty::Ty {
         match self {
+            Expr::Call { ty, .. } => ty.clone(),
             Expr::Binary { ty, .. } => ty.clone(),
             Expr::Unary { ty, .. } => ty.clone(),
             Expr::If { ty, .. } => ty.clone(),
@@ -139,6 +143,7 @@ impl Expr {
             Binary { op, .. } => op.precedence() as i8,
             Assign { .. } => PREC_ASSIGN,
             Unary { .. } => PREC_PREFIX,
+            Call { .. } => PREC_POSTFIX,
             Lit { .. } | VarRef { .. } | If { .. } | Loop { .. } | Block { .. } => PREC_PAREN,
         }
     }

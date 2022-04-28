@@ -9,6 +9,9 @@ impl THIRPrinter<'_> {
     pub fn print_expr(&mut self, expr: &Expr) {
         let ty = expr.ty();
         self.print_with_ty(&ty, |this| match expr {
+            Expr::Call { fun, args, .. } => {
+                this.print_expr_call(fun, args);
+            }
             Expr::Binary { op, lhs, rhs, .. } => {
                 this.print_expr_binary(op, lhs, rhs);
             }
@@ -132,5 +135,12 @@ impl THIRPrinter<'_> {
                 }
             }
         }
+    }
+
+    fn print_expr_call(&mut self, fun: &Expr, args: &[Expr]) {
+        self.print_expr(fun);
+        self.list(args.iter(), Delim::Paren, |this, arg| {
+            this.print_expr(arg);
+        })
     }
 }
