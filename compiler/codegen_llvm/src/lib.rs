@@ -119,6 +119,7 @@ impl<'ctx> CodegenContext<'ctx> {
                     todo!();
                 }
             }
+            terminator::Terminator::Call { .. } => todo!(),
             terminator::Terminator::Return => {
                 let ret_ptr = self.local_values.first().unwrap().clone();
                 let ret_val = self.builder.build_load(ret_ptr, "").into_int_value();

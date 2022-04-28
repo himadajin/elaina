@@ -93,6 +93,7 @@ fn write_ir_terminator(terminator: &Terminator, w: &mut dyn Write) -> fmt::Resul
                 .collect();
             writeln!(w, "{}];", elements.join(", "))?;
         }
+        Terminator::Call { .. } => todo!(),
         Terminator::Return => writeln!(w, "return;")?,
     }
 
