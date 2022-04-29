@@ -104,6 +104,23 @@ impl<'a> THIRPrinter<'a> {
                     self.print_ty(output);
                 }
             }
+            ty::TyKind::FnDef(def) => {
+                self.print("FnDef");
+                self.with_delim(Delim::Paren, false, |this| {
+                    this.print_def(*def);
+                });
+            }
+            ty::TyKind::FnPtr(sig) => {
+                self.print("FnPtr");
+                self.list(sig.inputs.iter(), Delim::Paren, |this, ty| {
+                    this.print_ty(ty);
+                });
+
+                if let Some(output) = sig.output.as_ref() {
+                    self.space_print_space("->");
+                    self.print_ty(output);
+                }
+            }
             ty::TyKind::Never => self.print("!"),
         }
     }

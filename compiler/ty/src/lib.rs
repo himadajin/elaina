@@ -1,5 +1,7 @@
 pub mod res;
 
+use res::DefId;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Ty {
     pub kind: TyKind,
@@ -24,6 +26,10 @@ pub enum TyKind {
 
     Fn(FnTy),
 
+    FnDef(DefId),
+
+    FnPtr(FnSig),
+
     Never,
 }
 
@@ -43,6 +49,12 @@ pub enum IntTy {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FnTy {
+    pub inputs: Vec<Ty>,
+    pub output: Box<Option<Ty>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FnSig {
     pub inputs: Vec<Ty>,
     pub output: Box<Option<Ty>>,
 }
