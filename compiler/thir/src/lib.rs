@@ -21,15 +21,24 @@ pub enum ItemKind {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Fn {
-    pub ty: ty::Ty,
-    pub inputs: Vec<Param>,
+    pub header: FnHeader,
     pub body: Block,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct FnHeader {
+    pub def: DefId,
+    pub name: Symbol,
+
+    pub inputs: Vec<Param>,
+    pub output: ty::Ty,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Param {
     pub res: Res,
     pub name: Symbol,
+    pub ty: ty::Ty,
 }
 
 #[derive(Clone, Debug, PartialEq)]

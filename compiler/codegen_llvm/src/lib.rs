@@ -70,9 +70,7 @@ impl<'ctx> CodegenContext<'ctx> {
                     IntTy::I32 => self.context.i32_type(),
                 },
                 TyKind::Tuple(_) => todo!(),
-                TyKind::Fn(_) => todo!(),
                 TyKind::FnDef(_) => todo!(),
-                TyKind::FnPtr(_) => todo!(),
                 TyKind::Never => todo!(),
             };
             let local_ptr = self.builder.build_alloca(ty_llvm, name);

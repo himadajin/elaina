@@ -9,6 +9,7 @@ use std::collections::HashMap;
 pub struct TyCtx {
     map: HashMap<DefId, Ty>,
     types: CommonTypes,
+    fn_headers: HashMap<DefId, FnHeader>,
 }
 
 impl TyCtx {
@@ -16,6 +17,7 @@ impl TyCtx {
         TyCtx {
             map: HashMap::new(),
             types: CommonTypes::new(),
+            fn_headers: HashMap::new(),
         }
     }
 
@@ -46,31 +48,52 @@ impl TyCtx {
         }
     }
 
-    pub fn lower_fun_ty(
+    pub fn lower_fun_header(
         &mut self,
         fn_def: DefId,
+        fn_name: Symbol,
         hir_inputs: &Vec<hir::Param>,
         hir_output: &Option<ast::ty::Ty>,
-    ) -> Ty {
+    ) {
+        // insert function header.
         let mut inputs = Vec::new();
-        for param in hir_inputs {
-            let res = param.res;
-            let ty = self.lower_ty(&param.ty);
-            self.insert_ty(res.def, ty.clone());
-            inputs.push(ty);
+        for input in hir_inputs {
+            let ty = self.lower_ty(&input.ty);
+
+            let param = Param {
+                res: input.res,
+                name: input.name,
+                ty,
+            };
+
+            inputs.push(param);
         }
 
-        let output = hir_output.as_ref().map(|ty| self.lower_ty(ty));
-        let ty = Ty {
-            kind: TyKind::Fn(FnTy {
-                inputs,
-                output: Box::new(output),
-            }),
+        let output = match hir_output {
+            Some(ty) => self.lower_ty(ty),
+            None => self.types.unit.clone(),
         };
 
-        self.insert_ty(fn_def, ty.clone());
+        let header = FnHeader {
+            def: fn_def,
+            name: fn_name,
+            inputs,
+            output,
+        };
 
-        ty
+        self.fn_headers.insert(fn_def, header);
+
+        // insert function definition type.
+        let fn_def_ty = ty::Ty {
+            kind: TyKind::FnDef(fn_def),
+        };
+        self.map.insert(fn_def, fn_def_ty);
+
+        // insert function parameter type.
+        for param in hir_inputs {
+            let ty = self.lower_ty(&param.ty);
+            self.map.insert(param.res.def, ty);
+        }
     }
 }
 
@@ -105,31 +128,37 @@ impl TyCtx {
             hir::Expr::Call { fun, args } => {
                 let fun = self.lower_expr(fun);
                 let args: Vec<Expr> = args.iter().map(|arg| self.lower_expr(arg)).collect();
-                let fun_ty = match &fun.ty().kind {
-                    TyKind::Fn(t) => t.clone(),
-                    _ => panic!("Type of expression tried to call is not a function type."),
-                };
 
-                if args.len() != fun_ty.inputs.len() {
-                    panic!(
-                        "this function takes {} arguments but {} argument was supplied.",
-                        fun_ty.inputs.len(),
-                        args.len()
-                    );
-                }
+                match fun.ty().kind {
+                    TyKind::FnDef(def) => {
+                        let header = self.fn_headers.get(&def).unwrap();
+                        if args.len() != header.inputs.len() {
+                            panic!(
+                                "this function takes {} arguments but {} argument was supplied.",
+                                header.inputs.len(),
+                                args.len()
+                            );
+                        }
 
-                for (supplied, taked) in args.iter().map(|arg| arg.ty()).zip(fun_ty.inputs) {
-                    if supplied != taked {
-                        panic!(
-                            "mismatched types. expected {:?} found {:?}",
-                            taked.kind, supplied.kind
-                        );
+                        for (supplied, taked) in args
+                            .iter()
+                            .map(|arg| arg.ty())
+                            .zip(header.inputs.iter().map(|param| &param.ty))
+                        {
+                            if supplied != *taked {
+                                panic!(
+                                    "mismatched types. expected {:?} found {:?}",
+                                    taked.kind, supplied.kind
+                                );
+                            }
+                        }
                     }
+                    _ => panic!("Type of expression tried to call is not a function type."),
                 }
 
-                let ty = match fun_ty.output.as_ref() {
-                    Some(output) => output.clone(),
-                    None => self.types.unit.clone(),
+                let ty = match &fun.ty().kind {
+                    TyKind::FnDef(def) => self.fn_headers.get(def).unwrap().output.clone(),
+                    _ => unreachable!(),
                 };
 
                 Expr::Call {
@@ -258,23 +287,23 @@ impl TyCtx {
     pub fn lower_items(&mut self, items: &[hir::Item]) -> Vec<Item> {
         // lower item decl
         for item in items {
-            self.lower_item_decl(item);
+            self.lower_item_header(item);
         }
 
         items.iter().map(|item| self.lower_item(item)).collect()
     }
 
-    pub fn lower_item_decl(&mut self, item: &hir::Item) {
+    pub fn lower_item_header(&mut self, item: &hir::Item) {
         match &item.kind {
             hir::ItemKind::Fn(fun) => {
-                self.lower_fun_ty(item.res.def, &fun.inputs, &fun.output);
+                self.lower_fun_header(item.res.def, item.name, &fun.inputs, &fun.output);
             }
         }
     }
 
     pub fn lower_item(&mut self, item: &hir::Item) -> Item {
         let kind = match &item.kind {
-            hir::ItemKind::Fn(fun) => self.lower_fun(item.res, &fun.inputs, &fun.output, &fun.body),
+            hir::ItemKind::Fn(fun) => self.lower_fun(item.res.def, &fun.body),
         };
 
         Item {
@@ -284,25 +313,16 @@ impl TyCtx {
         }
     }
 
-    fn lower_fun(
-        &mut self,
-        res: Res,
-        inputs: &Vec<hir::Param>,
-        _output: &Option<ast::ty::Ty>,
-        body: &hir::Block,
-    ) -> ItemKind {
-        let ty = self.get_ty(res.def);
+    fn lower_fun(&mut self, def: DefId, body: &hir::Block) -> ItemKind {
+        let header = self
+            .fn_headers
+            .get(&def)
+            .unwrap_or_else(|| panic!("not found function header(defId:{}).", def))
+            .clone();
 
-        let inputs = inputs
-            .iter()
-            .map(|param| Param {
-                res: param.res,
-                name: param.name,
-            })
-            .collect();
         let body = self.lower_block(body);
 
-        ItemKind::Fn(Box::new(Fn { ty, inputs, body }))
+        ItemKind::Fn(Box::new(Fn { header, body }))
     }
 }
 

@@ -19,13 +19,12 @@ impl THIRPrinter<'_> {
     }
 
     pub fn print_item(&mut self, item: &Item) {
-        let (res, name) = (item.res, item.name);
         match &item.kind {
             ItemKind::Fn(fun) => self.print_fn(
-                res.def,
-                name,
-                &fun.ty.kind.to_fn_ty().unwrap(),
-                &fun.inputs,
+                fun.header.def,
+                fun.header.name,
+                &fun.header.inputs,
+                &fun.header.output,
                 &fun.body,
             ),
         }
@@ -35,29 +34,24 @@ impl THIRPrinter<'_> {
         &mut self,
         def: DefId,
         name: Symbol,
-        ty: &ty::FnTy,
         inputs: &Vec<Param>,
+        output: &ty::Ty,
         body: &Block,
     ) {
         self.print_space("fn");
         self.print_ident(def, name);
 
         // print fn args: (arg1:ty1, arg2:ty2, ..)
-        self.list(
-            ty.inputs.iter().zip(inputs),
-            Delim::Paren,
-            |this, (ty, param)| {
-                this.print_ident(param.res.def, param.name);
-                this.colon();
-                this.print_ty(ty);
-            },
-        );
+        self.list(inputs.iter(), Delim::Paren, |this, param| {
+            this.print_ident(param.res.def, param.name);
+            this.colon();
+            this.print_ty(&param.ty);
+        });
 
         // print return type: -> ty
-        if let Some(output) = ty.output.as_ref() {
-            self.print(" -> ");
-            self.print_ty(output);
-        }
+        self.space_print_space("->");
+        self.print_ty(output);
+
         self.space();
         self.print_block(body);
     }
