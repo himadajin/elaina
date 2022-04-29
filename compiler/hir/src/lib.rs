@@ -1,7 +1,6 @@
 pub mod pp;
-pub mod res;
 
-use crate::res::{DefId, Res};
+use ::ty::res::{DefId, Res};
 
 use ast::{
     op::{BinOp, UnOp},

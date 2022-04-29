@@ -1,11 +1,8 @@
 use ast::op::{BinOp, UnOp};
-use hir::{
-    self,
-    res::{DefId, Res},
-};
+use hir::{self};
 use span::*;
 use thir::*;
-use ty::*;
+use ty::{res::*, *};
 
 use std::collections::HashMap;
 

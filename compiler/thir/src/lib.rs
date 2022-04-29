@@ -1,9 +1,11 @@
 pub mod pp;
 
 use ast::op::{BinOp, UnOp};
-use hir::res::{DefId, Res};
 use span::*;
-use ty;
+use ty::{
+    self,
+    res::{DefId, Res},
+};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Item {

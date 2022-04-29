@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
+use ::ty::res::*;
 use ast::*;
-use hir::res::*;
 use span::*;
 
 pub fn resolve_items(items: &[Item]) -> HashMap<Span, Res> {

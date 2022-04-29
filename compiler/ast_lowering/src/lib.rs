@@ -1,5 +1,5 @@
+use ::ty::res::*;
 use ast::*;
-use hir::{self, res::*};
 use span::*;
 
 use std::collections::HashMap;

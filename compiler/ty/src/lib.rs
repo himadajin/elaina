@@ -1,3 +1,5 @@
+pub mod res;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Ty {
     pub kind: TyKind,

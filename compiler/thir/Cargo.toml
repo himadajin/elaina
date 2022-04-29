@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 ast = { path = "../ast" }
-hir = { path = "../hir" }
 printer = { path = "../printer" }
 span = { path = "../span" }
 ty = { path = "../ty" }
