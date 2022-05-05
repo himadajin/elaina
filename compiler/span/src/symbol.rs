@@ -136,6 +136,7 @@ keywords![
     Loop: "loop",
     Break: "break",
     Continue: "continue",
+    Return: "return",
 
     I32: "i32",
     Bool: "bool"
@@ -161,6 +162,7 @@ mod tests {
         assert_eq!(Kw::Loop.as_symbol(), m.insert("loop"));
         assert_eq!(Kw::Break.as_symbol(), m.insert("break"));
         assert_eq!(Kw::Continue.as_symbol(), m.insert("continue"));
+        assert_eq!(Kw::Return.as_symbol(), m.insert("return"));
 
         assert_eq!(Kw::I32.as_symbol(), m.insert("i32"));
         assert_eq!(Kw::Bool.as_symbol(), m.insert("bool"));
