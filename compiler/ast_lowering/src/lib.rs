@@ -105,7 +105,7 @@ impl LoweringCtx {
             Expr::Loop { block } => self.lower_expr_loop(block.as_ref()),
             Expr::Break { expr } => self.lower_expr_break(expr),
             Expr::Continue { expr } => self.lower_expr_continue(expr),
-            Expr::Return { expr: _ } => todo!(),
+            Expr::Return { expr } => self.lower_expr_return(expr),
             Expr::Block { block } => hir::Expr::Block {
                 block: Box::new(self.lower_block(block.as_ref())),
             },
@@ -194,6 +194,11 @@ impl LoweringCtx {
         let expr = expr.as_ref().map(|e| Box::new(self.lower_expr(e.as_ref())));
 
         hir::Expr::Continue { expr }
+    }
+
+    fn lower_expr_return(&mut self, expr: &Option<Box<Expr>>) -> hir::Expr {
+        let expr = expr.as_ref().map(|e| Box::new(self.lower_expr(e.as_ref())));
+        hir::Expr::Return { expr }
     }
 
     fn lower_expr_assign(&mut self, lhs: &Expr, rhs: &Expr) -> hir::Expr {
