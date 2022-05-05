@@ -1,4 +1,6 @@
-use mir::{constant::*, stmt::*, *};
+pub mod value;
+
+use mir::{stmt::*, *};
 use ty::*;
 
 use anyhow;
@@ -205,34 +207,6 @@ impl<'ctx> CodegenContext<'ctx> {
                 self.call_buildint_print(&module, function, operand_val);
             }
         }
-    }
-
-    fn int_value(&self, operand: &Operand) -> IntValue {
-        match operand {
-            Operand::Copy(place) => {
-                let ptr = self.pointer_value(place);
-                self.builder.build_load(ptr, "").into_int_value()
-            }
-            Operand::Constant(constant) => {
-                let _ty = constant.ty.clone();
-                match &constant.literal {
-                    ConstValue::Scalar(s) => self.scalar_int(s),
-                }
-            }
-        }
-    }
-
-    fn scalar_int(&self, scalar: &ScalarInt) -> IntValue {
-        let data = scalar.data as u64;
-        match scalar.size {
-            1 => self.context.bool_type().const_int(data, false),
-            32 => self.context.i32_type().const_int(data, false),
-            _ => panic!("Invalid data size of ScalarInt"),
-        }
-    }
-
-    fn pointer_value(&self, place: &Place) -> PointerValue {
-        self.local_values[place.local]
     }
 
     fn declare_builtin_print(&self, module: &Module<'ctx>) {
