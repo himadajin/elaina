@@ -23,6 +23,7 @@ pub struct Body {
 
     /// The first local is return value
     pub local_decls: TiVec<LocalId, LocalDecl>,
+    pub arg_count: usize,
 }
 
 impl Body {
@@ -32,11 +33,20 @@ impl Body {
             name,
             blocks: TiVec::new(),
             local_decls: TiVec::new(),
+            arg_count: 0,
         }
     }
 
-    pub fn local_return(&self) -> Place {
-        Place { local: LocalId(0) }
+    pub fn id_return(&self) -> LocalId {
+        LocalId(0)
+    }
+
+    pub fn id_args(&self) -> impl Iterator<Item = LocalId> {
+        (1..(self.arg_count + 1)).map(|i| LocalId(i))
+    }
+
+    pub fn id_locals(&self) -> impl Iterator<Item = LocalId> {
+        ((self.arg_count + 1)..).map(|i| LocalId(i))
     }
 }
 

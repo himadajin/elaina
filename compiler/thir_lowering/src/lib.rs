@@ -99,6 +99,7 @@ impl<'a> LoweringCtx<'a> {
             let place = self.builder.push_local_decl(LocalDecl::new(Some(name), ty));
             self.local_def.insert(input.res.def, place);
         }
+        self.builder.set_arg_count(inputs.len());
 
         self.return_resolver.push_scope(return_place);
 

@@ -15,6 +15,10 @@ impl MirBuilder {
         }
     }
 
+    pub(crate) fn set_arg_count(&mut self, count: usize) {
+        self.body.arg_count = count;
+    }
+
     pub(crate) fn push_local_decl(&mut self, decl: LocalDecl) -> Place {
         let id = self.body.local_decls.push_and_get_key(decl);
         Place::new(id)
