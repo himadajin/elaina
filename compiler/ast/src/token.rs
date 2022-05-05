@@ -110,8 +110,10 @@ pub fn ident_can_begin_expr(name: &Symbol) -> bool {
         Kw::If,
         Kw::True,
         Kw::False,
+        Kw::Loop,
         Kw::Break,
         Kw::Continue,
+        Kw::Return,
     ]
     .map(|k| k.into())
     .contains(name)
