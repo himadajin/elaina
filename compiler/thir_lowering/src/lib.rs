@@ -4,7 +4,7 @@ use ast::op::{BinOp, UnOp};
 use builder::MirBuilder;
 use mir::{constant::*, stmt::*, terminator::*, *};
 use span::*;
-use thir::{self};
+use thir;
 use ty::res::DefId;
 
 use core::panic;
@@ -61,10 +61,8 @@ impl ControlFlowResolver {
 #[allow(dead_code)]
 pub struct LoweringCtx<'a> {
     builder: MirBuilder,
-
     loop_resolver: ControlFlowResolver,
 
-    // local_name_table: HashMap<Symbol, Place>,
     local_def: HashMap<DefId, Place>,
     symbol_map: &'a SymbolMap<'a>,
 }
@@ -73,12 +71,10 @@ impl<'a> LoweringCtx<'a> {
     pub fn new(def: DefId, name: Symbol, symbol_map: &'a SymbolMap<'a>) -> Self {
         LoweringCtx {
             builder: MirBuilder::new(def, name),
-
             loop_resolver: ControlFlowResolver::new(),
 
-            // local_name_table: HashMap::new(),
             local_def: HashMap::new(),
-            symbol_map: symbol_map,
+            symbol_map,
         }
     }
 
@@ -356,7 +352,7 @@ impl<'a> LoweringCtx<'a> {
 
                 SwitchTargets {
                     values: vec![0, 1],
-                    targets: targets,
+                    targets,
                 }
             };
 
@@ -365,7 +361,7 @@ impl<'a> LoweringCtx<'a> {
                 switch_ty: ty::Ty {
                     kind: ty::TyKind::Bool,
                 },
-                targets: targets,
+                targets,
             }
         };
         self.builder.set_terminator(cond_tail, cond_terminator);
@@ -488,7 +484,7 @@ impl<'a> LoweringCtx<'a> {
                     size: 32,
                 });
                 let constant = Constant {
-                    ty: ty,
+                    ty,
                     literal: scalar,
                 };
 
