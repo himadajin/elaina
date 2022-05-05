@@ -94,7 +94,7 @@ impl ASTNameResolver {
                 }
             }
             Expr::Loop { block } => self.resolve_block(block),
-            Expr::Break { expr } | Expr::Continue { expr } => {
+            Expr::Break { expr } | Expr::Continue { expr } | Expr::Return { expr } => {
                 if let Some(expr) = expr {
                     self.resolve_expr(expr)
                 }

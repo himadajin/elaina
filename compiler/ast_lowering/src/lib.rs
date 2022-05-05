@@ -105,6 +105,7 @@ impl LoweringCtx {
             Expr::Loop { block } => self.lower_expr_loop(block.as_ref()),
             Expr::Break { expr } => self.lower_expr_break(expr),
             Expr::Continue { expr } => self.lower_expr_continue(expr),
+            Expr::Return { expr: _ } => todo!(),
             Expr::Block { block } => hir::Expr::Block {
                 block: Box::new(self.lower_block(block.as_ref())),
             },

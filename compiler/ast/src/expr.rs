@@ -32,6 +32,9 @@ pub enum Expr {
     /// Continue expression: `continue;`, `continue expr;`
     Continue { expr: Option<Box<Expr>> },
 
+    /// Return expression: `return;`, `return expr;`
+    Return { expr: Option<Box<Expr>> },
+
     /// Block expression: `{ 0 }`, `{let a = 1; a}`
     Block { block: Box<Block> },
 
