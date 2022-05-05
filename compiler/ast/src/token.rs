@@ -105,18 +105,19 @@ impl Token {
 }
 
 pub fn ident_can_begin_expr(name: &Symbol) -> bool {
-    [
-        Kw::Let,
-        Kw::If,
-        Kw::True,
-        Kw::False,
-        Kw::Loop,
-        Kw::Break,
-        Kw::Continue,
-        Kw::Return,
-    ]
-    .map(|k| k.into())
-    .contains(name)
+    !name.is_keyword()
+        | [
+            Kw::Let,
+            Kw::If,
+            Kw::True,
+            Kw::False,
+            Kw::Loop,
+            Kw::Break,
+            Kw::Continue,
+            Kw::Return,
+        ]
+        .map(|k| k.into())
+        .contains(name)
 }
 
 pub struct Tokens<'a> {

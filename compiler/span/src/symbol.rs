@@ -18,6 +18,10 @@ impl Symbol {
     pub const fn ident_nth(n: usize) -> Self {
         Symbol(KEYWORDS.len() + n)
     }
+
+    pub const fn is_keyword(&self) -> bool {
+        self.0 < KEYWORDS.len()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
