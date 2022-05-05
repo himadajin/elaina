@@ -62,6 +62,7 @@ impl ControlFlowResolver {
 pub struct LoweringCtx<'a> {
     builder: MirBuilder,
     loop_resolver: ControlFlowResolver,
+    return_resolver: ControlFlowResolver,
 
     local_def: HashMap<DefId, Place>,
     symbol_map: &'a SymbolMap<'a>,
@@ -72,6 +73,7 @@ impl<'a> LoweringCtx<'a> {
         LoweringCtx {
             builder: MirBuilder::new(def, name),
             loop_resolver: ControlFlowResolver::new(),
+            return_resolver: ControlFlowResolver::new(),
 
             local_def: HashMap::new(),
             symbol_map,
@@ -97,8 +99,11 @@ impl<'a> LoweringCtx<'a> {
             self.local_def.insert(input.res.def, place);
         }
 
+        self.return_resolver.push_scope();
+
         let entry_block = self.builder.push_block(None);
         let (tail, _) = self.lower_block(entry_block, &body.stmts, &body.expr);
+
         let return_block = self.builder.push_block(Some(Terminator::Return));
         self.builder.set_terminator(
             tail,
@@ -106,6 +111,15 @@ impl<'a> LoweringCtx<'a> {
                 target: return_block,
             },
         );
+        let res = self.return_resolver.pop_scope();
+        for tail in res.tails {
+            self.builder.set_terminator(
+                tail,
+                Terminator::Goto {
+                    target: return_block,
+                },
+            )
+        }
     }
 
     fn lower_block(
@@ -181,7 +195,7 @@ impl<'a> LoweringCtx<'a> {
             thir::Expr::Continue { expr, ty } => {
                 self.lower_expr_continue(entry_block, expr, ty.clone())
             }
-            thir::Expr::Return { .. } => todo!(),
+            thir::Expr::Return { expr, .. } => self.lower_expr_return(entry_block, expr),
             thir::Expr::Block { block } => {
                 let id = self.builder.push_block(None);
                 self.builder
@@ -446,6 +460,22 @@ impl<'a> LoweringCtx<'a> {
         };
 
         self.loop_resolver.push_head(block);
+
+        (block, Operand::Constant(Box::new(Constant::UNIT)))
+    }
+
+    fn lower_expr_return(
+        &mut self,
+        entry_block: BlockId,
+        expr: &Option<Box<thir::Expr>>,
+    ) -> (BlockId, Operand) {
+        // Expression in return expression is still ignored for now.
+        let (block, _) = match expr {
+            Some(expr) => self.lower_expr(entry_block, expr.as_ref()),
+            None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
+        };
+
+        self.return_resolver.push_tail(block);
 
         (block, Operand::Constant(Box::new(Constant::UNIT)))
     }
