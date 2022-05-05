@@ -7,6 +7,7 @@ use span::*;
 use thir::{self};
 use ty::res::DefId;
 
+use core::panic;
 use std::collections::HashMap;
 
 struct ControlFlowResolution {
@@ -96,7 +97,8 @@ impl<'a> LoweringCtx<'a> {
         for input in inputs {
             let name = self.symbol_map.get(input.name).to_string();
             let ty = input.ty.clone();
-            self.builder.push_local_decl(LocalDecl::new(Some(name), ty));
+            let place = self.builder.push_local_decl(LocalDecl::new(Some(name), ty));
+            self.local_def.insert(input.res.def, place);
         }
 
         let entry_block = self.builder.push_block(None);
@@ -157,7 +159,9 @@ impl<'a> LoweringCtx<'a> {
 
     fn lower_expr(&mut self, entry_block: BlockId, expr: &thir::Expr) -> (BlockId, Operand) {
         match expr {
-            thir::Expr::Call { .. } => todo!(),
+            thir::Expr::Call { fun, args, ty } => {
+                self.lower_expr_call(entry_block, fun, args, ty.clone())
+            }
             thir::Expr::Binary { op, lhs, rhs, ty } => {
                 self.lower_expr_binary(entry_block, *op, lhs, rhs, ty.clone())
             }
@@ -196,6 +200,36 @@ impl<'a> LoweringCtx<'a> {
                 (entry_block, self.lower_expr_var_ref(res.def, ty.clone()))
             }
         }
+    }
+
+    fn lower_expr_call(
+        &mut self,
+        entry_block: BlockId,
+        fun: &thir::Expr,
+        args: &[thir::Expr],
+        ty: ty::Ty,
+    ) -> (BlockId, Operand) {
+        let (tail, fun) = self.lower_expr(entry_block, fun);
+        let (tail, args) = args
+            .iter()
+            .fold((tail, Vec::new()), |(tail, mut args), expr| {
+                let (tail, arg) = self.lower_expr(tail, expr);
+                args.push(arg);
+
+                (tail, args)
+            });
+        let end = self.builder.push_block(None);
+        let ret = self
+            .builder
+            .push_local_decl(LocalDecl::new(Some("call".into()), ty));
+        let terminator = Terminator::Call {
+            fun,
+            args,
+            destination: Some((ret.clone(), end)),
+        };
+        self.builder.set_terminator(tail, terminator);
+
+        (end, Operand::Copy(ret))
     }
 
     fn lower_expr_binary(
@@ -470,9 +504,19 @@ impl<'a> LoweringCtx<'a> {
         }
     }
 
-    fn lower_expr_var_ref(&mut self, def: DefId, _ty: ty::Ty) -> Operand {
-        let local = self.local_def.get(&def).unwrap().clone();
-        Operand::Copy(local)
+    fn lower_expr_var_ref(&mut self, def: DefId, ty: ty::Ty) -> Operand {
+        if let Some(local) = self.local_def.get(&def) {
+            return Operand::Copy(local.clone());
+        }
+
+        if let ty::TyKind::FnDef(_) = ty.kind {
+            return Operand::Constant(Box::new(Constant {
+                ty,
+                literal: ConstValue::Scalar(ScalarInt::ZST),
+            }));
+        }
+
+        panic!("cannot lowering VarRef of {{def: {}, ty: {:?}}}", def, &ty);
     }
 
     fn push_local(&mut self, res: DefId, name: Option<Symbol>, ty: ty::Ty) -> Place {

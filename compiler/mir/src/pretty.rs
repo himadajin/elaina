@@ -93,7 +93,30 @@ fn write_ir_terminator(terminator: &Terminator, w: &mut dyn Write) -> fmt::Resul
                 .collect();
             writeln!(w, "{}];", elements.join(", "))?;
         }
-        Terminator::Call { .. } => todo!(),
+        Terminator::Call {
+            fun,
+            args,
+            destination,
+        } => {
+            if let Some((destination, _)) = destination {
+                write_ir_place(destination, w)?;
+            }
+
+            write!(w, " = ")?;
+            write_ir_operand(fun, w)?;
+            write!(w, "(")?;
+            for arg in args {
+                write_ir_operand(arg, w)?;
+                write!(w, ", ")?;
+            }
+            write!(w, ")")?;
+
+            if let Some((_, destination)) = destination {
+                write!(w, " ->  b{};", destination.0)?;
+            }
+
+            writeln!(w, "")?;
+        }
         Terminator::Return => writeln!(w, "return;")?,
     }
 
