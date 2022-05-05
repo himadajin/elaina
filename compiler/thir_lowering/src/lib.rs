@@ -10,14 +10,9 @@ use ty::res::DefId;
 use core::panic;
 use std::collections::HashMap;
 
-struct ControlFlowResolution {
-    heads: Vec<BlockId>,
-    tails: Vec<BlockId>,
-}
-
 #[allow(dead_code)]
 struct ControlFlowResolver {
-    scopes: Vec<ControlFlowResolution>,
+    scopes: Vec<Vec<BlockId>>,
 }
 
 #[allow(dead_code)]
@@ -27,33 +22,21 @@ impl ControlFlowResolver {
     }
 
     fn push_scope(&mut self) {
-        let res = ControlFlowResolution {
-            heads: Vec::new(),
-            tails: Vec::new(),
-        };
-
-        self.scopes.push(res);
+        self.scopes.push(Vec::new());
     }
 
-    fn pop_scope(&mut self) -> ControlFlowResolution {
+    fn pop_scope(&mut self) -> Vec<BlockId> {
         self.scopes
             .pop()
             .expect("error: Tried to pop scope even though there is no scope to resolve")
     }
 
-    fn push_head(&mut self, block: BlockId) {
+    fn push_late_resolved(&mut self, block: BlockId) {
         self.scopes
             .last_mut()
-            .expect("error: Tried to pop scope even though there is no scope to resolve")
-            .heads
-            .push(block);
-    }
-
-    fn push_tail(&mut self, block: BlockId) {
-        self.scopes
-            .last_mut()
-            .expect("error: Tried to pop scope even though there is no scope to resolve")
-            .tails
+            .unwrap_or_else(|| {
+                panic!("error: Tried to pop scope even though there is no scope to resolve")
+            })
             .push(block);
     }
 }
@@ -61,7 +44,8 @@ impl ControlFlowResolver {
 #[allow(dead_code)]
 pub struct LoweringCtx<'a> {
     builder: MirBuilder,
-    loop_resolver: ControlFlowResolver,
+    break_resolver: ControlFlowResolver,
+    continue_resolver: ControlFlowResolver,
     return_resolver: ControlFlowResolver,
 
     local_def: HashMap<DefId, Place>,
@@ -72,7 +56,9 @@ impl<'a> LoweringCtx<'a> {
     pub fn new(def: DefId, name: Symbol, symbol_map: &'a SymbolMap<'a>) -> Self {
         LoweringCtx {
             builder: MirBuilder::new(def, name),
-            loop_resolver: ControlFlowResolver::new(),
+            break_resolver: ControlFlowResolver::new(),
+            continue_resolver: ControlFlowResolver::new(),
+
             return_resolver: ControlFlowResolver::new(),
 
             local_def: HashMap::new(),
@@ -111,10 +97,10 @@ impl<'a> LoweringCtx<'a> {
                 target: return_block,
             },
         );
-        let res = self.return_resolver.pop_scope();
-        for tail in res.tails {
+        let return_from = self.return_resolver.pop_scope();
+        for target in return_from {
             self.builder.set_terminator(
-                tail,
+                target,
                 Terminator::Goto {
                     target: return_block,
                 },
@@ -404,7 +390,8 @@ impl<'a> LoweringCtx<'a> {
         let loop_head = self.builder.push_block(None);
         self.builder
             .set_terminator(entry_block, Terminator::Goto { target: loop_head });
-        self.loop_resolver.push_scope();
+        self.break_resolver.push_scope();
+        self.continue_resolver.push_scope();
 
         let (loop_tail, _) = self.lower_block(loop_head, &block.stmts, &block.expr);
         let end_head = self.builder.push_block(None);
@@ -413,18 +400,18 @@ impl<'a> LoweringCtx<'a> {
         self.builder
             .set_terminator(loop_tail, Terminator::Goto { target: loop_head });
 
-        let res = self.loop_resolver.pop_scope();
-
-        // Set terminator <resolved> -> <loop_head>
-        for resolved in res.heads {
+        // Set terminator <continue> -> <loop_head>
+        let continue_from = self.continue_resolver.pop_scope();
+        for target in continue_from {
             self.builder
-                .set_terminator(resolved, Terminator::Goto { target: loop_head });
+                .set_terminator(target, Terminator::Goto { target: loop_head });
         }
 
-        // Set terminator <resolved> -> <end_head>
-        for resolved in res.tails {
+        // Set terminator <break> -> <end_head>
+        let break_from = self.break_resolver.pop_scope();
+        for target in break_from {
             self.builder
-                .set_terminator(resolved, Terminator::Goto { target: end_head });
+                .set_terminator(target, Terminator::Goto { target: end_head });
         }
 
         (end_head, Operand::Constant(Box::new(Constant::UNIT)))
@@ -442,7 +429,7 @@ impl<'a> LoweringCtx<'a> {
             None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
         };
 
-        self.loop_resolver.push_tail(block);
+        self.break_resolver.push_late_resolved(block);
 
         (block, Operand::Constant(Box::new(Constant::UNIT)))
     }
@@ -459,7 +446,7 @@ impl<'a> LoweringCtx<'a> {
             None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
         };
 
-        self.loop_resolver.push_head(block);
+        self.continue_resolver.push_late_resolved(block);
 
         (block, Operand::Constant(Box::new(Constant::UNIT)))
     }
@@ -475,7 +462,7 @@ impl<'a> LoweringCtx<'a> {
             None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
         };
 
-        self.return_resolver.push_tail(block);
+        self.return_resolver.push_late_resolved(block);
 
         (block, Operand::Constant(Box::new(Constant::UNIT)))
     }
