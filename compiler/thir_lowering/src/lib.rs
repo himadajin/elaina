@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 #[allow(dead_code)]
 struct ControlFlowResolver {
-    scopes: Vec<Vec<BlockId>>,
+    scopes: Vec<(Place, Vec<BlockId>)>,
 }
 
 #[allow(dead_code)]
@@ -21,14 +21,17 @@ impl ControlFlowResolver {
         Self { scopes: Vec::new() }
     }
 
-    fn push_scope(&mut self) {
-        self.scopes.push(Vec::new());
+    fn push_scope(&mut self, place: Place) {
+        self.scopes.push((place, Vec::new()));
     }
 
     fn pop_scope(&mut self) -> Vec<BlockId> {
         self.scopes
             .pop()
-            .expect("error: Tried to pop scope even though there is no scope to resolve")
+            .unwrap_or_else(|| {
+                panic!("error: Tried to pop scope even though there is no scope to resolve")
+            })
+            .1
     }
 
     fn push_late_resolved(&mut self, block: BlockId) {
@@ -37,7 +40,18 @@ impl ControlFlowResolver {
             .unwrap_or_else(|| {
                 panic!("error: Tried to pop scope even though there is no scope to resolve")
             })
+            .1
             .push(block);
+    }
+
+    fn get_place(&mut self) -> Place {
+        self.scopes
+            .last()
+            .unwrap_or_else(|| {
+                panic!("error: Tried to pop scope even though there is no scope to resolve")
+            })
+            .0
+            .clone()
     }
 }
 
@@ -76,7 +90,8 @@ impl<'a> LoweringCtx<'a> {
         output: &ty::Ty,
         body: &thir::Block,
     ) {
-        self.builder
+        let return_place = self
+            .builder
             .push_local_decl(LocalDecl::new(Some("ret".into()), output.clone()));
         for input in inputs {
             let name = self.symbol_map.get(input.name).to_string();
@@ -85,7 +100,7 @@ impl<'a> LoweringCtx<'a> {
             self.local_def.insert(input.res.def, place);
         }
 
-        self.return_resolver.push_scope();
+        self.return_resolver.push_scope(return_place);
 
         let entry_block = self.builder.push_block(None);
         let (tail, _) = self.lower_block(entry_block, &body.stmts, &body.expr);
@@ -390,8 +405,15 @@ impl<'a> LoweringCtx<'a> {
         let loop_head = self.builder.push_block(None);
         self.builder
             .set_terminator(entry_block, Terminator::Goto { target: loop_head });
-        self.break_resolver.push_scope();
-        self.continue_resolver.push_scope();
+
+        let break_place = self
+            .builder
+            .push_local_decl(LocalDecl::new(Some("break".into()), block.ty.clone()));
+        self.break_resolver.push_scope(break_place.clone());
+        let continue_place = self
+            .builder
+            .push_local_decl(LocalDecl::new(Some("continue".into()), block.ty.clone()));
+        self.continue_resolver.push_scope(continue_place);
 
         let (loop_tail, _) = self.lower_block(loop_head, &block.stmts, &block.expr);
         let end_head = self.builder.push_block(None);
@@ -414,7 +436,7 @@ impl<'a> LoweringCtx<'a> {
                 .set_terminator(target, Terminator::Goto { target: end_head });
         }
 
-        (end_head, Operand::Constant(Box::new(Constant::UNIT)))
+        (end_head, Operand::Copy(break_place))
     }
 
     fn lower_expr_break(
@@ -424,10 +446,16 @@ impl<'a> LoweringCtx<'a> {
         _ty: ty::Ty,
     ) -> (BlockId, Operand) {
         // Expression in break expression is still ignored for now.
-        let (block, _) = match expr {
+        let (block, operand) = match expr {
             Some(expr) => self.lower_expr(entry_block, expr.as_ref()),
             None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
         };
+
+        // assign value of expression.
+        let place = self.break_resolver.get_place();
+        let rvalue = RValue::Use(operand);
+        let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
+        self.builder.push_stmt(block, stmt);
 
         self.break_resolver.push_late_resolved(block);
 
@@ -441,10 +469,16 @@ impl<'a> LoweringCtx<'a> {
         _ty: ty::Ty,
     ) -> (BlockId, Operand) {
         // Expression in break expression is still ignored for now.
-        let (block, _) = match expr {
+        let (block, operand) = match expr {
             Some(expr) => self.lower_expr(entry_block, expr.as_ref()),
             None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
         };
+
+        // assign value of expression.
+        let place = self.continue_resolver.get_place();
+        let rvalue = RValue::Use(operand);
+        let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
+        self.builder.push_stmt(block, stmt);
 
         self.continue_resolver.push_late_resolved(block);
 
@@ -457,12 +491,18 @@ impl<'a> LoweringCtx<'a> {
         expr: &Option<Box<thir::Expr>>,
     ) -> (BlockId, Operand) {
         // Expression in return expression is still ignored for now.
-        let (block, _) = match expr {
+        let (block, operand) = match expr {
             Some(expr) => self.lower_expr(entry_block, expr.as_ref()),
             None => (entry_block, Operand::Constant(Box::new(Constant::UNIT))),
         };
 
         self.return_resolver.push_late_resolved(block);
+
+        // assign value of expression.
+        let place = self.return_resolver.get_place();
+        let rvalue = RValue::Use(operand);
+        let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
+        self.builder.push_stmt(block, stmt);
 
         (block, Operand::Constant(Box::new(Constant::UNIT)))
     }
