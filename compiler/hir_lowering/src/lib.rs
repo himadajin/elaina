@@ -230,7 +230,14 @@ impl TyCtx {
 
                 Expr::Continue { expr, ty }
             }
-            hir::Expr::Return { expr: _ } => todo!(),
+            hir::Expr::Return { expr } => {
+                let expr = expr.as_ref().map(|e| Box::new(self.lower_expr(e)));
+                let ty = Ty {
+                    kind: TyKind::Never,
+                };
+
+                Expr::Return { expr, ty }
+            }
             hir::Expr::Block { block } => {
                 let block = Box::new(self.lower_block(block));
 
