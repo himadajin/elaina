@@ -9,7 +9,7 @@ use hir_lowering;
 use mir::pretty;
 use parser::lexer::parse_all_token;
 use parser::{self, parse_block_from_source_str, parse_items};
-use resolve::{resolve_items, ASTNameResolver};
+use resolve::resolve_items;
 #[allow(unused_imports)]
 use thir_lowering;
 
@@ -81,22 +81,23 @@ fn read_file(filename: &str) -> Result<String> {
     Ok(input)
 }
 
-fn run_input(input: &str) -> Result<()> {
-    let (ast, map) = parse_block_from_source_str(input)?;
-    let res = {
-        let mut resolver = ASTNameResolver::new();
-        resolver.resolve_block(&ast);
-        resolver.finish()
-    };
-    let hir = ast_lowering::LoweringCtx::new(res).lower_block(&ast);
-    let thir = hir_lowering::TyCtx::new().lower_block(&hir);
-    let mir = {
-        let mut ctx = thir_lowering::LoweringCtx::new(&map);
-        ctx.lower_main_block(&thir);
-        ctx.build()
-    };
-    let _ = codegen_and_execute(mir)?;
-    Ok(())
+fn run_input(_input: &str) -> Result<()> {
+    todo!()
+    // let (ast, map) = parse_block_from_source_str(input)?;
+    // let res = {
+    //     let mut resolver = ASTNameResolver::new();
+    //     resolver.resolve_block(&ast);
+    //     resolver.finish()
+    // };
+    // let hir = ast_lowering::LoweringCtx::new(res).lower_block(&ast);
+    // let thir = hir_lowering::TyCtx::new().lower_block(&hir);
+    // let mir = {
+    //     let mut ctx = thir_lowering::LoweringCtx::new(&map);
+    //     ctx.lower_main_block(&thir);
+    //     ctx.build()
+    // };
+    // let _ = codegen_and_execute(mir)?;
+    // Ok(())
 }
 
 fn print_token(input: &str) -> Result<()> {
@@ -129,46 +130,62 @@ fn print_thir(input: &str) -> Result<()> {
     let res = resolve_items(ast.as_slice());
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
     let thir = hir_lowering::TyCtx::new().lower_items(&hir);
-    
+
     let thir_print = thir::pp::print_items(&map, thir.as_slice());
     println!("{}", thir_print);
     Ok(())
 }
 
 fn print_mir(input: &str) -> Result<()> {
-    let (ast, map) = parse_block_from_source_str(input)?;
-    let res = {
-        let mut resolver = ASTNameResolver::new();
-        resolver.resolve_block(&ast);
-        resolver.finish()
-    };
-    let hir = ast_lowering::LoweringCtx::new(res).lower_block(&ast);
-    let thir = hir_lowering::TyCtx::new().lower_block(&hir);
+    let (ast, map) = parse_items(input)?;
+    let res = resolve_items(ast.as_slice());
+    let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
+    let thir = hir_lowering::TyCtx::new().lower_items(&hir);
     let mir = {
-        let mut ctx = thir_lowering::LoweringCtx::new(&map);
-        ctx.lower_main_block(&thir);
-        ctx.build()
+        let mut mir = Vec::new();
+        for item in thir {
+            let mir_item = match item.kind {
+                thir::ItemKind::Fn(fun) => {
+                    let mut ctx =
+                        thir_lowering::LoweringCtx::new(fun.header.def, fun.header.name, &map);
+                    ctx.lower_item_fun(&fun.header.inputs, &fun.header.output, &fun.body);
+                    ctx.build()
+                }
+            };
+            mir.push(mir_item);
+        }
+
+        mir
     };
 
-    let mir_string = pretty::ir_to_string(&mir);
-    println!("{}", mir_string);
+    for item in mir {
+        let mir_string = pretty::ir_to_string(&item);
+        println!("{}", mir_string);
+    }
     Ok(())
 }
 
 fn print_llvm(input: &str) -> Result<()> {
-    let (ast, map) = parse_block_from_source_str(input)?;
-    let res = {
-        let mut resolver = ASTNameResolver::new();
-        resolver.resolve_block(&ast);
-        resolver.finish()
+    let (ast, map) = parse_items(input)?;
+    let res = resolve_items(ast.as_slice());
+    let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
+    let thir = hir_lowering::TyCtx::new().lower_items(&hir);
+    let _mir = {
+        let mut mir = Vec::new();
+        for item in thir {
+            let mir_item = match item.kind {
+                thir::ItemKind::Fn(fun) => {
+                    let mut ctx =
+                        thir_lowering::LoweringCtx::new(fun.header.def, fun.header.name, &map);
+                    ctx.lower_item_fun(&fun.header.inputs, &fun.header.output, &fun.body);
+                    ctx.build()
+                }
+            };
+            mir.push(mir_item);
+        }
+
+        mir
     };
-    let hir = ast_lowering::LoweringCtx::new(res).lower_block(&ast);
-    let thir = hir_lowering::TyCtx::new().lower_block(&hir);
-    let mir = {
-        let mut ctx = thir_lowering::LoweringCtx::new(&map);
-        ctx.lower_main_block(&thir);
-        ctx.build()
-    };
-    print!("{}", codegen_string(mir));
+    // print!("{}", codegen_string(mir));
     Ok(())
 }

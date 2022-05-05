@@ -69,9 +69,9 @@ pub struct LoweringCtx<'a> {
 }
 
 impl<'a> LoweringCtx<'a> {
-    pub fn new(symbol_map: &'a SymbolMap<'a>) -> Self {
+    pub fn new(def: DefId, name: Symbol, symbol_map: &'a SymbolMap<'a>) -> Self {
         LoweringCtx {
-            builder: MirBuilder::new(),
+            builder: MirBuilder::new(def, name),
 
             loop_resolver: ControlFlowResolver::new(),
 
@@ -85,11 +85,22 @@ impl<'a> LoweringCtx<'a> {
         self.builder.build()
     }
 
-    pub fn lower_main_block(&mut self, block: &thir::Block) {
-        let entry = self.builder.push_block(None);
+    pub fn lower_item_fun(
+        &mut self,
+        inputs: &Vec<thir::Param>,
+        output: &ty::Ty,
+        body: &thir::Block,
+    ) {
+        self.builder
+            .push_local_decl(LocalDecl::new(Some("ret".into()), output.clone()));
+        for input in inputs {
+            let name = self.symbol_map.get(input.name).to_string();
+            let ty = input.ty.clone();
+            self.builder.push_local_decl(LocalDecl::new(Some(name), ty));
+        }
 
-        let (tail, _) = self.lower_block(entry, &block.stmts, &block.expr);
-
+        let entry_block = self.builder.push_block(None);
+        let (tail, _) = self.lower_block(entry_block, &body.stmts, &body.expr);
         let return_block = self.builder.push_block(Some(Terminator::Return));
         self.builder.set_terminator(
             tail,

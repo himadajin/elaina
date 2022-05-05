@@ -1,4 +1,6 @@
 use mir::{stmt::*, terminator::*, *};
+use span::Symbol;
+use ty::res::DefId;
 
 #[allow(dead_code)]
 pub(crate) struct MirBuilder {
@@ -7,8 +9,10 @@ pub(crate) struct MirBuilder {
 
 #[allow(dead_code)]
 impl MirBuilder {
-    pub(crate) fn new() -> Self {
-        Self { body: Body::new() }
+    pub(crate) fn new(def: DefId, name: Symbol) -> Self {
+        Self {
+            body: Body::new(def, name),
+        }
     }
 
     pub(crate) fn push_local_decl(&mut self, decl: LocalDecl) -> Place {

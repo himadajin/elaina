@@ -6,7 +6,8 @@ pub mod pretty;
 
 use crate::stmt::*;
 use crate::terminator::*;
-use ty;
+use span::Symbol;
+use ty::{self, res::DefId};
 
 use std::fmt;
 
@@ -15,6 +16,9 @@ use typed_index_collections::TiVec;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Body {
+    def: DefId,
+    name: Symbol,
+
     pub blocks: TiVec<BlockId, Block>,
 
     /// The first local is return value
@@ -22,22 +26,13 @@ pub struct Body {
 }
 
 impl Body {
-    pub fn new() -> Self {
-        let mut body = Body {
+    pub fn new(def: DefId, name: Symbol) -> Self {
+        Body {
+            def,
+            name,
             blocks: TiVec::new(),
             local_decls: TiVec::new(),
-        };
-
-        let local_ret = {
-            let name = Some("ret".into());
-            let ty_i32 = ty::Ty {
-                kind: ty::TyKind::Int(ty::IntTy::I32),
-            };
-            LocalDecl::new(name, ty_i32)
-        };
-        body.local_decls.push(local_ret);
-
-        body
+        }
     }
 
     pub fn local_return(&self) -> Place {
