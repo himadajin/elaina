@@ -42,6 +42,13 @@ impl HIRPrinter<'_> {
                     self.print_expr(expr);
                 }
             }
+            Expr::Return { expr } => {
+                self.print("return");
+                if let Some(expr) = expr {
+                    self.space();
+                    self.print_expr(expr);
+                }
+            }
             Expr::Block { block } => {
                 self.print_block(block);
             }

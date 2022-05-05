@@ -106,6 +106,9 @@ pub enum Expr {
     /// Continue expression: `continue;`, `continue expr;`
     Continue { expr: Option<Box<Expr>> },
 
+    /// Return expression: `return`, `return expr`
+    Return { expr: Option<Box<Expr>> },
+
     /// A block expression: `{ <stmts> }`, `{ <stmts>; <expr>}`
     Block { block: Box<Block> },
 
@@ -133,7 +136,7 @@ impl Expr {
     pub fn precedence(&self) -> i8 {
         use Expr::*;
         match self {
-            Break { .. } | Continue { .. } => PREC_JUMP,
+            Break { .. } | Continue { .. } | Return { .. } => PREC_JUMP,
             Binary { op, .. } => op.precedence() as i8,
             Assign { .. } => PREC_ASSIGN,
             Unary { .. } => PREC_PREFIX,

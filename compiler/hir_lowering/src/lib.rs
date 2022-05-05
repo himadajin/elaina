@@ -230,6 +230,7 @@ impl TyCtx {
 
                 Expr::Continue { expr, ty }
             }
+            hir::Expr::Return { expr: _ } => todo!(),
             hir::Expr::Block { block } => {
                 let block = Box::new(self.lower_block(block));
 
