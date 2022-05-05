@@ -23,6 +23,7 @@ impl MIRPrinter<'_> {
                 });
             }
         }
+        self.semi();
     }
 
     fn print_rvalue(&mut self, rvalue: &RValue) {

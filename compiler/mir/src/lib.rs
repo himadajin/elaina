@@ -73,11 +73,9 @@ impl Place {
     pub fn new(idx: LocalId) -> Self {
         Place { local: idx }
     }
-}
 
-impl fmt::Display for Place {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "%{}", self.local.0)
+    pub fn local(&self) -> LocalId {
+        self.local
     }
 }
 

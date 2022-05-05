@@ -12,32 +12,11 @@ pub enum Statement {
     Println(Operand),
 }
 
-impl fmt::Display for Statement {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Statement::Assign(assign) => write!(f, "{} = {}", assign.0, assign.1),
-            Statement::Println(operand) => write!(f, "println({});", &operand),
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum RValue {
     Use(Operand),
     BinaryOp(BinOp, Box<(Operand, Operand)>),
     UnaryOp(UnOp, Box<Operand>),
-}
-
-impl fmt::Display for RValue {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            RValue::Use(operand) => write!(f, "{}", operand),
-            RValue::BinaryOp(bo, operand) => {
-                write!(f, "{}({}, {})", bo, operand.0, operand.1)
-            }
-            RValue::UnaryOp(up, operand) => write!(f, "{}({})", up, operand),
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -88,13 +67,4 @@ impl fmt::Display for UnOp {
 pub enum Operand {
     Copy(Place),
     Constant(Box<Constant>),
-}
-
-impl fmt::Display for Operand {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Operand::Copy(p) => write!(f, "{}", p),
-            Operand::Constant(c) => write!(f, "{}", c.literal),
-        }
-    }
 }

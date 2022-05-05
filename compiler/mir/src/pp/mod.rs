@@ -75,16 +75,14 @@ impl<'a> MIRPrinter<'a> {
                 this.print_space("debug");
                 this.print(name);
                 this.space_print_space("=>");
-                this.print("%");
-                this.print(id.index());
+                this.print_local_id(id);
                 this.semi();
             });
             this.newline();
             // print locals
             this.lines(item.local_decls.iter_enumerated(), |this, (id, _)| {
                 this.print_space("let");
-                this.print("%");
-                this.print(id.index());
+                this.print_local_id(id);
                 this.semi();
             });
             this.newline();
@@ -184,13 +182,18 @@ impl<'a> MIRPrinter<'a> {
     fn print_ident(&mut self, name: Symbol, def: DefId) {
         self.print(self.map.get(name));
         self.with_delim(Delim::Paren, false, |this| {
-            this.print("_");
+            this.print("%");
             this.print(def);
         });
     }
 
     fn print_place(&mut self, place: Place) {
-        self.print(place);
+        self.print_local_id(place.local);
+    }
+
+    fn print_local_id(&mut self, local: LocalId) {
+        self.print("_");
+        self.print(local.index());
     }
 
     fn print_block_id(&mut self, id: BlockId) {
