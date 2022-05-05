@@ -2,7 +2,7 @@ pub mod constant;
 pub mod stmt;
 pub mod terminator;
 
-pub mod pretty;
+pub mod pp;
 
 use crate::stmt::*;
 use crate::terminator::*;

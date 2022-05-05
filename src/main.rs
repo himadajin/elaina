@@ -5,8 +5,6 @@ use ast_lowering;
 #[allow(unused_imports)]
 use codegen_llvm::{codegen_and_execute, codegen_string};
 use hir_lowering;
-#[allow(unused_imports)]
-use mir::pretty;
 use parser::lexer::parse_all_token;
 use parser::{self, parse_block_from_source_str, parse_items};
 use resolve::resolve_items;
@@ -158,10 +156,8 @@ fn print_mir(input: &str) -> Result<()> {
         mir
     };
 
-    for item in mir {
-        let mir_string = pretty::ir_to_string(&item);
-        println!("{}", mir_string);
-    }
+    let mir_print = mir::pp::print_bodies(&map, mir.as_slice());
+    println!("{}", mir_print);
     Ok(())
 }
 
