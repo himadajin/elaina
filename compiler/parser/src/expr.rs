@@ -102,6 +102,11 @@ impl Parser<'_> {
             return Ok(Expr::Continue { expr });
         }
 
+        if self.consume_keyword(Kw::Return) {
+            let expr = self.parse_expr_opt()?.map(|e| Box::new(e));
+            return Ok(Expr::Return { expr: expr });
+        }
+
         self.parse_operator_expr()
     }
 
@@ -531,6 +536,15 @@ mod tests {
         test_expr!(
             "continue 0;",
             Expr::continue_(Some(Expr::lit_from_value_dummy(0)))
+        );
+    }
+
+    #[test]
+    fn test_parse_expr_return() {
+        test_expr!("return", Expr::return_(None));
+        test_expr!(
+            "return 0;",
+            Expr::return_(Some(Expr::lit_from_value_dummy(0)))
         );
     }
 

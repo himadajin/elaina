@@ -103,6 +103,12 @@ impl Expr {
         }
     }
 
+    pub fn return_(expr: Option<Expr>) -> Expr {
+        Expr::Return {
+            expr: expr.map(|e| Box::new(e)),
+        }
+    }
+
     pub fn block(block: Block) -> Expr {
         Expr::Block {
             block: Box::new(block),
