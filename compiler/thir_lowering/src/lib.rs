@@ -185,6 +185,7 @@ impl<'a> LoweringCtx<'a> {
             thir::Expr::Continue { expr, ty } => {
                 self.lower_expr_continue(entry_block, expr, ty.clone())
             }
+            thir::Expr::Return { .. } => todo!(),
             thir::Expr::Block { block } => {
                 let id = self.builder.push_block(None);
                 self.builder

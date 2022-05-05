@@ -113,6 +113,9 @@ pub enum Expr {
     /// Continue expression: `continue;`, `continue expr;`
     Continue { expr: Option<Box<Expr>>, ty: ty::Ty },
 
+    /// Return expression: `return`, `return expr`
+    Return { expr: Option<Box<Expr>>, ty: ty::Ty },
+
     /// A block expression: `{ <stmts> }`, `{ <stmts>; <expr>}`
     Block { block: Box<Block> },
 
@@ -140,6 +143,7 @@ impl Expr {
             Expr::Loop { block } => block.ty.clone(),
             Expr::Break { ty, .. } => ty.clone(),
             Expr::Continue { ty, .. } => ty.clone(),
+            Expr::Return { ty, .. } => ty.clone(),
             Expr::Block { block } => block.ty.clone(),
             Expr::Assign { ty, .. } => ty.clone(),
             Expr::Lit { ty, .. } => ty.clone(),
@@ -150,7 +154,7 @@ impl Expr {
     pub fn precedence(&self) -> i8 {
         use Expr::*;
         match self {
-            Break { .. } | Continue { .. } => PREC_JUMP,
+            Break { .. } | Continue { .. } | Return { .. } => PREC_JUMP,
             Binary { op, .. } => op.precedence() as i8,
             Assign { .. } => PREC_ASSIGN,
             Unary { .. } => PREC_PREFIX,

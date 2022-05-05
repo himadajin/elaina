@@ -44,6 +44,13 @@ impl THIRPrinter<'_> {
                     this.print_expr(expr);
                 }
             }
+            Expr::Return { expr, .. } => {
+                this.print("return");
+                if let Some(expr) = expr {
+                    this.space();
+                    this.print_expr(expr);
+                }
+            }
             Expr::Block { block } => {
                 this.print_block(block);
             }
