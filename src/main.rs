@@ -80,7 +80,7 @@ fn read_file(filename: &str) -> Result<String> {
 
 fn run_input(input: &str) -> Result<()> {
     let (ast, map) = parse_items(input)?;
-    let res = resolve_items(ast.as_slice());
+    let res = resolve_items(ast.as_slice())?;
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
     let thir = hir_lowering::TyCtx::new().lower_items(&hir);
     let mir = {
@@ -120,7 +120,7 @@ fn print_ast(input: &str) -> Result<()> {
 
 fn print_hir(input: &str) -> Result<()> {
     let (ast, map) = parse_items(input)?;
-    let res = resolve_items(ast.as_slice());
+    let res = resolve_items(ast.as_slice())?;
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
 
     let hir_print = hir::pp::print_items(&map, hir.as_slice());
@@ -130,7 +130,7 @@ fn print_hir(input: &str) -> Result<()> {
 
 fn print_thir(input: &str) -> Result<()> {
     let (ast, map) = parse_items(input)?;
-    let res = resolve_items(ast.as_slice());
+    let res = resolve_items(ast.as_slice())?;
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
     let thir = hir_lowering::TyCtx::new().lower_items(&hir);
 
@@ -141,7 +141,7 @@ fn print_thir(input: &str) -> Result<()> {
 
 fn print_mir(input: &str) -> Result<()> {
     let (ast, map) = parse_items(input)?;
-    let res = resolve_items(ast.as_slice());
+    let res = resolve_items(ast.as_slice())?;
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
     let thir = hir_lowering::TyCtx::new().lower_items(&hir);
     let mir = {
@@ -168,7 +168,7 @@ fn print_mir(input: &str) -> Result<()> {
 
 fn print_llvm(input: &str) -> Result<()> {
     let (ast, map) = parse_items(input)?;
-    let res = resolve_items(ast.as_slice());
+    let res = resolve_items(ast.as_slice())?;
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
     let thir = hir_lowering::TyCtx::new().lower_items(&hir);
     let mir = {

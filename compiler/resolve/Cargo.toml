@@ -9,3 +9,6 @@ edition = "2021"
 ast = { path = "../ast" }
 span = { path = "../span" }
 ty = { path = "../ty" }
+
+anyhow = "1.0.56"
+thiserror = "1.0.30"

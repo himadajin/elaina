@@ -294,7 +294,7 @@ mod tests {
 
         let res = {
             let mut resolver = ASTNameResolver::new();
-            resolver.resolve_block(&ast);
+            resolver.resolve_block(&ast).unwrap();
             resolver.finish()
         };
         let mut ctx = LoweringCtx::new(res);
@@ -325,7 +325,7 @@ mod tests {
 
             let res = {
                 let mut resolver = ASTNameResolver::new();
-                resolver.resolve_expr(&ast);
+                resolver.resolve_expr(&ast).unwrap();
                 resolver.finish()
             };
             let mut ctx = LoweringCtx::new(res);
@@ -339,7 +339,7 @@ mod tests {
 
             let res = {
                 let mut resolver = ASTNameResolver::new();
-                resolver.resolve_expr(&ast);
+                resolver.resolve_expr(&ast).unwrap();
                 resolver.finish()
             };
             let mut ctx = LoweringCtx::new(res);
@@ -353,7 +353,7 @@ mod tests {
 
             let res = {
                 let mut resolver = ASTNameResolver::new();
-                resolver.resolve_expr(&ast);
+                resolver.resolve_expr(&ast).unwrap();
                 resolver.finish()
             };
             let mut ctx = LoweringCtx::new(res);
@@ -367,7 +367,7 @@ mod tests {
 
             let res = {
                 let mut resolver = ASTNameResolver::new();
-                resolver.resolve_expr(&ast);
+                resolver.resolve_expr(&ast).unwrap();
                 resolver.finish()
             };
             let mut ctx = LoweringCtx::new(res);
@@ -387,7 +387,7 @@ mod tests {
         };
         let res = {
             let mut resolver = ASTNameResolver::new();
-            resolver.resolve_expr(&ast);
+            resolver.resolve_expr(&ast).unwrap();
             resolver.finish()
         };
         let mut ctx = LoweringCtx::new(res);
