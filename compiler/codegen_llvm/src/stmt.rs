@@ -84,7 +84,7 @@ impl<'ctx, 'a> CodegenContext<'ctx, 'a> {
             }
             Statement::Println(operand) => {
                 let operand_val = self.int_value(operand);
-                self.call_buildint_print(&module, function, operand_val);
+                self.call_buildin_print(&module, function, operand_val);
             }
         }
     }

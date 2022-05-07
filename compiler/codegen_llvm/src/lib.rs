@@ -236,7 +236,7 @@ impl<'ctx, 'a> CodegenContext<'ctx, 'a> {
         module.add_function("printf", printf_type, None);
     }
 
-    pub(crate) fn call_buildint_print(
+    pub(crate) fn call_buildin_print(
         &self,
         module: &Module<'ctx>,
         function: FunctionValue,
