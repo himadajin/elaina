@@ -69,7 +69,7 @@ impl Block {
     pub fn new(terminator: Option<Terminator>) -> Self {
         Block {
             stmts: Vec::new(),
-            terminator: terminator,
+            terminator,
         }
     }
 }
@@ -106,7 +106,7 @@ pub struct LocalDecl {
 
 impl LocalDecl {
     pub fn new(name: Option<String>, ty: ty::Ty) -> Self {
-        LocalDecl { name: name, ty: ty }
+        LocalDecl { name, ty }
     }
 }
 
