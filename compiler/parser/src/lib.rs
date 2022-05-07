@@ -20,10 +20,7 @@ struct TokenCursor<'a> {
 
 impl<'a> TokenCursor<'a> {
     fn new(tokens: &'a Vec<Token>) -> Self {
-        TokenCursor {
-            tokens: tokens,
-            cursor: 0,
-        }
+        TokenCursor { tokens, cursor: 0 }
     }
 
     fn next(&mut self) -> Option<Token> {
@@ -53,9 +50,9 @@ impl<'a> Parser<'a> {
         let token = cursor.next().unwrap();
 
         Self {
-            token: token,
+            token,
             symbol_map: &tokens.map,
-            cursor: cursor,
+            cursor,
         }
     }
 

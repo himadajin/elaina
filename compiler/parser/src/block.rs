@@ -13,7 +13,7 @@ impl Parser<'_> {
             stmts.push(stmt);
         }
 
-        Ok(Block { stmts: stmts })
+        Ok(Block { stmts })
     }
 }
 

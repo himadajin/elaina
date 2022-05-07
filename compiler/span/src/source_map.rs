@@ -6,7 +6,7 @@ pub struct SourceMap {
 
 impl SourceMap {
     pub fn new(file: SourceFile) -> Self {
-        Self { file: file }
+        Self { file }
     }
 
     pub fn span_to_string(&self, sp: Span) -> String {

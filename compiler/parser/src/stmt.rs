@@ -36,11 +36,7 @@ impl Parser<'_> {
         let init = self.parse_expr()?;
         self.expect(&TokenKind::Semi)?;
 
-        let local = Stmt::Local {
-            ident: ident,
-            ty: ty,
-            init: init,
-        };
+        let local = Stmt::Local { ident, ty, init };
 
         Ok(local)
     }

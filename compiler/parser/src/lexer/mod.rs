@@ -15,7 +15,7 @@ pub fn parse_all_token(src: &str) -> Tokens {
     }
 
     Tokens {
-        tokens: tokens,
+        tokens,
         map: lexer.finish(),
     }
 }
@@ -30,7 +30,7 @@ impl<'a> Lexer<'a> {
     pub fn new(src: &'a str) -> Self {
         Self {
             pos: 0,
-            src: src,
+            src,
             symbol_map: SymbolMap::new(),
         }
     }
@@ -176,7 +176,6 @@ mod tests {
         test_lexer!(":", vec![Token::new(TokenKind::Colon, Span::new(0, 1))]);
         test_lexer!(".", vec![Token::new(TokenKind::Dot, Span::new(0, 1))]);
         test_lexer!(",", vec![Token::new(TokenKind::Comma, Span::new(0, 1))]);
-
     }
 
     #[test]

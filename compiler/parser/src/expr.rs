@@ -25,7 +25,7 @@ impl Parser<'_> {
                     self.bump();
                     return Some(Lit {
                         kind: LitKind::Int(value),
-                        span: span,
+                        span,
                     });
                 }
             }
@@ -42,7 +42,7 @@ impl Parser<'_> {
                 self.bump();
                 return Some(Lit {
                     kind: LitKind::Bool(true),
-                    span: span,
+                    span,
                 });
             }
 
@@ -52,7 +52,7 @@ impl Parser<'_> {
                 self.bump();
                 return Some(Lit {
                     kind: LitKind::Bool(false),
-                    span: span,
+                    span,
                 });
             }
         }
@@ -104,7 +104,7 @@ impl Parser<'_> {
 
         if self.consume_keyword(Kw::Return) {
             let expr = self.parse_expr_opt()?.map(|e| Box::new(e));
-            return Ok(Expr::Return { expr: expr });
+            return Ok(Expr::Return { expr });
         }
 
         self.parse_operator_expr()
