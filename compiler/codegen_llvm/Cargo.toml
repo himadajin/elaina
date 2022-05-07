@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 mir = { path = "../mir" }
+span = { path = "../span" }
 ty = { path = "../ty" }
 
 anyhow = "1.0.56"

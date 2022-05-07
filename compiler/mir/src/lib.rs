@@ -16,8 +16,8 @@ use typed_index_collections::TiVec;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Body {
-    def: DefId,
-    name: Symbol,
+    pub def: DefId,
+    pub name: Symbol,
 
     pub blocks: TiVec<BlockId, Block>,
 

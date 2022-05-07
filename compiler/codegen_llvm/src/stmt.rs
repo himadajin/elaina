@@ -4,7 +4,7 @@ use inkwell::{module::Module, values::*, IntPredicate};
 
 use crate::CodegenContext;
 
-impl<'ctx> CodegenContext<'ctx> {
+impl<'ctx, 'a> CodegenContext<'ctx, 'a> {
     pub(crate) fn codegen_stmt(
         &self,
         module: &Module<'ctx>,

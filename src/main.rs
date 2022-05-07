@@ -2,7 +2,6 @@ use anyhow::Result;
 use clap::{ArgEnum, Parser, Subcommand};
 
 use ast_lowering;
-#[allow(unused_imports)]
 use codegen_llvm::{codegen_and_execute, codegen_string};
 use hir_lowering;
 use parser::lexer::parse_all_token;
@@ -79,23 +78,29 @@ fn read_file(filename: &str) -> Result<String> {
     Ok(input)
 }
 
-fn run_input(_input: &str) -> Result<()> {
-    todo!()
-    // let (ast, map) = parse_block_from_source_str(input)?;
-    // let res = {
-    //     let mut resolver = ASTNameResolver::new();
-    //     resolver.resolve_block(&ast);
-    //     resolver.finish()
-    // };
-    // let hir = ast_lowering::LoweringCtx::new(res).lower_block(&ast);
-    // let thir = hir_lowering::TyCtx::new().lower_block(&hir);
-    // let mir = {
-    //     let mut ctx = thir_lowering::LoweringCtx::new(&map);
-    //     ctx.lower_main_block(&thir);
-    //     ctx.build()
-    // };
-    // let _ = codegen_and_execute(mir)?;
-    // Ok(())
+fn run_input(input: &str) -> Result<()> {
+    let (ast, map) = parse_items(input)?;
+    let res = resolve_items(ast.as_slice());
+    let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
+    let thir = hir_lowering::TyCtx::new().lower_items(&hir);
+    let mir = {
+        let mut mir = Vec::new();
+        for item in thir {
+            let mir_item = match item.kind {
+                thir::ItemKind::Fn(fun) => {
+                    let mut ctx =
+                        thir_lowering::LoweringCtx::new(fun.header.def, fun.header.name, &map);
+                    ctx.lower_item_fun(&fun.header.inputs, &fun.header.output, &fun.body);
+                    ctx.build()
+                }
+            };
+            mir.push(mir_item);
+        }
+
+        mir
+    };
+    codegen_and_execute(mir.as_slice(), &map)?;
+    Ok(())
 }
 
 fn print_token(input: &str) -> Result<()> {
@@ -166,7 +171,7 @@ fn print_llvm(input: &str) -> Result<()> {
     let res = resolve_items(ast.as_slice());
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
     let thir = hir_lowering::TyCtx::new().lower_items(&hir);
-    let _mir = {
+    let mir = {
         let mut mir = Vec::new();
         for item in thir {
             let mir_item = match item.kind {
@@ -182,6 +187,7 @@ fn print_llvm(input: &str) -> Result<()> {
 
         mir
     };
-    // print!("{}", codegen_string(mir));
+    let llvm_ir = codegen_string(mir.as_slice(), &map);
+    println!("{}", llvm_ir);
     Ok(())
 }

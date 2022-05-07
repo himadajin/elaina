@@ -4,7 +4,7 @@ use inkwell::values::*;
 
 use crate::CodegenContext;
 
-impl CodegenContext<'_> {
+impl<'ctx, 'a> CodegenContext<'ctx, 'a> {
     pub(crate) fn int_value(&self, operand: &Operand) -> IntValue {
         match operand {
             Operand::Copy(place) => {
@@ -29,7 +29,41 @@ impl CodegenContext<'_> {
         }
     }
 
+    pub(crate) fn as_function_value(&self, operand: &Operand) -> FunctionValue {
+        match operand {
+            Operand::Copy(_) => todo!(),
+            Operand::Constant(constant) => match &constant.ty.kind {
+                ty::TyKind::FnDef(def) => self.functions[def],
+                _ => panic!(
+                    "Tried to convert constant of {:?} to function value",
+                    &constant
+                ),
+            },
+        }
+    }
+
     pub(crate) fn pointer_value(&self, place: &Place) -> PointerValue {
         self.local_values[place.local]
+    }
+
+    pub(crate) fn basic_metadata_value(&self, operand: &Operand) -> BasicMetadataValueEnum {
+        match operand {
+            Operand::Copy(place) => {
+                let ptr = self.pointer_value(place);
+                self.builder.build_load(ptr, "").into()
+            }
+            Operand::Constant(constant) => match &constant.ty.kind {
+                ty::TyKind::Bool | ty::TyKind::Int(_) => {
+                    let ConstValue::Scalar(scalar) = &constant.literal;
+                    self.scalar_int(scalar).into()
+                }
+                ty::TyKind::Tuple(_) | ty::TyKind::FnDef(_) | ty::TyKind::Never => {
+                    panic!(
+                        "Tried to convert type of {:?} to BasicMetadataValueEnum",
+                        &constant.ty
+                    );
+                }
+            },
+        }
     }
 }
