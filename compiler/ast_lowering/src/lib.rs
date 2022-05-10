@@ -218,7 +218,7 @@ impl LoweringCtx {
         match lit.kind {
             LitKind::Int(value) => {
                 let lit = {
-                    let lit_int = hir::LitInt { value: value };
+                    let lit_int = hir::LitInt { value };
 
                     hir::Lit::Int(lit_int)
                 };
@@ -226,7 +226,7 @@ impl LoweringCtx {
                 hir::Expr::Lit { lit }
             }
             LitKind::Bool(value) => {
-                let lit = hir::Lit::Bool { value: value };
+                let lit = hir::Lit::Bool { value };
 
                 hir::Expr::Lit { lit }
             }
@@ -265,7 +265,7 @@ mod tests {
     let x: i32 = 0;
     x
 }";
-        let (ast, _) = parse_block_from_source_str(src).unwrap();
+        let (ast, symbol_map) = parse_block_from_source_str(src).unwrap();
         let hir = hir::Block {
             stmts: vec![hir::Stmt::Local {
                 pat: hir::Pat {
@@ -293,7 +293,7 @@ mod tests {
         };
 
         let res = {
-            let mut resolver = ASTNameResolver::new();
+            let mut resolver = ASTNameResolver::new(&symbol_map);
             resolver.resolve_block(&ast).unwrap();
             resolver.finish()
         };
@@ -307,7 +307,6 @@ mod tests {
             let lit = hir::Lit::Int(hir::LitInt { value });
             hir::Expr::Lit { lit }
         };
-
         let hir_bin = |op, lhs, rhs| {
             let lhs = hir_lit_int(lhs);
             let rhs = hir_lit_int(rhs);
@@ -320,11 +319,10 @@ mod tests {
 
         {
             let src = r"1 + 2";
-            let ast = parse_expr_from_source_str(src).unwrap().0;
+            let (ast, symbol_map) = parse_expr_from_source_str(src).unwrap();
             let hir = hir_bin(BinOp::Add, 1, 2);
-
             let res = {
-                let mut resolver = ASTNameResolver::new();
+                let mut resolver = ASTNameResolver::new(&symbol_map);
                 resolver.resolve_expr(&ast).unwrap();
                 resolver.finish()
             };
@@ -334,11 +332,10 @@ mod tests {
 
         {
             let src = r"1 - 2";
-            let ast = parse_expr_from_source_str(src).unwrap().0;
+            let (ast, symbol_map) = parse_expr_from_source_str(src).unwrap();
             let hir = hir_bin(BinOp::Sub, 1, 2);
-
             let res = {
-                let mut resolver = ASTNameResolver::new();
+                let mut resolver = ASTNameResolver::new(&symbol_map);
                 resolver.resolve_expr(&ast).unwrap();
                 resolver.finish()
             };
@@ -348,11 +345,10 @@ mod tests {
 
         {
             let src = r"1 * 2";
-            let ast = parse_expr_from_source_str(src).unwrap().0;
+            let (ast, symbol_map) = parse_expr_from_source_str(src).unwrap();
             let hir = hir_bin(BinOp::Mul, 1, 2);
-
             let res = {
-                let mut resolver = ASTNameResolver::new();
+                let mut resolver = ASTNameResolver::new(&symbol_map);
                 resolver.resolve_expr(&ast).unwrap();
                 resolver.finish()
             };
@@ -362,11 +358,11 @@ mod tests {
 
         {
             let src = r"1 / 2";
-            let ast = parse_expr_from_source_str(src).unwrap().0;
+            let (ast, symbol_map) = parse_expr_from_source_str(src).unwrap();
             let hir = hir_bin(BinOp::Div, 1, 2);
 
             let res = {
-                let mut resolver = ASTNameResolver::new();
+                let mut resolver = ASTNameResolver::new(&symbol_map);
                 resolver.resolve_expr(&ast).unwrap();
                 resolver.finish()
             };
@@ -378,7 +374,7 @@ mod tests {
     #[test]
     fn lower_expr_unary() {
         let src = r"-1";
-        let ast = parse_expr_from_source_str(src).unwrap().0;
+        let (ast, symbol_map) = parse_expr_from_source_str(src).unwrap();
         let hir = hir::Expr::Unary {
             op: UnOp::Neg,
             expr: Box::new(hir::Expr::Lit {
@@ -386,7 +382,7 @@ mod tests {
             }),
         };
         let res = {
-            let mut resolver = ASTNameResolver::new();
+            let mut resolver = ASTNameResolver::new(&symbol_map);
             resolver.resolve_expr(&ast).unwrap();
             resolver.finish()
         };

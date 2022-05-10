@@ -1,9 +1,9 @@
-use span::{Span, Symbol};
+use span::Span;
 
 use thiserror::Error;
 
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum NameResolutionError {
-    #[error("error: unresolved name {name:?} at ({span:?}) was used")]
-    UnresolvedNameUsed { name: Symbol, span: Span },
+    #[error("unresolved name `{name}` at ({span:?}) was used")]
+    UnresolvedNameUsed { name: String, span: Span },
 }

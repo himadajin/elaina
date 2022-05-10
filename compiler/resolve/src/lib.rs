@@ -9,22 +9,27 @@ use span::*;
 use anyhow::Result;
 use std::collections::HashMap;
 
-pub fn resolve_items(items: &[Item]) -> Result<HashMap<Span, Res>> {
-    let mut resolver = ASTNameResolver::new();
+pub fn resolve_items<'a>(
+    items: &[Item],
+    symbol_map: &'a SymbolMap<'a>,
+) -> Result<HashMap<Span, Res>> {
+    let mut resolver = ASTNameResolver::new(symbol_map);
     resolver.resolve_items(items)?;
 
     Ok(resolver.finish())
 }
 
-pub struct ASTNameResolver {
+pub struct ASTNameResolver<'a> {
+    symbol_map: &'a SymbolMap<'a>,
     def_gen: DefIdGen,
     resolution: HashMap<Span, Res>,
     scopes: Vec<HashMap<Symbol, Res>>,
 }
 
-impl ASTNameResolver {
-    pub fn new() -> ASTNameResolver {
+impl<'a> ASTNameResolver<'a> {
+    pub fn new(symbol_map: &'a SymbolMap<'a>) -> ASTNameResolver {
         ASTNameResolver {
+            symbol_map,
             def_gen: DefIdGen::new(),
             resolution: HashMap::new(),
             scopes: Vec::new(),
@@ -45,7 +50,10 @@ impl ASTNameResolver {
     pub fn new_use(&mut self, name: Symbol, span: Span) -> Result<()> {
         let res = match self.lookup(&name) {
             Some(res) => res,
-            None => return Err(NameResolutionError::UnresolvedNameUsed { name, span }.into()),
+            None => {
+                let name = self.symbol_map.get(name).to_string();
+                return Err(NameResolutionError::UnresolvedNameUsed { name, span }.into());
+            }
         };
 
         self.resolution.insert(span, res);
@@ -74,7 +82,7 @@ impl ASTNameResolver {
     }
 }
 
-impl ASTNameResolver {
+impl<'a> ASTNameResolver<'a> {
     pub fn resolve_ident(&mut self, ident: &Ident) -> Result<()> {
         self.new_use(ident.name, ident.span)?;
 
