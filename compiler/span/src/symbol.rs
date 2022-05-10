@@ -84,10 +84,6 @@ impl<'a> SymbolMap<'a> {
     pub fn get<S: Into<Symbol>>(&self, symbol: S) -> &'a str {
         self.strings[symbol.into()]
     }
-
-    pub const fn is_keyword(&self, symbol: Symbol) -> bool {
-        symbol.0 < KEYWORDS.len()
-    }
 }
 
 macro_rules! keywords {
@@ -187,8 +183,8 @@ mod tests {
         let mut m = SymbolMap::new();
         let foo = m.insert("foo");
 
-        assert!(m.is_keyword(Kw::Let.as_symbol()));
-        assert!(m.is_keyword(Kw::Println.as_symbol()));
-        assert!(!m.is_keyword(foo));
+        assert!(Kw::Let.as_symbol().is_keyword());
+        assert!(Kw::Println.as_symbol().is_keyword());
+        assert!(!foo.is_keyword());
     }
 }
