@@ -40,11 +40,18 @@ impl<'a> ASTNameResolver<'a> {
         self.resolution
     }
 
-    pub fn new_decl(&mut self, name: Symbol, span: Span, kind: ResKind) {
+    pub fn new_decl(&mut self, name: Symbol, span: Span, kind: ResKind) -> Result<()> {
+        if self.exist_current_scope(&name) {
+            let name = self.symbol_map.get(name).to_string();
+            return Err(NameResolutionError::DefinedMultipleTimes { name }.into());
+        }
+
         let def = self.def_gen.new_id();
         let res = Res { def, kind };
         self.scopes.last_mut().unwrap().insert(name, res);
         self.resolution.insert(span, res);
+
+        Ok(())
     }
 
     pub fn new_use(&mut self, name: Symbol, span: Span) -> Result<()> {
@@ -69,6 +76,11 @@ impl<'a> ASTNameResolver<'a> {
         }
 
         None
+    }
+
+    fn exist_current_scope(&self, name: &Symbol) -> bool {
+        let current_scope = self.scopes.last().unwrap();
+        current_scope.contains_key(name)
     }
 
     pub fn with_new_scope<F>(&mut self, f: F) -> Result<()>
@@ -146,7 +158,7 @@ impl<'a> ASTNameResolver<'a> {
         match stmt {
             Stmt::Local { ident, init, .. } => {
                 self.resolve_expr(init)?;
-                self.new_decl(ident.name, ident.span, ResKind::Local);
+                self.new_decl(ident.name, ident.span, ResKind::Local)?;
             }
             Stmt::Expr(expr) | Stmt::Semi(expr) | Stmt::Println(expr) => self.resolve_expr(expr)?,
         }
@@ -164,7 +176,7 @@ impl<'a> ASTNameResolver<'a> {
                     ItemKind::Fn(_) => ResKind::Fn,
                 };
 
-                this.new_decl(ident.name, ident.span, kind);
+                this.new_decl(ident.name, ident.span, kind)?;
             }
 
             this.with_new_scope(|this| {
@@ -182,7 +194,7 @@ impl<'a> ASTNameResolver<'a> {
         self.with_new_scope(|this| {
             for param in &fun.inputs {
                 let ident = &param.ident;
-                this.new_decl(ident.name, ident.span, ResKind::Local);
+                this.new_decl(ident.name, ident.span, ResKind::Local)?;
             }
 
             this.resolve_block(&fun.body)
