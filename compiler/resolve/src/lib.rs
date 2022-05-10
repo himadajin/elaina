@@ -40,7 +40,7 @@ impl<'a> ASTNameResolver<'a> {
         self.resolution
     }
 
-    pub fn new_decl(&mut self, name: Symbol, span: Span, kind: ResKind) -> Result<()> {
+    pub fn insert_define(&mut self, name: Symbol, span: Span, kind: ResKind) -> Result<()> {
         if self.exist_current_scope(&name) {
             let name = self.symbol_map.get(name).to_string();
             return Err(NameResolutionError::DefinedMultipleTimes { name }.into());
@@ -54,7 +54,7 @@ impl<'a> ASTNameResolver<'a> {
         Ok(())
     }
 
-    pub fn new_use(&mut self, name: Symbol, span: Span) -> Result<()> {
+    pub fn insert_use(&mut self, name: Symbol, span: Span) -> Result<()> {
         let res = match self.lookup(&name) {
             Some(res) => res,
             None => {
@@ -96,7 +96,7 @@ impl<'a> ASTNameResolver<'a> {
 
 impl<'a> ASTNameResolver<'a> {
     pub fn resolve_ident(&mut self, ident: &Ident) -> Result<()> {
-        self.new_use(ident.name, ident.span)?;
+        self.insert_use(ident.name, ident.span)?;
 
         Ok(())
     }
@@ -158,7 +158,7 @@ impl<'a> ASTNameResolver<'a> {
         match stmt {
             Stmt::Local { ident, init, .. } => {
                 self.resolve_expr(init)?;
-                self.new_decl(ident.name, ident.span, ResKind::Local)?;
+                self.insert_define(ident.name, ident.span, ResKind::Local)?;
             }
             Stmt::Expr(expr) | Stmt::Semi(expr) | Stmt::Println(expr) => self.resolve_expr(expr)?,
         }
@@ -176,7 +176,7 @@ impl<'a> ASTNameResolver<'a> {
                     ItemKind::Fn(_) => ResKind::Fn,
                 };
 
-                this.new_decl(ident.name, ident.span, kind)?;
+                this.insert_define(ident.name, ident.span, kind)?;
             }
 
             this.with_new_scope(|this| {
@@ -194,7 +194,7 @@ impl<'a> ASTNameResolver<'a> {
         self.with_new_scope(|this| {
             for param in &fun.inputs {
                 let ident = &param.ident;
-                this.new_decl(ident.name, ident.span, ResKind::Local)?;
+                this.insert_define(ident.name, ident.span, ResKind::Local)?;
             }
 
             this.resolve_block(&fun.body)
