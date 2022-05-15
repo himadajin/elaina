@@ -457,19 +457,20 @@ impl<'ast, 'tcx> LoweringCtx<'ast, 'tcx> {
         _ty: ty::Ty<'tcx>,
     ) -> (BlockId, Operand<'tcx>) {
         // Expression in break expression is still ignored for now.
-        let (block, operand) = match expr {
-            Some(expr) => self.lower_expr(entry_block, expr.as_ref()),
-            None => (
-                entry_block,
-                Operand::Constant(Box::new(self.tcx.common_consts.unit)),
-            ),
-        };
+        let block = match expr {
+            Some(expr) => {
+                let (block, operand) = self.lower_expr(entry_block, expr.as_ref());
 
-        // assign value of expression.
-        let place = self.break_resolver.get_place();
-        let rvalue = RValue::Use(operand);
-        let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
-        self.builder.push_stmt(block, stmt);
+                // assign value of expression.
+                let place = self.break_resolver.get_place();
+                let rvalue = RValue::Use(operand);
+                let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
+                self.builder.push_stmt(block, stmt);
+
+                block
+            }
+            None => entry_block,
+        };
 
         self.break_resolver.push_late_resolved(block);
 
@@ -486,19 +487,20 @@ impl<'ast, 'tcx> LoweringCtx<'ast, 'tcx> {
         _ty: ty::Ty<'tcx>,
     ) -> (BlockId, Operand<'tcx>) {
         // Expression in break expression is still ignored for now.
-        let (block, operand) = match expr {
-            Some(expr) => self.lower_expr(entry_block, expr.as_ref()),
-            None => (
-                entry_block,
-                Operand::Constant(Box::new(self.tcx.common_consts.unit)),
-            ),
-        };
+        let block = match expr {
+            Some(expr) => {
+                let (block, operand) = self.lower_expr(entry_block, expr.as_ref());
 
-        // assign value of expression.
-        let place = self.continue_resolver.get_place();
-        let rvalue = RValue::Use(operand);
-        let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
-        self.builder.push_stmt(block, stmt);
+                // assign value of expression.
+                let place = self.continue_resolver.get_place();
+                let rvalue = RValue::Use(operand);
+                let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
+                self.builder.push_stmt(block, stmt);
+
+                block
+            }
+            None => entry_block,
+        };
 
         self.continue_resolver.push_late_resolved(block);
 
@@ -514,21 +516,22 @@ impl<'ast, 'tcx> LoweringCtx<'ast, 'tcx> {
         expr: &Option<Box<thir::Expr<'tcx>>>,
     ) -> (BlockId, Operand<'tcx>) {
         // Expression in return expression is still ignored for now.
-        let (block, operand) = match expr {
-            Some(expr) => self.lower_expr(entry_block, expr.as_ref()),
-            None => (
-                entry_block,
-                Operand::Constant(Box::new(self.tcx.common_consts.unit)),
-            ),
+        let block = match expr {
+            Some(expr) => {
+                let (block, operand) = self.lower_expr(entry_block, expr.as_ref());
+
+                // assign value of expression.
+                let place = self.return_resolver.get_place();
+                let rvalue = RValue::Use(operand);
+                let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
+                self.builder.push_stmt(block, stmt);
+
+                block
+            }
+            None => entry_block,
         };
 
         self.return_resolver.push_late_resolved(block);
-
-        // assign value of expression.
-        let place = self.return_resolver.get_place();
-        let rvalue = RValue::Use(operand);
-        let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
-        self.builder.push_stmt(block, stmt);
 
         (
             block,
