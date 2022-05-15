@@ -6,15 +6,15 @@ use ty::{res::*, *};
 
 use std::collections::HashMap;
 
-pub struct TyCtx {
+pub struct HIRLoweringCtx {
     map: HashMap<DefId, Ty>,
     types: CommonTypes,
     fn_headers: HashMap<DefId, FnHeader>,
 }
 
-impl TyCtx {
-    pub fn new() -> TyCtx {
-        TyCtx {
+impl HIRLoweringCtx {
+    pub fn new() -> HIRLoweringCtx {
+        HIRLoweringCtx {
             map: HashMap::new(),
             types: CommonTypes::new(),
             fn_headers: HashMap::new(),
@@ -38,7 +38,7 @@ impl TyCtx {
     }
 }
 
-impl TyCtx {
+impl HIRLoweringCtx {
     pub fn lower_ty(&self, ty: &ast::Ty) -> Ty {
         match &ty.kind {
             ast::TyKind::Path(path) => self
@@ -97,7 +97,7 @@ impl TyCtx {
     }
 }
 
-impl TyCtx {
+impl HIRLoweringCtx {
     pub fn lower_lit(&self, lit: &hir::Lit) -> Expr {
         let ty = self.types.from_lit(lit);
 
