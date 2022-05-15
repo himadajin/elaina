@@ -7,6 +7,7 @@ use res::DefId;
 use span::{Symbol, SymbolMap};
 
 use std::collections::HashMap;
+use std::fmt;
 use std::ops::Deref;
 use typed_arena::Arena;
 
@@ -134,6 +135,24 @@ impl<'tcx> Ty<'tcx> {
     #[inline]
     pub fn kind(&self) -> &'tcx TyKind<'tcx> {
         self.0
+    }
+}
+
+impl fmt::Display for Ty<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.kind() {
+            TyKind::Bool => write!(f, "bool"),
+            TyKind::Int(int_ty) => match int_ty {
+                IntTy::I32 => write!(f, "i32"),
+            },
+            TyKind::Tuple(fields) if fields.is_empty() => write!(f, "()"),
+            TyKind::Tuple(fields) => fields
+                .iter()
+                .fold(&mut f.debug_tuple(""), |f, field| f.field(field))
+                .finish(),
+            TyKind::FnDef(def) => write!(f, "FnDef(%{})", def),
+            TyKind::Never => write!(f, "!"),
+        }
     }
 }
 

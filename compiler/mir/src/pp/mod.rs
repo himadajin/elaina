@@ -83,6 +83,9 @@ impl<'a> MIRPrinter<'a> {
             this.lines(item.local_decls.iter_enumerated(), |this, (id, _)| {
                 this.print_space("let");
                 this.print_local_id(id);
+                this.colon();
+                this.space();
+                this.print(item.local_decls[id].ty);
                 this.semi();
             });
             this.newline();
