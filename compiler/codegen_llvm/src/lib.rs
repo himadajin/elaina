@@ -41,23 +41,6 @@ impl<'ctx, 'a> CodegenContext<'ctx, 'a> {
         }
     }
 
-    pub fn codegen_old(mut self, body: Body) -> Module<'ctx> {
-        let module = self.context.create_module("main");
-
-        // declare main function
-        let i32_type = self.context.i32_type();
-        let main_type = i32_type.fn_type(&[], false);
-
-        // declare print function
-        self.declare_builtin_print(&module);
-
-        // add main function
-        let function = module.add_function("main", main_type, None);
-        self.codegen_body(&module, function, &body);
-
-        module
-    }
-
     pub fn codegen(&mut self, bodies: &[Body]) -> Module<'ctx> {
         let module = self.context.create_module("main");
 
@@ -317,60 +300,4 @@ pub fn codegen_and_execute(bodies: &[Body], symbol_map: &SymbolMap) -> anyhow::R
 
         Ok(result)
     })
-}
-
-pub fn codegen_string_old(body: Body, symbol_map: &SymbolMap) -> String {
-    let context = Context::create();
-    let module = CodegenContext::new(&context, symbol_map).codegen_old(body);
-    module.print_to_string().to_string()
-}
-
-pub fn codegen_and_execute_old(body: Body, symbol_map: &SymbolMap) -> anyhow::Result<i32> {
-    let context = Context::create();
-    let module = CodegenContext::new(&context, symbol_map).codegen_old(body);
-    let engine = module
-        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
-        .map_err(|err| anyhow::anyhow!("{}", err))?;
-
-    let main_fn = unsafe { engine.get_function::<unsafe extern "C" fn() -> i32>("main") }?;
-    let result = unsafe { main_fn.call() };
-
-    Ok(result)
-}
-
-/// codegen LLVM IR that print `a`
-pub fn codegen_ir() -> String {
-    let context = Context::create();
-    let module = context.create_module("main");
-    let builder = context.create_builder();
-    let i32_type = context.i32_type();
-
-    // decalre i32 @putchar(i32)
-    let putchar_type = i32_type.fn_type(&[i32_type.into()], false);
-    module.add_function("putchar", putchar_type, None);
-
-    // define i32 @main()
-    let main_type = i32_type.fn_type(&[], false);
-    let function = module.add_function("main", main_type, None);
-    let basic_block = context.append_basic_block(function, "entry");
-    builder.position_at_end(basic_block);
-
-    // call i32 @putchar (i32 72)
-    let func_putchar = module.get_function("putchar").unwrap();
-    builder.build_call(
-        func_putchar,
-        &[i32_type.const_int('a'.into(), false).into()],
-        "putchar",
-    );
-    builder.build_call(
-        func_putchar,
-        &[i32_type.const_int('\n'.into(), false).into()],
-        "putchar",
-    );
-
-    // ret i32 0
-    builder.build_return(Some(&i32_type.const_int(0, false)));
-
-    // output LLVM-IR
-    module.print_to_string().to_string()
 }
