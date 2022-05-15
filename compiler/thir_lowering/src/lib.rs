@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 #[allow(dead_code)]
 struct ControlFlowResolver {
-    scopes: Vec<(Place, Vec<BlockId>)>,
+    scopes: Vec<(Option<Place>, Vec<BlockId>)>,
 }
 
 #[allow(dead_code)]
@@ -21,7 +21,7 @@ impl ControlFlowResolver {
         Self { scopes: Vec::new() }
     }
 
-    fn push_scope(&mut self, place: Place) {
+    fn push_scope(&mut self, place: Option<Place>) {
         self.scopes.push((place, Vec::new()));
     }
 
@@ -44,7 +44,7 @@ impl ControlFlowResolver {
             .push(block);
     }
 
-    fn get_place(&mut self) -> Place {
+    fn get_place(&mut self) -> Option<Place> {
         self.scopes
             .last()
             .unwrap_or_else(|| {
@@ -90,9 +90,10 @@ impl<'ast, 'tcx> LoweringCtx<'ast, 'tcx> {
         output: &ty::Ty<'tcx>,
         body: &thir::Block<'tcx>,
     ) {
-        let return_place = self
-            .builder
-            .push_local_decl(LocalDecl::new(Some("ret".into()), output.clone()));
+        let return_place = Some(
+            self.builder
+                .push_local_decl(LocalDecl::new(Some("ret".into()), output.clone())),
+        );
         for input in inputs {
             let name = self.tcx.symbol_map.get(input.name).to_string();
             let ty = input.ty.clone();
@@ -417,13 +418,24 @@ impl<'ast, 'tcx> LoweringCtx<'ast, 'tcx> {
         self.builder
             .set_terminator(entry_block, Terminator::Goto { target: loop_head });
 
-        let break_place = self
-            .builder
-            .push_local_decl(LocalDecl::new(Some("break".into()), block.ty.clone()));
+        let break_place = if block.ty.is_zst() {
+            None
+        } else {
+            Some(
+                self.builder
+                    .push_local_decl(LocalDecl::new(Some("break".into()), block.ty.clone())),
+            )
+        };
+
         self.break_resolver.push_scope(break_place.clone());
-        let continue_place = self
-            .builder
-            .push_local_decl(LocalDecl::new(Some("continue".into()), block.ty.clone()));
+        let continue_place = if block.ty.is_zst() {
+            None
+        } else {
+            Some(
+                self.builder
+                    .push_local_decl(LocalDecl::new(Some("continue".into()), block.ty.clone())),
+            )
+        };
         self.continue_resolver.push_scope(continue_place);
 
         let (loop_tail, _) = self.lower_block(loop_head, &block.stmts, &block.expr);
@@ -447,7 +459,11 @@ impl<'ast, 'tcx> LoweringCtx<'ast, 'tcx> {
                 .set_terminator(target, Terminator::Goto { target: end_head });
         }
 
-        (end_head, Operand::Copy(break_place))
+        let operand = match break_place {
+            Some(place) => Operand::Copy(place),
+            None => Operand::Constant(Box::new(self.tcx.common_consts.unit)),
+        };
+        (end_head, operand)
     }
 
     fn lower_expr_break(
@@ -462,7 +478,10 @@ impl<'ast, 'tcx> LoweringCtx<'ast, 'tcx> {
                 let (block, operand) = self.lower_expr(entry_block, expr.as_ref());
 
                 // assign value of expression.
-                let place = self.break_resolver.get_place();
+                let place = self
+                    .break_resolver
+                    .get_place()
+                    .unwrap_or_else(|| panic!("Cannot found place of break value."));
                 let rvalue = RValue::Use(operand);
                 let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
                 self.builder.push_stmt(block, stmt);
@@ -492,7 +511,10 @@ impl<'ast, 'tcx> LoweringCtx<'ast, 'tcx> {
                 let (block, operand) = self.lower_expr(entry_block, expr.as_ref());
 
                 // assign value of expression.
-                let place = self.continue_resolver.get_place();
+                let place = self
+                    .continue_resolver
+                    .get_place()
+                    .unwrap_or_else(|| panic!("Cannot found place of continue value."));
                 let rvalue = RValue::Use(operand);
                 let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
                 self.builder.push_stmt(block, stmt);
@@ -521,7 +543,10 @@ impl<'ast, 'tcx> LoweringCtx<'ast, 'tcx> {
                 let (block, operand) = self.lower_expr(entry_block, expr.as_ref());
 
                 // assign value of expression.
-                let place = self.return_resolver.get_place();
+                let place = self
+                    .return_resolver
+                    .get_place()
+                    .unwrap_or_else(|| panic!("Cannot found place of return value."));
                 let rvalue = RValue::Use(operand);
                 let stmt = Statement::Assign(Box::new((place.clone(), rvalue)));
                 self.builder.push_stmt(block, stmt);
