@@ -1,4 +1,5 @@
-use mir::{constant::*, stmt::*, *};
+use mir::{stmt::*, *};
+use ty;
 
 use inkwell::values::*;
 
@@ -14,13 +15,13 @@ impl<'ctx, 'a> CodegenContext<'ctx, 'a> {
             Operand::Constant(constant) => {
                 let _ty = constant.ty.clone();
                 match &constant.literal {
-                    ConstValue::Scalar(s) => self.scalar_int(s),
+                    ty::ConstLit::Scalar(s) => self.scalar_int(s),
                 }
             }
         }
     }
 
-    pub(crate) fn scalar_int(&self, scalar: &ScalarInt) -> IntValue {
+    pub(crate) fn scalar_int(&self, scalar: &ty::ScalarInt) -> IntValue {
         let data = scalar.data as u64;
         match scalar.size {
             1 => self.context.bool_type().const_int(data, false),
@@ -32,7 +33,7 @@ impl<'ctx, 'a> CodegenContext<'ctx, 'a> {
     pub(crate) fn as_function_value(&self, operand: &Operand) -> FunctionValue {
         match operand {
             Operand::Copy(_) => todo!(),
-            Operand::Constant(constant) => match &constant.ty.kind {
+            Operand::Constant(constant) => match &constant.ty.kind() {
                 ty::TyKind::FnDef(def) => self.functions[def],
                 _ => panic!(
                     "Tried to convert constant of {:?} to function value",
@@ -52,9 +53,9 @@ impl<'ctx, 'a> CodegenContext<'ctx, 'a> {
                 let ptr = self.pointer_value(place);
                 self.builder.build_load(ptr, "").into()
             }
-            Operand::Constant(constant) => match &constant.ty.kind {
+            Operand::Constant(constant) => match &constant.ty.kind() {
                 ty::TyKind::Bool | ty::TyKind::Int(_) => {
-                    let ConstValue::Scalar(scalar) = &constant.literal;
+                    let ty::ConstLit::Scalar(scalar) = &constant.literal;
                     self.scalar_int(scalar).into()
                 }
                 ty::TyKind::Tuple(_) | ty::TyKind::FnDef(_) | ty::TyKind::Never => {

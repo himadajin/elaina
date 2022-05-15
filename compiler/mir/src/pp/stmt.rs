@@ -3,7 +3,7 @@ use crate::*;
 use super::MIRPrinter;
 
 use printer::*;
-use ty::TyKind;
+use ty::*;
 
 impl MIRPrinter<'_> {
     pub fn print_stmt(&mut self, stmt: &Statement) {
@@ -54,12 +54,12 @@ impl MIRPrinter<'_> {
                 self.print_place(place.clone());
             }
             Operand::Constant(constant) => {
-                if let TyKind::FnDef(def) = constant.ty.kind {
+                if let TyKind::FnDef(def) = constant.ty.kind() {
                     self.print("%");
                     self.print(def);
                 } else {
                     match &constant.literal {
-                        constant::ConstValue::Scalar(scalar) => {
+                        ConstLit::Scalar(scalar) => {
                             self.print(scalar.data);
                         }
                     }

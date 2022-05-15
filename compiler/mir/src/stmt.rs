@@ -1,22 +1,22 @@
-use crate::constant::*;
 use crate::Place;
-
 use std::fmt;
 
+use ty::Const;
+
 #[derive(Debug, PartialEq, Clone)]
-pub enum Statement {
-    Assign(Box<(Place, RValue)>),
+pub enum Statement<'tcx> {
+    Assign(Box<(Place, RValue<'tcx>)>),
 
     /// Function call of `println`
     /// This statement is temporary, used until the function call is implemented
-    Println(Operand),
+    Println(Operand<'tcx>),
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum RValue {
-    Use(Operand),
-    BinaryOp(BinOp, Box<(Operand, Operand)>),
-    UnaryOp(UnOp, Box<Operand>),
+pub enum RValue<'tcx> {
+    Use(Operand<'tcx>),
+    BinaryOp(BinOp, Box<(Operand<'tcx>, Operand<'tcx>)>),
+    UnaryOp(UnOp, Box<Operand<'tcx>>),
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -64,7 +64,7 @@ impl fmt::Display for UnOp {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Operand {
+pub enum Operand<'tcx> {
     Copy(Place),
-    Constant(Box<Constant>),
+    Constant(Box<Const<'tcx>>),
 }

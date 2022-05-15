@@ -3,12 +3,12 @@ use span::Symbol;
 use ty::res::DefId;
 
 #[allow(dead_code)]
-pub(crate) struct MirBuilder {
-    body: Body,
+pub(crate) struct MirBuilder<'tcx> {
+    body: Body<'tcx>,
 }
 
 #[allow(dead_code)]
-impl MirBuilder {
+impl<'tcx> MirBuilder<'tcx> {
     pub(crate) fn new(def: DefId, name: Symbol) -> Self {
         Self {
             body: Body::new(def, name),
@@ -19,20 +19,20 @@ impl MirBuilder {
         self.body.arg_count = count;
     }
 
-    pub(crate) fn push_local_decl(&mut self, decl: LocalDecl) -> Place {
+    pub(crate) fn push_local_decl(&mut self, decl: LocalDecl<'tcx>) -> Place {
         let id = self.body.local_decls.push_and_get_key(decl);
         Place::new(id)
     }
 
-    pub(crate) fn build(self) -> Body {
+    pub(crate) fn build(self) -> Body<'tcx> {
         self.body
     }
 
-    pub(crate) fn push_block(&mut self, terminator: Option<Terminator>) -> BlockId {
+    pub(crate) fn push_block(&mut self, terminator: Option<Terminator<'tcx>>) -> BlockId {
         self.body.blocks.push_and_get_key(Block::new(terminator))
     }
 
-    pub(crate) fn set_terminator(&mut self, target: BlockId, terminator: Terminator) {
+    pub(crate) fn set_terminator(&mut self, target: BlockId, terminator: Terminator<'tcx>) {
         let block = self
             .body
             .blocks
@@ -41,7 +41,7 @@ impl MirBuilder {
         block.terminator = Some(terminator);
     }
 
-    pub(crate) fn push_stmt(&mut self, target: BlockId, stmt: Statement) {
+    pub(crate) fn push_stmt(&mut self, target: BlockId, stmt: Statement<'tcx>) {
         self.body.blocks[target].stmts.push(stmt);
     }
 }

@@ -202,19 +202,19 @@ impl<'ctx, 'a> CodegenContext<'ctx, 'a> {
     }
 
     fn basic_type(&self, ty: &Ty) -> impl BasicType<'ctx> {
-        match &ty.kind {
+        match ty.kind() {
             TyKind::Bool => self.context.bool_type(),
             TyKind::Int(int_ty) => match int_ty {
                 IntTy::I32 => self.context.i32_type(),
             },
             _ => {
-                panic!("error: tried to convert {:?} to BasicType", &ty.kind)
+                panic!("error: tried to convert {:?} to BasicType", &ty.kind())
             }
         }
     }
 
     fn basic_meta_data_type(&self, ty: &Ty) -> BasicMetadataTypeEnum<'ctx> {
-        match &ty.kind {
+        match ty.kind() {
             TyKind::Bool => self.context.bool_type().into(),
             TyKind::Int(int_ty) => match int_ty {
                 IntTy::I32 => self.context.i32_type().into(),
@@ -222,7 +222,7 @@ impl<'ctx, 'a> CodegenContext<'ctx, 'a> {
             _ => {
                 panic!(
                     "error: tried to convert {:?} to BasicMetadataTypeEnum",
-                    &ty.kind
+                    ty.kind()
                 )
             }
         }

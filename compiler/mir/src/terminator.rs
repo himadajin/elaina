@@ -2,20 +2,20 @@ use crate::{BlockId, Operand, Place};
 use ty;
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Terminator {
+pub enum Terminator<'tcx> {
     Goto {
         target: BlockId,
     },
 
     SwitchInt {
-        discr: Operand,
-        switch_ty: ty::Ty,
+        discr: Operand<'tcx>,
+        switch_ty: ty::Ty<'tcx>,
         targets: SwitchTargets,
     },
 
     Call {
-        fun: Operand,
-        args: Vec<Operand>,
+        fun: Operand<'tcx>,
+        args: Vec<Operand<'tcx>>,
         destination: Option<(Place, BlockId)>,
     },
 

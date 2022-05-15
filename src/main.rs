@@ -9,6 +9,7 @@ use parser::{self, parse_block_from_source_str, parse_items};
 use resolve::resolve_items;
 #[allow(unused_imports)]
 use thir_lowering;
+use ty::{TyArena, TyCtx};
 
 use std::{
     fs::File,
@@ -82,14 +83,20 @@ fn run_input(input: &str) -> Result<()> {
     let (ast, map) = parse_items(input)?;
     let res = resolve_items(ast.as_slice(), &map)?;
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
-    let thir = hir_lowering::HIRLoweringCtx::new().lower_items(&hir);
+
+    let arena = TyArena::new();
+    let context = TyCtx::new(&arena, &map);
+
+    let mut hir_lowering_ctx = hir_lowering::HIRLoweringCtx::new(context);
+    let thir = hir_lowering_ctx.lower_items(&hir);
+    let context = hir_lowering_ctx.finish();
     let mir = {
         let mut mir = Vec::new();
         for item in thir {
             let mir_item = match item.kind {
                 thir::ItemKind::Fn(fun) => {
                     let mut ctx =
-                        thir_lowering::LoweringCtx::new(fun.header.def, fun.header.name, &map);
+                        thir_lowering::LoweringCtx::new(fun.header.def, fun.header.name, &context);
                     ctx.lower_item_fun(&fun.header.inputs, &fun.header.output, &fun.body);
                     ctx.build()
                 }
@@ -132,10 +139,15 @@ fn print_thir(input: &str) -> Result<()> {
     let (ast, map) = parse_items(input)?;
     let res = resolve_items(ast.as_slice(), &map)?;
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
-    let thir = hir_lowering::HIRLoweringCtx::new().lower_items(&hir);
+
+    let arena = TyArena::new();
+    let context = TyCtx::new(&arena, &map);
+
+    let thir = hir_lowering::HIRLoweringCtx::new(context).lower_items(&hir);
 
     let thir_print = thir::pp::print_items(&map, thir.as_slice());
     println!("{}", thir_print);
+
     Ok(())
 }
 
@@ -143,14 +155,24 @@ fn print_mir(input: &str) -> Result<()> {
     let (ast, map) = parse_items(input)?;
     let res = resolve_items(ast.as_slice(), &map)?;
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
-    let thir = hir_lowering::HIRLoweringCtx::new().lower_items(&hir);
+
+    let arena = TyArena::new();
+    let context = TyCtx::new(&arena, &map);
+
+    let mut hir_lowering_ctx = hir_lowering::HIRLoweringCtx::new(context);
+    let thir = hir_lowering_ctx.lower_items(&hir);
+    let mut context = hir_lowering_ctx.finish();
+
     let mir = {
         let mut mir = Vec::new();
         for item in thir {
             let mir_item = match item.kind {
                 thir::ItemKind::Fn(fun) => {
-                    let mut ctx =
-                        thir_lowering::LoweringCtx::new(fun.header.def, fun.header.name, &map);
+                    let mut ctx = thir_lowering::LoweringCtx::new(
+                        fun.header.def,
+                        fun.header.name,
+                        &mut context,
+                    );
                     ctx.lower_item_fun(&fun.header.inputs, &fun.header.output, &fun.body);
                     ctx.build()
                 }
@@ -163,6 +185,7 @@ fn print_mir(input: &str) -> Result<()> {
 
     let mir_print = mir::pp::print_bodies(&map, mir.as_slice());
     println!("{}", mir_print);
+
     Ok(())
 }
 
@@ -170,14 +193,21 @@ fn print_llvm(input: &str) -> Result<()> {
     let (ast, map) = parse_items(input)?;
     let res = resolve_items(ast.as_slice(), &map)?;
     let hir = ast_lowering::LoweringCtx::new(res).lower_items(ast.as_slice());
-    let thir = hir_lowering::HIRLoweringCtx::new().lower_items(&hir);
+
+    let arena = TyArena::new();
+    let context = TyCtx::new(&arena, &map);
+
+    let mut hir_lowering_ctx = hir_lowering::HIRLoweringCtx::new(context);
+    let thir = hir_lowering_ctx.lower_items(&hir);
+    let context = hir_lowering_ctx.finish();
+
     let mir = {
         let mut mir = Vec::new();
         for item in thir {
             let mir_item = match item.kind {
                 thir::ItemKind::Fn(fun) => {
                     let mut ctx =
-                        thir_lowering::LoweringCtx::new(fun.header.def, fun.header.name, &map);
+                        thir_lowering::LoweringCtx::new(fun.header.def, fun.header.name, &context);
                     ctx.lower_item_fun(&fun.header.inputs, &fun.header.output, &fun.body);
                     ctx.build()
                 }
@@ -189,5 +219,6 @@ fn print_llvm(input: &str) -> Result<()> {
     };
     let llvm_ir = codegen_string(mir.as_slice(), &map);
     println!("{}", llvm_ir);
+
     Ok(())
 }

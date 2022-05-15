@@ -8,133 +8,146 @@ use ty::{
 };
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Item {
+pub struct Item<'tcx> {
     pub res: Res,
     pub name: Symbol,
-    pub kind: ItemKind,
+    pub kind: ItemKind<'tcx>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum ItemKind {
-    Fn(Box<Fn>),
+pub enum ItemKind<'tcx> {
+    Fn(Box<Fn<'tcx>>),
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Fn {
-    pub header: FnHeader,
-    pub body: Block,
+pub struct Fn<'tcx> {
+    pub header: FnHeader<'tcx>,
+    pub body: Block<'tcx>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct FnHeader {
+pub struct FnHeader<'tcx> {
     pub def: DefId,
     pub name: Symbol,
 
-    pub inputs: Vec<Param>,
-    pub output: ty::Ty,
+    pub inputs: Vec<Param<'tcx>>,
+    pub output: ty::Ty<'tcx>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Param {
+pub struct Param<'tcx> {
     pub res: Res,
     pub name: Symbol,
-    pub ty: ty::Ty,
+    pub ty: ty::Ty<'tcx>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Pat {
-    pub ty: ty::Ty,
-    pub kind: Box<PatKind>,
+pub struct Pat<'tcx> {
+    pub ty: ty::Ty<'tcx>,
+    pub kind: Box<PatKind<'tcx>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum PatKind {
-    Binding { res: Res, name: Symbol, ty: ty::Ty },
+pub enum PatKind<'tcx> {
+    Binding {
+        res: Res,
+        name: Symbol,
+        ty: ty::Ty<'tcx>,
+    },
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Block {
-    pub stmts: Vec<Stmt>,
-    pub expr: Option<Expr>,
-    pub ty: ty::Ty,
+pub struct Block<'tcx> {
+    pub stmts: Vec<Stmt<'tcx>>,
+    pub expr: Option<Expr<'tcx>>,
+    pub ty: ty::Ty<'tcx>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Stmt {
+pub enum Stmt<'tcx> {
     /// Local represents a let statement: `let <ident> = <expr>;`
-    Local { pat: Pat, init: Expr },
+    Local { pat: Pat<'tcx>, init: Expr<'tcx> },
 
     /// Expression statement: `1 + 1`
-    Expr(Expr),
+    Expr(Expr<'tcx>),
 
     /// Function call of `println`
     /// This statement is temporary, used until the function call is implemented
-    Println(Expr),
+    Println(Expr<'tcx>),
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Expr {
+pub enum Expr<'tcx> {
     /// A function call: `foo(a, b)`
     Call {
-        fun: Box<Expr>,
-        args: Vec<Expr>,
-        ty: ty::Ty,
+        fun: Box<Expr<'tcx>>,
+        args: Vec<Expr<'tcx>>,
+        ty: ty::Ty<'tcx>,
     },
 
     /// A binary operation: `a + b`, "a * b"
     Binary {
         op: BinOp,
-        lhs: Box<Expr>,
-        rhs: Box<Expr>,
-        ty: ty::Ty,
+        lhs: Box<Expr<'tcx>>,
+        rhs: Box<Expr<'tcx>>,
+        ty: ty::Ty<'tcx>,
     },
 
     /// A unary operation: `-x`
     Unary {
         op: UnOp,
-        expr: Box<Expr>,
-        ty: ty::Ty,
+        expr: Box<Expr<'tcx>>,
+        ty: ty::Ty<'tcx>,
     },
 
     /// An if expression: `if <cond> { <then> } else { <else_opt> }`
     If {
-        cond: Box<Expr>,
-        then: Box<Block>,
-        else_opt: Option<Box<Expr>>,
-        ty: ty::Ty,
+        cond: Box<Expr<'tcx>>,
+        then: Box<Block<'tcx>>,
+        else_opt: Option<Box<Expr<'tcx>>>,
+        ty: ty::Ty<'tcx>,
     },
 
     /// Loop expression: `loop { block }`
-    Loop { block: Box<Block> },
+    Loop { block: Box<Block<'tcx>> },
 
     /// Break expression: `break;`, `break expr;`
-    Break { expr: Option<Box<Expr>>, ty: ty::Ty },
+    Break {
+        expr: Option<Box<Expr<'tcx>>>,
+        ty: ty::Ty<'tcx>,
+    },
 
     /// Continue expression: `continue;`, `continue expr;`
-    Continue { expr: Option<Box<Expr>>, ty: ty::Ty },
+    Continue {
+        expr: Option<Box<Expr<'tcx>>>,
+        ty: ty::Ty<'tcx>,
+    },
 
     /// Return expression: `return`, `return expr`
-    Return { expr: Option<Box<Expr>>, ty: ty::Ty },
+    Return {
+        expr: Option<Box<Expr<'tcx>>>,
+        ty: ty::Ty<'tcx>,
+    },
 
     /// A block expression: `{ <stmts> }`, `{ <stmts>; <expr>}`
-    Block { block: Box<Block> },
+    Block { block: Box<Block<'tcx>> },
 
     /// Assign expression: `a = 1`
     Assign {
-        lhs: Box<Expr>,
-        rhs: Box<Expr>,
-        ty: ty::Ty,
+        lhs: Box<Expr<'tcx>>,
+        rhs: Box<Expr<'tcx>>,
+        ty: ty::Ty<'tcx>,
     },
 
     /// A literal in place of an expression: `1`
-    Lit { lit: Lit, ty: ty::Ty },
+    Lit { lit: Lit, ty: ty::Ty<'tcx> },
 
     /// Local variable.
-    VarRef { res: Res, ty: ty::Ty },
+    VarRef { res: Res, ty: ty::Ty<'tcx> },
 }
 
-impl Expr {
-    pub fn ty(&self) -> ty::Ty {
+impl<'tcx> Expr<'tcx> {
+    pub fn ty(&self) -> ty::Ty<'tcx> {
         match self {
             Expr::Call { ty, .. } => ty.clone(),
             Expr::Binary { ty, .. } => ty.clone(),

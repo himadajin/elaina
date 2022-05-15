@@ -1,4 +1,3 @@
-pub mod constant;
 pub mod stmt;
 pub mod terminator;
 
@@ -15,18 +14,18 @@ use derive_more::{From, Into};
 use typed_index_collections::TiVec;
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Body {
+pub struct Body<'tcx> {
     pub def: DefId,
     pub name: Symbol,
 
-    pub blocks: TiVec<BlockId, Block>,
+    pub blocks: TiVec<BlockId, Block<'tcx>>,
 
     /// The first local is return value
-    pub local_decls: TiVec<LocalId, LocalDecl>,
+    pub local_decls: TiVec<LocalId, LocalDecl<'tcx>>,
     pub arg_count: usize,
 }
 
-impl Body {
+impl<'tcx> Body<'tcx> {
     pub fn new(def: DefId, name: Symbol) -> Self {
         Body {
             def,
@@ -60,13 +59,13 @@ impl BlockId {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Block {
-    pub stmts: Vec<Statement>,
-    pub terminator: Option<Terminator>,
+pub struct Block<'tcx> {
+    pub stmts: Vec<Statement<'tcx>>,
+    pub terminator: Option<Terminator<'tcx>>,
 }
 
-impl Block {
-    pub fn new(terminator: Option<Terminator>) -> Self {
+impl<'tcx> Block<'tcx> {
+    pub fn new(terminator: Option<Terminator<'tcx>>) -> Block<'tcx> {
         Block {
             stmts: Vec::new(),
             terminator,
@@ -99,18 +98,18 @@ impl LocalId {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct LocalDecl {
+pub struct LocalDecl<'tcx> {
     pub name: Option<String>,
-    pub ty: ty::Ty,
+    pub ty: ty::Ty<'tcx>,
 }
 
-impl LocalDecl {
-    pub fn new(name: Option<String>, ty: ty::Ty) -> Self {
+impl<'tcx> LocalDecl<'tcx> {
+    pub fn new(name: Option<String>, ty: ty::Ty<'tcx>) -> LocalDecl<'tcx> {
         LocalDecl { name, ty }
     }
 }
 
-impl fmt::Display for LocalDecl {
+impl<'tcx> fmt::Display for LocalDecl<'tcx> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.name {
             Some(name) => write!(f, "{}", name),

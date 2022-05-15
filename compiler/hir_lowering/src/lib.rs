@@ -1,50 +1,50 @@
 use ast::op::{BinOp, UnOp};
-use hir::{self};
+use hir;
 use span::*;
 use thir::*;
 use ty::{res::*, *};
 
 use std::collections::HashMap;
 
-pub struct HIRLoweringCtx {
-    map: HashMap<DefId, Ty>,
-    types: CommonTypes,
-    fn_headers: HashMap<DefId, FnHeader>,
+pub struct HIRLoweringCtx<'ast, 'tcx> {
+    tcx: TyCtx<'ast, 'tcx>,
+    fn_headers: HashMap<DefId, FnHeader<'tcx>>,
 }
 
-impl HIRLoweringCtx {
-    pub fn new() -> HIRLoweringCtx {
+impl<'ast, 'tcx> HIRLoweringCtx<'ast, 'tcx> {
+    pub fn new(tcx: TyCtx<'ast, 'tcx>) -> HIRLoweringCtx<'ast, 'tcx> {
         HIRLoweringCtx {
-            map: HashMap::new(),
-            types: CommonTypes::new(),
+            tcx,
             fn_headers: HashMap::new(),
         }
     }
 
-    fn insert_ty(&mut self, def: DefId, ty: Ty) {
-        self.map.insert(def, ty);
+    pub fn finish(self) -> TyCtx<'ast, 'tcx> {
+        self.tcx
     }
 
-    fn get_ty(&self, def: DefId) -> Ty {
-        self.map
+    fn insert_ty(&mut self, def: DefId, ty: Ty<'tcx>) {
+        self.tcx.def_map.insert(def, ty);
+    }
+
+    fn get_ty(&self, def: DefId) -> Ty<'tcx> {
+        self.tcx
+            .def_map
             .get(&def)
             .unwrap_or_else(|| {
                 panic!(
                     "cannot found type of {:?}.\n defined types are:\n{:?}",
-                    def, self.map
+                    def, self.tcx.def_map
                 )
             })
             .clone()
     }
 }
 
-impl HIRLoweringCtx {
-    pub fn lower_ty(&self, ty: &ast::Ty) -> Ty {
+impl<'ast, 'tcx> HIRLoweringCtx<'ast, 'tcx> {
+    pub fn lower_ty(&self, ty: &ast::Ty) -> Ty<'tcx> {
         match &ty.kind {
-            ast::TyKind::Path(path) => self
-                .types
-                .from_name(path.ident.name)
-                .expect("The type with the given name does not exist"),
+            ast::TyKind::Path(path) => self.tcx.common_type_from_name(path.ident.name),
         }
     }
 
@@ -71,7 +71,7 @@ impl HIRLoweringCtx {
 
         let output = match hir_output {
             Some(ty) => self.lower_ty(ty),
-            None => self.types.unit.clone(),
+            None => self.tcx.common_types.unit,
         };
 
         let header = FnHeader {
@@ -84,22 +84,23 @@ impl HIRLoweringCtx {
         self.fn_headers.insert(fn_def, header);
 
         // insert function definition type.
-        let fn_def_ty = ty::Ty {
-            kind: TyKind::FnDef(fn_def),
-        };
-        self.map.insert(fn_def, fn_def_ty);
+        let fn_def_ty = self.tcx.intern(TyKind::FnDef(fn_def));
+        self.tcx.def_map.insert(fn_def, fn_def_ty);
 
         // insert function parameter type.
         for param in hir_inputs {
             let ty = self.lower_ty(&param.ty);
-            self.map.insert(param.res.def, ty);
+            self.tcx.def_map.insert(param.res.def, ty);
         }
     }
 }
 
-impl HIRLoweringCtx {
-    pub fn lower_lit(&self, lit: &hir::Lit) -> Expr {
-        let ty = self.types.from_lit(lit);
+impl<'ast, 'tcx> HIRLoweringCtx<'ast, 'tcx> {
+    pub fn lower_lit(&self, lit: &hir::Lit) -> Expr<'tcx> {
+        let ty = match &lit {
+            hir::Lit::Bool { .. } => self.tcx.common_types.bool,
+            hir::Lit::Int(_) => self.tcx.common_types.i32,
+        };
 
         let lit = match lit {
             hir::Lit::Bool { value } => Lit::Bool { value: *value },
@@ -109,12 +110,12 @@ impl HIRLoweringCtx {
         Expr::Lit { lit, ty }
     }
 
-    pub fn lower_pat(&self, pat: &hir::Pat, ty: ty::Ty) -> Pat {
+    pub fn lower_pat(&self, pat: &hir::Pat, ty: ty::Ty<'tcx>) -> Pat<'tcx> {
         let kind = match &pat.kind {
             hir::PatKind::Binding { res, name } => PatKind::Binding {
                 res: *res,
                 name: *name,
-                ty: ty.clone(),
+                ty,
             },
         };
         Pat {
@@ -123,13 +124,13 @@ impl HIRLoweringCtx {
         }
     }
 
-    pub fn lower_expr(&mut self, expr: &hir::Expr) -> Expr {
+    pub fn lower_expr(&mut self, expr: &hir::Expr) -> Expr<'tcx> {
         match expr {
             hir::Expr::Call { fun, args } => {
                 let fun = self.lower_expr(fun);
                 let args: Vec<Expr> = args.iter().map(|arg| self.lower_expr(arg)).collect();
 
-                match fun.ty().kind {
+                match *fun.ty() {
                     TyKind::FnDef(def) => {
                         let header = self.fn_headers.get(&def).unwrap();
                         if args.len() != header.inputs.len() {
@@ -148,7 +149,8 @@ impl HIRLoweringCtx {
                             if supplied != *taked {
                                 panic!(
                                     "mismatched types. expected {:?} found {:?}",
-                                    taked.kind, supplied.kind
+                                    taked.kind(),
+                                    supplied.kind()
                                 );
                             }
                         }
@@ -156,8 +158,8 @@ impl HIRLoweringCtx {
                     _ => panic!("Type of expression tried to call is not a function type."),
                 }
 
-                let ty = match &fun.ty().kind {
-                    TyKind::FnDef(def) => self.fn_headers.get(def).unwrap().output.clone(),
+                let ty = match *fun.ty() {
+                    TyKind::FnDef(def) => self.fn_headers.get(&def).unwrap().output.clone(),
                     _ => unreachable!(),
                 };
 
@@ -172,9 +174,9 @@ impl HIRLoweringCtx {
                 let rhs = Box::new(self.lower_expr(rhs));
 
                 let ty = match op {
-                    BinOp::Mul | BinOp::Div | BinOp::Add | BinOp::Sub => self.types.i32.clone(),
+                    BinOp::Mul | BinOp::Div | BinOp::Add | BinOp::Sub => self.tcx.common_types.i32,
                     BinOp::Eq | BinOp::Lt | BinOp::Le | BinOp::Ne | BinOp::Ge | BinOp::Gt => {
-                        self.types.bool.clone()
+                        self.tcx.common_types.bool
                     }
                 };
 
@@ -188,7 +190,7 @@ impl HIRLoweringCtx {
             hir::Expr::Unary { op, expr } => {
                 let expr = Box::new(self.lower_expr(expr));
                 let ty = match op {
-                    UnOp::Neg => self.types.i32.clone(),
+                    UnOp::Neg => self.tcx.common_types.i32,
                 };
                 Expr::Unary { op: *op, expr, ty }
             }
@@ -216,25 +218,19 @@ impl HIRLoweringCtx {
             }
             hir::Expr::Break { expr } => {
                 let expr = expr.as_ref().map(|e| Box::new(self.lower_expr(e)));
-                let ty = Ty {
-                    kind: TyKind::Never,
-                };
+                let ty = self.tcx.common_types.never;
 
                 Expr::Break { expr, ty }
             }
             hir::Expr::Continue { expr } => {
                 let expr = expr.as_ref().map(|e| Box::new(self.lower_expr(e)));
-                let ty = Ty {
-                    kind: TyKind::Never,
-                };
+                let ty = self.tcx.common_types.never;
 
                 Expr::Continue { expr, ty }
             }
             hir::Expr::Return { expr } => {
                 let expr = expr.as_ref().map(|e| Box::new(self.lower_expr(e)));
-                let ty = Ty {
-                    kind: TyKind::Never,
-                };
+                let ty = self.tcx.common_types.never;
 
                 Expr::Return { expr, ty }
             }
@@ -246,20 +242,20 @@ impl HIRLoweringCtx {
             hir::Expr::Assign { lhs, rhs } => {
                 let rhs = Box::new(self.lower_expr(rhs));
                 let lhs = Box::new(self.lower_expr(lhs));
-                let ty = self.types.unit.clone();
+                let ty = self.tcx.common_types.unit;
 
                 Expr::Assign { lhs, rhs, ty }
             }
             hir::Expr::Lit { lit } => self.lower_lit(lit),
             hir::Expr::Path { path } => {
                 let def = path.res.def;
-                let ty = self.get_ty(def).clone();
+                let ty = self.get_ty(def);
                 Expr::VarRef { res: path.res, ty }
             }
         }
     }
 
-    pub fn lower_stmt(&mut self, stmt: &hir::Stmt) -> Stmt {
+    pub fn lower_stmt(&mut self, stmt: &hir::Stmt) -> Stmt<'tcx> {
         match stmt {
             hir::Stmt::Local { pat, ty, init } => {
                 let init = self.lower_expr(init);
@@ -282,17 +278,17 @@ impl HIRLoweringCtx {
         }
     }
 
-    pub fn lower_block(&mut self, block: &hir::Block) -> Block {
+    pub fn lower_block(&mut self, block: &hir::Block) -> Block<'tcx> {
         let stmts = block.stmts.iter().map(|s| self.lower_stmt(s)).collect();
         let expr = block.expr.as_ref().map(|e| self.lower_expr(e));
         let ty = expr
             .as_ref()
-            .map_or_else(|| self.types.unit.clone(), |e| e.ty());
+            .map_or_else(|| self.tcx.common_types.unit, |e| e.ty());
 
         Block { stmts, expr, ty }
     }
 
-    pub fn lower_items(&mut self, items: &[hir::Item]) -> Vec<Item> {
+    pub fn lower_items(&mut self, items: &[hir::Item]) -> Vec<Item<'tcx>> {
         // lower item decl
         for item in items {
             self.lower_item_header(item);
@@ -309,7 +305,7 @@ impl HIRLoweringCtx {
         }
     }
 
-    pub fn lower_item(&mut self, item: &hir::Item) -> Item {
+    pub fn lower_item(&mut self, item: &hir::Item) -> Item<'tcx> {
         let kind = match &item.kind {
             hir::ItemKind::Fn(fun) => self.lower_fun(item.res.def, &fun.body),
         };
@@ -321,7 +317,7 @@ impl HIRLoweringCtx {
         }
     }
 
-    fn lower_fun(&mut self, def: DefId, body: &hir::Block) -> ItemKind {
+    fn lower_fun(&mut self, def: DefId, body: &hir::Block) -> ItemKind<'tcx> {
         let header = self
             .fn_headers
             .get(&def)
@@ -331,44 +327,5 @@ impl HIRLoweringCtx {
         let body = self.lower_block(body);
 
         ItemKind::Fn(Box::new(Fn { header, body }))
-    }
-}
-
-pub struct CommonTypes {
-    pub unit: Ty,
-    pub bool: Ty,
-    pub i32: Ty,
-    pub never: Ty,
-}
-
-impl CommonTypes {
-    fn new() -> CommonTypes {
-        use ty::TyKind::*;
-        CommonTypes {
-            unit: Ty {
-                kind: Tuple(Vec::new()),
-            },
-            bool: Ty { kind: Bool },
-            i32: Ty {
-                kind: Int(IntTy::I32),
-            },
-            never: Ty { kind: Never },
-        }
-    }
-
-    fn from_name(&self, name: Symbol) -> Option<Ty> {
-        if name == Kw::Bool.into() {
-            return Some(self.bool.clone());
-        } else if name == Kw::I32.into() {
-            return Some(self.i32.clone());
-        }
-        None
-    }
-
-    fn from_lit(&self, lit: &hir::Lit) -> Ty {
-        match lit {
-            hir::Lit::Bool { .. } => self.bool.clone(),
-            hir::Lit::Int(_) => self.i32.clone(),
-        }
     }
 }

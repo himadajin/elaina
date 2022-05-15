@@ -82,8 +82,8 @@ impl<'a> THIRPrinter<'a> {
         self.print(def);
     }
 
-    fn print_ty(&mut self, ty: &ty::Ty) {
-        match &ty.kind {
+    fn print_ty(&mut self, ty: &ty::TyKind) {
+        match ty {
             ty::TyKind::Bool => self.print("bool"),
             ty::TyKind::Int(ty) => match ty {
                 ty::IntTy::I32 => self.print("i32"),
