@@ -128,3 +128,28 @@ RUN git clone https://github.com/rui314/mold.git; \
 ```
 
 Since linking projects that use LLVM is time consuming, we recommend using mold(https://github.com/rui314/mold) as a linker.
+
+# How to use
+Currently, all operations are done through Cargo.
+
+## Print compiler output
+```Shell
+cargo run -- print [MODE] [FILENAME]
+```
+### Modes
+- `token`
+Print the output of the tokenizer.
+- `ast`
+Print AST(Abstract Syntax Tree). It is the output of the parser.
+- `hir`
+Print HIR(High-level Intermeditate Representation).
+It is a high-level abstraction intermeditate representation.
+- `thir`
+Print THIR(Typed High-level Intermeditate Representation).
+It is a typed HIR.
+- `mir`
+Print MIR(Middle-level Intermeditate Representation).
+It is middle-level abstraction intermeditate representation.
+All calculations and instructions are represented by SSA(Static Single Assignments), simplifying conversion to LLVM-IR.
+- `llvm`
+Print LLVM-IR.
