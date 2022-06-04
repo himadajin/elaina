@@ -319,3 +319,50 @@ fn main() -> i32 {
     return 0;
 }
 ```
+
+## Function
+```
+fn main() -> i32 {
+    let a: i32 = 5;
+    let b: i32 = 10;
+
+    println(min(a, b));
+    println(max(a, b));
+
+    return 0;
+}
+
+fn min(a: i32, b: i32) -> i32 {
+    return if a < b { a } else { b };
+}
+
+fn max(a: i32, b: i32) -> i32 {
+    return if a < b { b } else { a };
+}
+```
+```shell
+> cargo run -- run example.eln
+5
+10
+```
+A function can also be called recursively.
+The following code calculates the factorial.
+```
+fn main() -> i32 {
+    let n: i32 = 10;
+    let result: i32 = factorial(n);
+    println(result);
+}
+
+fn factorial(n: i32) -> i32 {
+    if n == 0 {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+```
+```shell
+> cargo run -- run example.eln
+3628800
+```
