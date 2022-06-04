@@ -164,3 +164,158 @@ It is middle-level abstraction intermeditate representation.
 All calculations and instructions are represented by SSA(Static Single Assignments), simplifying conversion to LLVM-IR.
 - `llvm`
 Print LLVM-IR.
+
+# Example programs
+## Print literals
+```
+fn main() -> i32 {
+   let n: i32 = 3;
+   println(n);
+
+   let b: bool = true;
+   println(b);
+
+   return 0;
+}
+```
+```shell
+> cargo run -- run example.eln
+3
+true
+```
+
+## Simple calculations
+```
+fn main() -> i32 {
+    {
+        let a: i32 = 1;
+        let b: i32 = 2;
+        let c: i32 = 3;
+        println(a + b == c);
+    }
+
+    {
+        let a: i32 = 5;
+        let b: i32 = 4;
+        let c: i32 = 1;
+        println(a - b == c);
+    }
+
+    {
+        let a: i32 = 3;
+        let b: i32 = 6;
+        let c: i32 = 18;
+        println(a * b == c);
+    }
+
+    {
+        let a: i32 = 20;
+        let b: i32 = 2;
+        let c: i32 = 10;
+        println(a / b == c);
+    }
+
+    return 0;
+}
+```
+
+```shell
+> cargo run -- run example.eln
+true
+true
+true
+true
+```
+## Conditional branch
+```
+fn main() -> i32 {
+   let a: i32 = 5;
+   let b: i32 = 6;
+
+   if a < b {
+       println(b);
+   } else {
+       println(a);
+   }
+   
+   return 0;
+}
+```
+```shell
+> cargo run -- run example.eln
+6
+```
+The larger of the variables a and b is output. Since this if expression is not a statement but returns a value by itself, the program can be rewritten as follows.
+```
+fn main() -> i32 {
+   let a: i32 = 5;
+   let b: i32 = 6;
+   let max: i32 = if a < b { b } else { a };
+   
+   println(max);
+
+   return 0;
+}
+```
+```shell
+> cargo run -- run example.eln
+6
+```
+
+## Scope of variable names
+```
+fn main() -> i32 {
+    let x: i32 = 1;
+    println(x);
+
+    {
+        let x: bool = false;
+        println(x);
+
+        {
+            let x: i32 = 10;
+            println(x);
+        }
+
+        println(x);
+    }
+
+    println(x);
+
+    return 0;
+}
+```
+```shell
+> cargo run -- run example.eln
+1
+false
+10
+false
+1
+```
+The block creates a new scope.
+Even if the declared variable name already exists in the outer scope, it can be used without being changed or erased.
+In other words, shadowing of variables is possible.
+This code is semantically identical to the following code.
+```
+fn main() -> i32 {
+    let x0: i32 = 1;
+    println(x0);
+
+    {
+        let x: bool = false;
+        println(x1);
+
+        {
+            let x2: i32 = 10;
+            println(x2);
+        }
+
+        println(x1);
+    }
+
+    println(x0);
+
+    return 0;
+}
+```
