@@ -132,9 +132,20 @@ Since linking projects that use LLVM is time consuming, we recommend using mold(
 # How to use
 Currently, all operations are done through Cargo.
 
+## Run a program using LLVM's JIT
+```Shell
+cargo run -- run [FILENAME].eln
+```
+
+## Generate executable file and run.
+```Shell
+cargo run -- print llvm [FILENAME].eln > tmp.ll && clang tmp.ll
+./a.out
+```
+Since elana does not yet have a toolchain, all processes after the generation of LLVM-IR must be run Clang on the command line.
 ## Print compiler output
 ```Shell
-cargo run -- print [MODE] [FILENAME]
+cargo run -- print [MODE] [FILENAME].eln
 ```
 ### Modes
 - `token`
