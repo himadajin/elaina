@@ -368,3 +368,36 @@ fn factorial(n: i32) -> i32 {
 > cargo run -- run example.eln
 3628800
 ```
+## Loop
+```
+fn main() -> i32 {
+   let n: i32 = 10;
+   let result: i32 = factorial(n);
+   println(result);
+
+   return 0;
+}
+
+fn factorial(n: i32) -> i32 {
+    let result: i32 = 1;
+    let i: i32 = n;
+
+    loop {
+        if i == 0 {
+            break;
+        }
+
+        result = result * i;
+
+        i = i - 1;
+    }
+
+    return result;
+}
+```
+```shell
+> cargo run -- run example.eln
+3628800
+```
+Loop expressions can be used to describe infinite loops.
+Also, the for and while expressions have not yet been implemented.
