@@ -352,6 +352,8 @@ fn main() -> i32 {
     let n: i32 = 10;
     let result: i32 = factorial(n);
     println(result);
+    
+    return 0;
 }
 
 fn factorial(n: i32) -> i32 {
